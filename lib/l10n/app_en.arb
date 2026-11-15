@@ -1,0 +1,15 @@
+{
+  "@@locale": "en",
+  "appTitle": "TaskMapFlow",
+  "@appTitle": {"description": "Application name"},
+  "homeTab": "Home",
+  "@homeTab": {"description": "Bottom nav: Home tab"},
+  "manageTab": "Manage",
+  "@manageTab": {"description": "Bottom nav: Manage tab"},
+  "profileTab": "Profile",
+  "@profileTab": {"description": "Bottom nav: Profile tab"},
+  "setupRequired": "Firebase Setup Required",
+  "@setupRequired": {"description": "Shown when Firebase is not configured"},
+  "setupRequiredBody": "No Firebase project is configured yet. Add GoogleService-Info.plist (iOS) after completing the steps in docs/firebase-setup.md.",
+  "@setupRequiredBody": {"description": "Setup instruction body text"}
+}

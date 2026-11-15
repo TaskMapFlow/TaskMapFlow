@@ -1,0 +1,15 @@
+{
+  "@@locale": "tr",
+  "appTitle": "TaskMapFlow",
+  "@appTitle": {"description": "Uygulama adı"},
+  "homeTab": "Ana Sayfa",
+  "@homeTab": {"description": "Alt gezinti: Ana Sayfa sekmesi"},
+  "manageTab": "Yönet",
+  "@manageTab": {"description": "Alt gezinti: Yönet sekmesi"},
+  "profileTab": "Profil",
+  "@profileTab": {"description": "Alt gezinti: Profil sekmesi"},
+  "setupRequired": "Firebase Kurulumu Gerekli",
+  "@setupRequired": {"description": "Firebase yapılandırılmadığında gösterilir"},
+  "setupRequiredBody": "Henüz Firebase projesi yapılandırılmamış. docs/firebase-setup.md adımlarını tamamladıktan sonra GoogleService-Info.plist (iOS) ekleyin.",
+  "@setupRequiredBody": {"description": "Kurulum talimatı gövde metni"}
+}
