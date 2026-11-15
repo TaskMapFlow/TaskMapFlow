@@ -44,13 +44,14 @@ Never import Firebase types in `domain`.
 
 ### State Management
 
-- Use Riverpod (`flutter_riverpod 2.x` + `riverpod_generator`).
+- Use Riverpod (`flutter_riverpod 2.x`).
 - No global mutable state outside of Riverpod providers.
 - Providers are defined in `presentation/` or `app/`; domain has no providers.
 
 ### Navigation
 
 - Use `go_router` with `StatefulShellRoute` for the 3-tab shell.
+- Tab order: Profile (left) / Home (center, default) / Manage (right).
 - Route definitions live in `lib/app/router.dart`.
 
 ### Error Handling
@@ -62,13 +63,15 @@ Never import Firebase types in `domain`.
 
 ### Localisation
 
-- All user-facing strings use Flutter gen-l10n ARB files.
+- All user-facing strings use Flutter gen-l10n ARB files (`l10n.yaml` configured).
 - ARB files: `lib/l10n/app_en.arb` (English), `lib/l10n/app_tr.arb` (Turkish).
+- Generated classes live in `lib/l10n/app_localizations.dart`.
 - No hardcoded user-facing strings in widget files.
 
 ### Code Quality
 
 - Run `dart format` and `flutter analyze --fatal-infos` before every commit.
+- Use explicit package imports (`package:task_map_flow/...`) in `lib/`.
 - No empty classes or placeholder files that make the project appear complete.
 - No fake data, success rates, or placeholder statistics visible in production
   builds.
@@ -79,26 +82,31 @@ Never import Firebase types in `domain`.
 ### Credentials & Secrets
 
 - NEVER commit `GoogleService-Info.plist`, `google-services.json`, signing
-  certificates (`.p12`, `.p8`, `.jks`), APNs keys, or any API key to this repo.
-- Firebase client config (plist/json) is excluded from git (`.gitignore`).
+  certificates (`.p12`, `.p8`, `.jks`), APNs keys, or any server secret to this repo.
+- Firebase client config (`GoogleService-Info.plist`, `google-services.json`) is
+  client configuration containing public project identifiers, NOT a server secret.
+  However, it is excluded from git (`.gitignore`) to keep environments decoupled.
   Real access control is enforced by Firestore/Storage Security Rules and
-  Firebase App Check — not by keeping the config secret.
+  Firebase App Check — not by keeping client identifiers secret.
 - Server secrets (Admin SDK service account keys) must NEVER appear in this repo.
 
 ### Firebase Configuration
 
-- Do not create placeholder Firebase project IDs or fake API keys in source.
-- If Firebase is not configured, the app shows a clear setup-required screen
-  (`_SetupRequiredScreen`).
+- Do not create fake API keys in source.
+- Firebase project was created by the user; pending step is confirming project ID
+  and adding the iOS app configuration.
+- If Firebase is not configured or initialization fails, the app safely displays
+  a localized setup-required screen (`_SetupRequiredScreen`).
 - Never silently fall back to a fake backend.
 
 ### Firestore & Storage Rules
 
-- Default posture: deny all. Rules are expanded incrementally with each feature.
-- Every rule relaxation must be accompanied by a targeted test in `test-rules/`.
+- Default posture: deny all (`allow read, write: if false;`).
+- Rules are expanded incrementally with each feature.
+- Every rule relaxation must be accompanied by targeted tests in `test-rules/`.
+- Firebase Storage rules CAN access Firestore via `firestore.get()` and `firestore.exists()`.
 - Queries must be aligned with the security model; rules are NOT query filters.
-- Performance notes (`users/{uid}/performance_notes/`) are readable only by the
-  owning user. This must NEVER be relaxed.
+- Performance notes (`users/{uid}/performance_notes/`) are strictly owner-only.
 - Private tasks (`isPrivate: true`) are readable only by the creator.
 - Owning a workspace does NOT grant access to other users' personal data.
 
@@ -106,7 +114,7 @@ Never import Firebase types in `domain`.
 
 - No fake users, tasks, or success statistics in production builds.
 - Test data is isolated to the Firebase Emulator environment.
-- Emulator tests use `--project taskmapflow-test` (a local dummy project ID).
+- Emulator tests use `--project demo-taskmapflow` (a local dummy project ID).
 
 ### App Check
 
@@ -120,14 +128,15 @@ Never import Firebase types in `domain`.
 1. `dart format lib/ test/`
 2. `flutter analyze --fatal-infos`
 3. `flutter test`
-4. If Firestore rules changed: run `npm test` in `test-rules/`
+4. If Firestore/Storage rules changed: run rules tests against emulator
 
 ### CI
 
 - GitHub Actions runs format, analyze, Flutter tests, and rules tests on every
   push and pull request to `main`.
-- CI does not use real Firebase credentials. Emulator-only.
-- Do not add production Firebase secrets to GitHub Actions secrets.
+- CI uses pinned Flutter version (`3.38.1`), pinned Firebase CLI (`14.26.0`),
+  Temurin JDK 21 for the emulator, and `npm ci` for dependencies.
+- CI does not use real Firebase credentials. Emulator-only (`demo-taskmapflow`).
 
 ### Branching
 
@@ -140,11 +149,11 @@ Never import Firebase types in `domain`.
 ### Phase 1 (current)
 
 - Flutter project skeleton with Clean Architecture structure
-- 3-tab app shell (Home, Manage, Profile) with intentionally empty screens
+- 3-tab app shell (Profile, Home, Manage) with Home selected by default
 - Firestore + Storage deny-all security rules (baseline)
-- Firebase Emulator security rules tests
+- Firebase Emulator security rules tests (Firestore & Storage, unauthed, anon, authed)
 - Architecture and security documentation (`docs/`)
-- GitHub Actions CI
+- GitHub Actions CI with lockfiles and pinned tools
 
 ### Not in Phase 1
 
@@ -156,12 +165,11 @@ Never import Firebase types in `domain`.
 - App Store submission
 - Cloud Functions (requires Blaze plan)
 
-## Open Decisions
+## Open Decisions & Technical Debt
 
-- Firebase project ID (to be chosen at project creation)
+- Real Firebase project ID to be confirmed and iOS app added
 - Bundle ID finalisation (candidate: `com.taskmapflow.app`)
 - Exact lesson/course feature set (not confirmed)
 - Moderation workflow for public content (not designed)
-- Performance note access beyond strict owner-only (no changes planned)
 - Blaze plan upgrade timeline
 - Shared workspace ownership transfer on account deletion

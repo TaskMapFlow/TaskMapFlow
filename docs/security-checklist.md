@@ -16,7 +16,7 @@
 | MASVS-NETWORK-2 | Certificate pinning | Not implemented; Firebase handles TLS | — | **Not planned** |
 | MASVS-PLATFORM-1 | WebView not used | No WebView in Phase 1 | Code review | **Applied** |
 | MASVS-PLATFORM-2 | IPC security | No IPC or URL scheme handlers in Phase 1 | Code review | **Applied** |
-| MASVS-CODE-1 | Security testing | Flutter analyze + Firestore rules emulator tests | CI output | **Partial – Phase 1** |
+| MASVS-CODE-1 | Security testing | Flutter analyze + Firestore/Storage rules emulator tests | CI output & local flutter analyze | **Partial – Phase 1** |
 | MASVS-CODE-2 | No debug symbols in release | `flutter build --release` strips debug info | Build config | **Planned** |
 | MASVS-CODE-4 | No debug code in release | Confirm `kDebugMode` guards before release | Build config review | **Planned** |
 | MASVS-RESILIENCE-1 | App integrity / tampering | Firebase App Check (DeviceCheck on iOS) | Phase 3 | **Planned** |
@@ -32,11 +32,10 @@ App Check attests that the app binary is legitimate and unmodified. It does NOT:
 
 App Check must be combined with Firebase Auth and Firestore rules — not used instead of them.
 
-**Security Rules tests (Phase 1):**
-- Unauthenticated client cannot read/write users, workspaces, tasks, notes, map nodes, performance notes
-- Authenticated non-member cannot read another workspace's content
-- Authenticated user can read/write their own profile
-- Authenticated user can read their own performance notes
-- Authenticated user cannot read another user's performance notes
+**Security Rules Test Kapsamı (Aşama 1 Deny-All):**
+- Oturumsuz (unauthenticated), anonim (anonymous) ve kimliği doğrulanmış (authenticated) tüm istemcilerin:
+  - Firestore'da get, list, create, update, delete erişimlerinin reddedildiği,
+  - Storage'da read (getDownloadURL), list (listAll), create (upload), update (overwrite) ve delete erişimlerinin reddedildiği,
+  - Bilinmeyen ve rastgele iç içe yollarda default deny kuralının çalıştığı test edilmiştir.
 
-**Not claimed:** "MASVS compliant", "fully secure", or "App Store ready". Controls are being incrementally implemented and tested.
+**Not claimed:** "MASVS uyumlu", "tamamen güvenli" veya "App Store'a hazır" iddiasında bulunulmamaktadır. Kontroller aşamalı olarak uygulanmakta ve doğrulanmaktadır.

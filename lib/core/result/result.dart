@@ -1,6 +1,6 @@
 // Lightweight Result type.
 import 'package:equatable/equatable.dart';
-import '../errors/failure.dart';
+import 'package:task_map_flow/core/errors/failure.dart';
 
 sealed class Result<T> extends Equatable {
   const Result();

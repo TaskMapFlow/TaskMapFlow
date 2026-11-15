@@ -3,23 +3,14 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // BASELINE: deny all access by default.
-    // Storage rules cannot read Firestore; workspace membership for file access
-    // requires custom claims (server-side) or App Check + Cloud Functions (future).
+    // ============================================================
+    // AŞAMA 1 BASELINE: DENY ALL
+    // Bütün istemci erişimleri varsayılan olarak reddedilir.
+    // Not: Firebase Storage kuralları Firestore veritabanına erişebilir
+    // (firestore.get / firestore.exists). Ancak Aşama 1'de hiçbir
+    // dosya yükleme/indirme işlemi açılmamıştır.
+    // ============================================================
 
-    match /users/{userId}/profile/{filename} {
-      allow read: if request.auth != null && request.auth.uid == userId;
-      allow write: if request.auth != null && request.auth.uid == userId
-                   && request.resource.size < 5 * 1024 * 1024
-                   && request.resource.contentType.matches('image/.*');
-    }
-
-    // Workspace files: no access until custom claims or server-side checks are implemented.
-    match /workspaces/{workspaceId}/{allPaths=**} {
-      allow read, write: if false;
-    }
-
-    // Deny everything else.
     match /{allPaths=**} {
       allow read, write: if false;
     }

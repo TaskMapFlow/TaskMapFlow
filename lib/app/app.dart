@@ -1,13 +1,20 @@
-// Root application widget.
+// Root application widget with localization, theme, and routing.
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'router.dart';
-import 'theme.dart';
+import 'package:task_map_flow/app/router.dart';
+import 'package:task_map_flow/app/theme.dart';
+import 'package:task_map_flow/core/extensions/context_extensions.dart';
+import 'package:task_map_flow/l10n/app_localizations.dart';
 
 class TaskMapFlowApp extends StatelessWidget {
-  const TaskMapFlowApp({super.key, required this.firebaseReady});
+  const TaskMapFlowApp({
+    super.key,
+    required this.firebaseReady,
+    this.locale,
+  });
 
   final bool firebaseReady;
+  final Locale? locale;
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +24,14 @@ class TaskMapFlowApp extends StatelessWidget {
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
         themeMode: ThemeMode.system,
+        locale: locale,
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
         home: const _SetupRequiredScreen(),
       );
     }
@@ -26,15 +41,14 @@ class TaskMapFlowApp extends StatelessWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.system,
+      locale: locale,
       localizationsDelegates: const [
+        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [
-        Locale('en'),
-        Locale('tr'),
-      ],
+      supportedLocales: AppLocalizations.supportedLocales,
     );
   }
 }
@@ -44,6 +58,7 @@ class _SetupRequiredScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       body: Center(
         child: Padding(
@@ -51,18 +66,20 @@ class _SetupRequiredScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.warning_amber_rounded, size: 64, color: Colors.orange),
+              const Icon(
+                Icons.warning_amber_rounded,
+                size: 64,
+                color: Colors.orange,
+              ),
               const SizedBox(height: 24),
               Text(
-                'Firebase Setup Required',
+                l10n.setupRequired,
                 style: Theme.of(context).textTheme.headlineSmall,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-              const Text(
-                'No Firebase project is configured yet.\n'
-                'Add GoogleService-Info.plist (iOS) after completing '
-                'the steps in docs/firebase-setup.md.',
+              Text(
+                l10n.setupRequiredBody,
                 textAlign: TextAlign.center,
               ),
             ],

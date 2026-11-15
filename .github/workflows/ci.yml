@@ -6,7 +6,6 @@ on:
   pull_request:
     branches: [main]
 
-# Minimum permissions: read-only on repository contents.
 permissions:
   contents: read
 
@@ -23,11 +22,15 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.38.1'
           channel: stable
           cache: true
 
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Generate localizations
+        run: flutter gen-l10n
 
       - name: Check formatting
         run: dart format --output=none --set-exit-if-changed lib/ test/
@@ -39,7 +42,7 @@ jobs:
         run: flutter test --coverage
 
   firebase-rules-tests:
-    name: Firestore Security Rules Tests
+    name: Firestore & Storage Security Rules Tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -47,24 +50,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Java Development Kit (JDK 21 for Firebase Emulator)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: test-rules/package.json
+          cache-dependency-path: test-rules/package-lock.json
 
       - name: Install Firebase CLI
-        run: npm install -g firebase-tools@14
+        run: npm install -g firebase-tools@14.26.0
 
-      - name: Install test dependencies
+      - name: Install test dependencies with npm ci
         working-directory: test-rules
-        run: npm install
+        run: npm ci
 
-      - name: Run Firestore rules tests (emulator)
-        # --project flag uses a dummy project ID; emulator does not connect to production.
+      - name: Run Firestore & Storage rules tests (emulator)
         run: |
           firebase emulators:exec \
-            --only firestore,auth \
-            --project taskmapflow-test \
+            --only firestore,storage,auth \
+            --project demo-taskmapflow \
             "cd test-rules && npm test"

@@ -1,21 +1,30 @@
 /**
- * Firestore Security Rules – baseline deny-all tests.
+ * Firestore & Storage Security Rules – Baseline Deny-All Tests.
  *
- * Run with:
- *   firebase emulators:exec --only firestore,auth --project taskmapflow-test \
- *     "cd test-rules && npm test"
+ * Doğrulamalar:
+ * - Oturumsuz (unauthenticated)
+ * - Anonim (anonymous)
+ * - Normal kimliği doğrulanmış (authenticated)
+ * İstemcilerin tüm korumalı, iç içe veya bilinmeyen yollarda:
+ * - Firestore: get, list, create, update, delete erişimlerinin reddedildiğini,
+ * - Storage: read (get/download), list, create (upload), update (overwrite), delete
+ *   erişimlerinin reddedildiğini doğrular.
+ *
+ * Güncelleme ve silme testleri öncesinde veriler rules-disabled context ile hazırlanır.
+ *
+ * Proje kimliği: demo-taskmapflow (gerçek Firebase projesine bağlanmaz)
  */
 
 const {
   initializeTestEnvironment,
   assertFails,
-  assertSucceeds,
 } = require('@firebase/rules-unit-testing');
 const { readFileSync } = require('fs');
 const { resolve } = require('path');
 
-const PROJECT_ID = 'taskmapflow-test';
+const PROJECT_ID = 'demo-taskmapflow';
 const FIRESTORE_RULES = readFileSync(resolve(__dirname, '../firestore.rules'), 'utf8');
+const STORAGE_RULES = readFileSync(resolve(__dirname, '../storage.rules'), 'utf8');
 
 let testEnv;
 
@@ -24,184 +33,169 @@ beforeAll(async () => {
     projectId: PROJECT_ID,
     firestore: {
       rules: FIRESTORE_RULES,
-      host: 'localhost',
+      host: '127.0.0.1',
       port: 8080,
+    },
+    storage: {
+      rules: STORAGE_RULES,
+      host: '127.0.0.1',
+      port: 9199,
     },
   });
 });
 
 afterAll(async () => {
-  await testEnv.cleanup();
+  if (testEnv) {
+    await testEnv.cleanup();
+  }
 });
 
 afterEach(async () => {
-  await testEnv.clearFirestore();
+  if (testEnv) {
+    await testEnv.clearFirestore();
+    await testEnv.clearStorage();
+  }
 });
 
-// Unauthenticated client tests
+// İstemci tipleri matrisi: Unauthenticated, Anonymous, Authenticated
+const clientContexts = [
+  { name: 'Oturumsuz (unauthenticated)', getCtx: () => testEnv.unauthenticatedContext() },
+  { name: 'Anonim (anonymous)', getCtx: () => testEnv.authenticatedContext('anon_user', { provider_id: 'anonymous' }) },
+  { name: 'Doğrulanmış (authenticated)', getCtx: () => testEnv.authenticatedContext('auth_user_1', { email: 'user@example.com' }) },
+];
 
-describe('Unauthenticated client', () => {
-  let unauthedDb;
-
-  beforeEach(() => {
-    unauthedDb = testEnv.unauthenticatedContext().firestore();
-  });
-
-  test('cannot read any user document', async () => {
-    await assertFails(unauthedDb.collection('users').doc('someUserId').get());
-  });
-
-  test('cannot write any user document', async () => {
-    await assertFails(
-      unauthedDb.collection('users').doc('someUserId').set({ displayName: 'Eve' })
-    );
-  });
-
-  test('cannot read any workspace document', async () => {
-    await assertFails(unauthedDb.collection('workspaces').doc('ws1').get());
-  });
-
-  test('cannot write any workspace document', async () => {
-    await assertFails(
-      unauthedDb.collection('workspaces').doc('ws1').set({ name: 'Test WS' })
-    );
-  });
-
-  test('cannot read workspace tasks', async () => {
-    await assertFails(
-      unauthedDb.collection('workspaces').doc('ws1').collection('tasks').doc('t1').get()
-    );
-  });
-
-  test('cannot read workspace map nodes', async () => {
-    await assertFails(
-      unauthedDb.collection('workspaces').doc('ws1').collection('map_nodes').doc('n1').get()
-    );
-  });
-
-  test('cannot read workspace notes', async () => {
-    await assertFails(
-      unauthedDb.collection('workspaces').doc('ws1').collection('notes').doc('note1').get()
-    );
-  });
-
-  test('cannot read user performance notes', async () => {
-    await assertFails(
-      unauthedDb
-        .collection('users').doc('someUserId')
-        .collection('performance_notes').doc('pn1')
-        .get()
-    );
-  });
-});
-
-// Authenticated non-member tests
-
-describe('Authenticated non-member client', () => {
-  const AUTH_USER_ID = 'authUser1';
-  let authedDb;
-
-  beforeEach(() => {
-    authedDb = testEnv.authenticatedContext(AUTH_USER_ID).firestore();
-  });
-
-  test('cannot read another user profile', async () => {
-    await assertFails(authedDb.collection('users').doc('anotherUser').get());
-  });
-
-  test('cannot write another user profile', async () => {
-    await assertFails(
-      authedDb.collection('users').doc('anotherUser').set({ displayName: 'Hacker' })
-    );
-  });
-
-  test('cannot read workspace they are not a member of', async () => {
-    await assertFails(authedDb.collection('workspaces').doc('ws1').get());
-  });
-
-  test('cannot read tasks in workspace they are not a member of', async () => {
-    await assertFails(
-      authedDb.collection('workspaces').doc('ws1').collection('tasks').doc('t1').get()
-    );
-  });
-
-  test('cannot read map nodes in workspace they are not a member of', async () => {
-    await assertFails(
-      authedDb.collection('workspaces').doc('ws1').collection('map_nodes').doc('n1').get()
-    );
-  });
-
-  test('cannot read sprints in workspace they are not a member of', async () => {
-    await assertFails(
-      authedDb.collection('workspaces').doc('ws1').collection('sprints').doc('s1').get()
-    );
-  });
-
-  test('cannot read notes in workspace they are not a member of', async () => {
-    await assertFails(
-      authedDb.collection('workspaces').doc('ws1').collection('notes').doc('note1').get()
-    );
-  });
-
-  test("cannot read another user's performance notes", async () => {
-    await assertFails(
-      authedDb
-        .collection('users').doc('anotherUser')
-        .collection('performance_notes').doc('pn1')
-        .get()
-    );
-  });
-
-  test("cannot write another user's performance notes", async () => {
-    await assertFails(
-      authedDb
-        .collection('users').doc('anotherUser')
-        .collection('performance_notes').doc('pn1')
-        .set({ content: 'secret note' })
-    );
-  });
-
-  test('can read own user profile', async () => {
-    await testEnv.withSecurityRulesDisabled(async (ctx) => {
-      await ctx.firestore()
-        .collection('users').doc(AUTH_USER_ID)
-        .set({ displayName: 'Auth User', email: 'auth@example.com' });
+describe('Firestore Deny-All Baseline Tests', () => {
+  beforeEach(async () => {
+    // Önceden var olan belgeleri rules-disabled context (test setup) ile oluştur
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const db = context.firestore();
+      await db.collection('users').doc('target_user').set({ name: 'Alice' });
+      await db.collection('users').doc('target_user').collection('performance_notes').doc('pn1').set({ note: 'Confidential' });
+      await db.collection('workspaces').doc('ws1').set({ name: 'Project Alpha' });
+      await db.collection('workspaces').doc('ws1').collection('members').doc('target_user').set({ role: 'owner' });
+      await db.collection('workspaces').doc('ws1').collection('tasks').doc('task1').set({ title: 'Task 1', isPrivate: false });
+      await db.collection('workspaces').doc('ws1').collection('map_nodes').doc('node1').set({ x: 10, y: 20 });
+      await db.collection('unknown_collection').doc('doc1').set({ random: true });
     });
-    await assertSucceeds(authedDb.collection('users').doc(AUTH_USER_ID).get());
   });
 
-  test('can write own user profile', async () => {
-    await assertSucceeds(
-      authedDb.collection('users').doc(AUTH_USER_ID).set({
-        displayName: 'Auth User',
-        email: 'auth@example.com',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })
-    );
-  });
+  clientContexts.forEach(({ name, getCtx }) => {
+    describe(`${name} istemci`, () => {
+      let db;
 
-  test('can read own performance notes', async () => {
-    await testEnv.withSecurityRulesDisabled(async (ctx) => {
-      await ctx.firestore()
-        .collection('users').doc(AUTH_USER_ID)
-        .collection('performance_notes').doc('myNote')
-        .set({ content: 'my note', writtenBy: AUTH_USER_ID, createdAt: new Date() });
+      beforeEach(() => {
+        db = getCtx().firestore();
+      });
+
+      test('kullanıcı profiline get/list/create/update/delete yapamaz', async () => {
+        await assertFails(db.collection('users').doc('target_user').get());
+        await assertFails(db.collection('users').get());
+        await assertFails(db.collection('users').doc('new_user').set({ name: 'Bob' }));
+        await assertFails(db.collection('users').doc('target_user').update({ name: 'Alice 2' }));
+        await assertFails(db.collection('users').doc('target_user').delete());
+      });
+
+      test('performans notlarına get/list/create/update/delete yapamaz', async () => {
+        const pnRef = db.collection('users').doc('target_user').collection('performance_notes');
+        await assertFails(pnRef.doc('pn1').get());
+        await assertFails(pnRef.get());
+        await assertFails(pnRef.doc('pn2').set({ note: 'New note' }));
+        await assertFails(pnRef.doc('pn1').update({ note: 'Updated note' }));
+        await assertFails(pnRef.doc('pn1').delete());
+      });
+
+      test('çalışma alanına ve alt koleksiyonlarına get/list/create/update/delete yapamaz', async () => {
+        const wsRef = db.collection('workspaces').doc('ws1');
+        await assertFails(wsRef.get());
+        await assertFails(db.collection('workspaces').get());
+        await assertFails(db.collection('workspaces').doc('new_ws').set({ name: 'New WS' }));
+        await assertFails(wsRef.update({ name: 'WS Renamed' }));
+        await assertFails(wsRef.delete());
+
+        // Görevler
+        await assertFails(wsRef.collection('tasks').doc('task1').get());
+        await assertFails(wsRef.collection('tasks').get());
+        await assertFails(wsRef.collection('tasks').doc('task2').set({ title: 'T2' }));
+        await assertFails(wsRef.collection('tasks').doc('task1').update({ title: 'T1 modified' }));
+        await assertFails(wsRef.collection('tasks').doc('task1').delete());
+
+        // Harita düğümleri
+        await assertFails(wsRef.collection('map_nodes').doc('node1').get());
+        await assertFails(wsRef.collection('map_nodes').get());
+        await assertFails(wsRef.collection('map_nodes').doc('node2').set({ x: 0, y: 0 }));
+        await assertFails(wsRef.collection('map_nodes').doc('node1').update({ x: 100 }));
+        await assertFails(wsRef.collection('map_nodes').doc('node1').delete());
+      });
+
+      test('bilinmeyen ve rastgele iç içe yollara get/list/create/update/delete yapamaz', async () => {
+        const unknownRef = db.collection('unknown_collection').doc('doc1');
+        await assertFails(unknownRef.get());
+        await assertFails(db.collection('unknown_collection').get());
+        await assertFails(db.collection('unknown_collection').doc('doc2').set({ a: 1 }));
+        await assertFails(unknownRef.update({ a: 2 }));
+        await assertFails(unknownRef.delete());
+
+        const deepNested = db.collection('a').doc('b').collection('c').doc('d');
+        await assertFails(deepNested.get());
+        await assertFails(deepNested.set({ deep: true }));
+      });
     });
-    await assertSucceeds(
-      authedDb
-        .collection('users').doc(AUTH_USER_ID)
-        .collection('performance_notes').doc('myNote')
-        .get()
-    );
   });
 });
 
-// Default deny for uncovered paths
+describe('Firebase Storage Deny-All Baseline Tests', () => {
+  beforeEach(async () => {
+    // Rules-disabled ile önceden bir dosya yükle
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const storage = context.storage();
+      const existingRef = storage.ref('users/target_user/profile/photo.png');
+      await existingRef.put(Buffer.from('fake image content'), { contentType: 'image/png' });
+    });
+  });
 
-describe('Default deny for uncovered paths', () => {
-  test('authenticated user cannot read arbitrary top-level collection', async () => {
-    const db = testEnv.authenticatedContext('anyUser').firestore();
-    await assertFails(db.collection('someRandomCollection').doc('doc1').get());
+  clientContexts.forEach(({ name, getCtx }) => {
+    describe(`${name} istemci`, () => {
+      let storage;
+
+      beforeEach(() => {
+        storage = getCtx().storage();
+      });
+
+      test('profil dosyalarını okuyamaz (getDownloadURL / getBytes)', async () => {
+        const ref = storage.ref('users/target_user/profile/photo.png');
+        await assertFails(ref.getDownloadURL());
+      });
+
+      test('profil klasörünü listeleyemez (list / listAll)', async () => {
+        const folderRef = storage.ref('users/target_user/profile');
+        await assertFails(folderRef.listAll());
+      });
+
+      test('yeni profil fotoğrafı yükleyemez (upload)', async () => {
+        const newRef = storage.ref('users/target_user/profile/new.png');
+        await assertFails(newRef.put(Buffer.from('bytes'), { contentType: 'image/png' }));
+      });
+
+      test('mevcut dosyanın üzerine yazamaz (overwrite)', async () => {
+        const existingRef = storage.ref('users/target_user/profile/photo.png');
+        await assertFails(existingRef.put(Buffer.from('overwritten'), { contentType: 'image/png' }));
+      });
+
+      test('mevcut dosyayı silemez (delete)', async () => {
+        const existingRef = storage.ref('users/target_user/profile/photo.png');
+        await assertFails(existingRef.delete());
+      });
+
+      test('çalışma alanı dosyaları ve bilinmeyen yollarda read/write/delete yapamaz', async () => {
+        const wsFileRef = storage.ref('workspaces/ws1/files/document.pdf');
+        await assertFails(wsFileRef.getDownloadURL());
+        await assertFails(wsFileRef.put(Buffer.from('data'), { contentType: 'application/pdf' }));
+        await assertFails(wsFileRef.delete());
+
+        const unknownRef = storage.ref('unknown_folder/nested/random.txt');
+        await assertFails(unknownRef.getDownloadURL());
+        await assertFails(unknownRef.put(Buffer.from('data')));
+      });
+    });
   });
 });

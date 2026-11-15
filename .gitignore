@@ -53,3 +53,6 @@ app.*.map.json
 **/*.p12
 **/*.p8
 **/*.mobileprovision
+
+# Node modules
+**/node_modules/
