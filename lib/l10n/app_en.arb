@@ -764,5 +764,28 @@
   "descriptionLabel": "Description",
   "@descriptionLabel": {"description": "General description label"},
   "statusLabel": "Status",
-  "@statusLabel": {"description": "General status label"}
+  "@statusLabel": {"description": "General status label"},
+  "taskViewList": "List",
+  "@taskViewList": {"description": "List view option for tasks"},
+  "taskViewBoard": "Board",
+  "@taskViewBoard": {"description": "Board (Kanban) view option for tasks"},
+  "kanbanColumnTodo": "To Do",
+  "@kanbanColumnTodo": {"description": "To Do column header in Kanban board"},
+  "kanbanColumnInProgress": "In Progress",
+  "@kanbanColumnInProgress": {"description": "In Progress column header in Kanban board"},
+  "kanbanColumnCompleted": "Completed",
+  "@kanbanColumnCompleted": {"description": "Completed column header in Kanban board"},
+  "emptyKanbanColumn": "No tasks",
+  "@emptyKanbanColumn": {"description": "Placeholder for empty column in Kanban board"},
+  "changeStatus": "Change Status",
+  "@changeStatus": {"description": "Change status menu option"},
+  "sprintBoardTitle": "{name} Board",
+  "@sprintBoardTitle": {
+    "description": "Sprint board sheet title",
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "viewSprintBoard": "Board",
+  "@viewSprintBoard": {"description": "Open sprint board view button"}
 }

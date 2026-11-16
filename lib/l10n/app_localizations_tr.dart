@@ -1117,4 +1117,33 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get statusLabel => 'Durum';
+
+  @override
+  String get taskViewList => 'Liste';
+
+  @override
+  String get taskViewBoard => 'Pano';
+
+  @override
+  String get kanbanColumnTodo => 'Yapılacak';
+
+  @override
+  String get kanbanColumnInProgress => 'Devam Ediyor';
+
+  @override
+  String get kanbanColumnCompleted => 'Tamamlandı';
+
+  @override
+  String get emptyKanbanColumn => 'Görev yok';
+
+  @override
+  String get changeStatus => 'Durumu Değiştir';
+
+  @override
+  String sprintBoardTitle(String name) {
+    return '$name Panosu';
+  }
+
+  @override
+  String get viewSprintBoard => 'Pano';
 }

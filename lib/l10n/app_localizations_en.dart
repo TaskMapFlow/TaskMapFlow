@@ -1114,4 +1114,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statusLabel => 'Status';
+
+  @override
+  String get taskViewList => 'List';
+
+  @override
+  String get taskViewBoard => 'Board';
+
+  @override
+  String get kanbanColumnTodo => 'To Do';
+
+  @override
+  String get kanbanColumnInProgress => 'In Progress';
+
+  @override
+  String get kanbanColumnCompleted => 'Completed';
+
+  @override
+  String get emptyKanbanColumn => 'No tasks';
+
+  @override
+  String get changeStatus => 'Change Status';
+
+  @override
+  String sprintBoardTitle(String name) {
+    return '$name Board';
+  }
+
+  @override
+  String get viewSprintBoard => 'Board';
 }

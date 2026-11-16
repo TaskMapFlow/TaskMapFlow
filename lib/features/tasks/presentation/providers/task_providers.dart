@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:task_map_flow/core/result/result.dart';
+import 'package:task_map_flow/features/auth/presentation/providers/auth_providers.dart';
 import 'package:task_map_flow/features/tasks/data/repositories/firebase_task_repository.dart';
 import 'package:task_map_flow/features/tasks/domain/models/subtask_model.dart';
 import 'package:task_map_flow/features/tasks/domain/models/task_model.dart';
@@ -7,6 +9,38 @@ import 'package:task_map_flow/features/tasks/domain/models/task_priority.dart';
 import 'package:task_map_flow/features/tasks/domain/models/task_status.dart';
 import 'package:task_map_flow/features/tasks/domain/repositories/task_repository.dart';
 import 'package:task_map_flow/features/workspaces/presentation/providers/workspace_providers.dart';
+
+enum TaskDisplayMode {
+  list,
+  board,
+}
+
+class TaskDisplayModeNotifier extends StateNotifier<TaskDisplayMode> {
+  TaskDisplayModeNotifier(this._prefs) : super(_loadInitialMode(_prefs));
+
+  final SharedPreferences _prefs;
+  static const _prefKey = 'taskmapflow_task_display_mode';
+
+  static TaskDisplayMode _loadInitialMode(SharedPreferences prefs) {
+    final saved = prefs.getString(_prefKey);
+    if (saved == 'board') {
+      return TaskDisplayMode.board;
+    }
+    return TaskDisplayMode.list;
+  }
+
+  Future<void> setMode(TaskDisplayMode mode) async {
+    if (state == mode) return;
+    state = mode;
+    await _prefs.setString(_prefKey, mode.name);
+  }
+}
+
+final taskDisplayModeProvider =
+    StateNotifierProvider<TaskDisplayModeNotifier, TaskDisplayMode>((ref) {
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return TaskDisplayModeNotifier(prefs);
+});
 
 enum TaskFilter {
   all,

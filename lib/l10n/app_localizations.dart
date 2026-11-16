@@ -2179,6 +2179,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Status'**
   String get statusLabel;
+
+  /// List view option for tasks
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get taskViewList;
+
+  /// Board (Kanban) view option for tasks
+  ///
+  /// In en, this message translates to:
+  /// **'Board'**
+  String get taskViewBoard;
+
+  /// To Do column header in Kanban board
+  ///
+  /// In en, this message translates to:
+  /// **'To Do'**
+  String get kanbanColumnTodo;
+
+  /// In Progress column header in Kanban board
+  ///
+  /// In en, this message translates to:
+  /// **'In Progress'**
+  String get kanbanColumnInProgress;
+
+  /// Completed column header in Kanban board
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get kanbanColumnCompleted;
+
+  /// Placeholder for empty column in Kanban board
+  ///
+  /// In en, this message translates to:
+  /// **'No tasks'**
+  String get emptyKanbanColumn;
+
+  /// Change status menu option
+  ///
+  /// In en, this message translates to:
+  /// **'Change Status'**
+  String get changeStatus;
+
+  /// Sprint board sheet title
+  ///
+  /// In en, this message translates to:
+  /// **'{name} Board'**
+  String sprintBoardTitle(String name);
+
+  /// Open sprint board view button
+  ///
+  /// In en, this message translates to:
+  /// **'Board'**
+  String get viewSprintBoard;
 }
 
 class _AppLocalizationsDelegate

@@ -764,5 +764,28 @@
   "descriptionLabel": "Açıklama",
   "@descriptionLabel": {"description": "Genel açıklama etiketi"},
   "statusLabel": "Durum",
-  "@statusLabel": {"description": "Genel durum etiketi"}
+  "@statusLabel": {"description": "Genel durum etiketi"},
+  "taskViewList": "Liste",
+  "@taskViewList": {"description": "Görevler için liste görünümü seçeneği"},
+  "taskViewBoard": "Pano",
+  "@taskViewBoard": {"description": "Görevler için pano (Kanban) görünümü seçeneği"},
+  "kanbanColumnTodo": "Yapılacak",
+  "@kanbanColumnTodo": {"description": "Kanban panosunda Yapılacak sütun başlığı"},
+  "kanbanColumnInProgress": "Devam Ediyor",
+  "@kanbanColumnInProgress": {"description": "Kanban panosunda Devam Ediyor sütun başlığı"},
+  "kanbanColumnCompleted": "Tamamlandı",
+  "@kanbanColumnCompleted": {"description": "Kanban panosunda Tamamlandı sütun başlığı"},
+  "emptyKanbanColumn": "Görev yok",
+  "@emptyKanbanColumn": {"description": "Kanban panosunda boş sütun yer tutucusu"},
+  "changeStatus": "Durumu Değiştir",
+  "@changeStatus": {"description": "Durumu değiştir menü seçeneği"},
+  "sprintBoardTitle": "{name} Panosu",
+  "@sprintBoardTitle": {
+    "description": "Sprint pano sayfası başlığı",
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "viewSprintBoard": "Pano",
+  "@viewSprintBoard": {"description": "Sprint pano görünümünü aç butonu"}
 }

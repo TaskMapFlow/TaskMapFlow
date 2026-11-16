@@ -15,6 +15,8 @@ import 'package:task_map_flow/features/tasks/domain/models/task_model.dart';
 import 'package:task_map_flow/features/tasks/domain/models/task_status.dart';
 import 'package:task_map_flow/features/tasks/presentation/providers/sprint_providers.dart';
 import 'package:task_map_flow/features/tasks/presentation/providers/task_providers.dart';
+import 'package:task_map_flow/features/tasks/presentation/widgets/kanban_board_view.dart';
+import 'package:task_map_flow/features/tasks/presentation/widgets/sprint_detail_sheet.dart';
 import 'package:task_map_flow/features/tasks/presentation/widgets/sprint_form_sheet.dart';
 import 'package:task_map_flow/features/tasks/presentation/widgets/task_form_sheet.dart';
 import 'package:task_map_flow/features/tasks/presentation/widgets/task_item_card.dart';
@@ -1201,6 +1203,7 @@ class _TasksView extends ConsumerWidget {
     final tasksAsync = ref.watch(tasksStreamProvider(workspace.id));
     final stats = ref.watch(taskStatsProvider(workspace.id));
     final activeFilter = ref.watch(taskFilterProvider(workspace.id));
+    final displayMode = ref.watch(taskDisplayModeProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1217,31 +1220,46 @@ class _TasksView extends ConsumerWidget {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            if (!isReadOnly)
-              FilledButton.icon(
-                key: const Key('addTaskButton'),
-                icon: const Icon(Icons.add_rounded, size: 16),
-                label: Text(
-                  addActionLabel,
-                  style: const TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.w600),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _DisplayModeToggle(
+                  displayMode: displayMode,
+                  onChanged: (mode) =>
+                      ref.read(taskDisplayModeProvider.notifier).setMode(mode),
+                  purple: purple,
+                  isDark: isDark,
+                  textSecondary: textSecondary,
                 ),
-                style: FilledButton.styleFrom(
-                  backgroundColor: purple,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                if (!isReadOnly) ...[
+                  const SizedBox(width: 8),
+                  FilledButton.icon(
+                    key: const Key('addTaskButton'),
+                    icon: const Icon(Icons.add_rounded, size: 16),
+                    label: Text(
+                      addActionLabel,
+                      style: const TextStyle(
+                          fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: purple,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onPressed: () => TaskFormSheet.show(
+                      context: context,
+                      workspaceId: workspace.id,
+                      workspaceType: workspace.type,
+                    ),
                   ),
-                ),
-                onPressed: () => TaskFormSheet.show(
-                  context: context,
-                  workspaceId: workspace.id,
-                  workspaceType: workspace.type,
-                ),
-              ),
+                ],
+              ],
+            ),
           ],
         ),
         const SizedBox(height: 10),
@@ -1297,74 +1315,76 @@ class _TasksView extends ConsumerWidget {
           ),
           const SizedBox(height: 10),
 
-          // Filters
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                _FilterTab(
-                  label: '${l10n.filterAll} (${stats.total})',
-                  isSelected: activeFilter == TaskFilter.all,
-                  onTap: () => ref
-                      .read(taskFilterProvider(workspace.id).notifier)
-                      .state = TaskFilter.all,
-                  purple: purple,
-                  textSecondary: textSecondary,
-                  isDark: isDark,
-                ),
-                const SizedBox(width: 8),
-                _FilterTab(
-                  label: '${l10n.filterTodo} (${stats.todo})',
-                  isSelected: activeFilter == TaskFilter.todo,
-                  onTap: () => ref
-                      .read(taskFilterProvider(workspace.id).notifier)
-                      .state = TaskFilter.todo,
-                  purple: purple,
-                  textSecondary: textSecondary,
-                  isDark: isDark,
-                ),
-                const SizedBox(width: 8),
-                _FilterTab(
-                  label: '${l10n.filterInProgress} (${stats.inProgress})',
-                  isSelected: activeFilter == TaskFilter.inProgress,
-                  onTap: () => ref
-                      .read(taskFilterProvider(workspace.id).notifier)
-                      .state = TaskFilter.inProgress,
-                  purple: purple,
-                  textSecondary: textSecondary,
-                  isDark: isDark,
-                ),
-                const SizedBox(width: 8),
-                _FilterTab(
-                  label: '${l10n.filterCompleted} (${stats.completed})',
-                  isSelected: activeFilter == TaskFilter.completed,
-                  onTap: () => ref
-                      .read(taskFilterProvider(workspace.id).notifier)
-                      .state = TaskFilter.completed,
-                  purple: purple,
-                  textSecondary: textSecondary,
-                  isDark: isDark,
-                ),
-                if (workspace.isTeamEnabled) ...[
-                  const SizedBox(width: 8),
+          // Filters (only in list mode)
+          if (displayMode == TaskDisplayMode.list) ...[
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
                   _FilterTab(
-                    label: l10n.filterAssignedToMe,
-                    isSelected: activeFilter == TaskFilter.assignedToMe,
+                    label: '${l10n.filterAll} (${stats.total})',
+                    isSelected: activeFilter == TaskFilter.all,
                     onTap: () => ref
                         .read(taskFilterProvider(workspace.id).notifier)
-                        .state = TaskFilter.assignedToMe,
+                        .state = TaskFilter.all,
                     purple: purple,
                     textSecondary: textSecondary,
                     isDark: isDark,
                   ),
+                  const SizedBox(width: 8),
+                  _FilterTab(
+                    label: '${l10n.filterTodo} (${stats.todo})',
+                    isSelected: activeFilter == TaskFilter.todo,
+                    onTap: () => ref
+                        .read(taskFilterProvider(workspace.id).notifier)
+                        .state = TaskFilter.todo,
+                    purple: purple,
+                    textSecondary: textSecondary,
+                    isDark: isDark,
+                  ),
+                  const SizedBox(width: 8),
+                  _FilterTab(
+                    label: '${l10n.filterInProgress} (${stats.inProgress})',
+                    isSelected: activeFilter == TaskFilter.inProgress,
+                    onTap: () => ref
+                        .read(taskFilterProvider(workspace.id).notifier)
+                        .state = TaskFilter.inProgress,
+                    purple: purple,
+                    textSecondary: textSecondary,
+                    isDark: isDark,
+                  ),
+                  const SizedBox(width: 8),
+                  _FilterTab(
+                    label: '${l10n.filterCompleted} (${stats.completed})',
+                    isSelected: activeFilter == TaskFilter.completed,
+                    onTap: () => ref
+                        .read(taskFilterProvider(workspace.id).notifier)
+                        .state = TaskFilter.completed,
+                    purple: purple,
+                    textSecondary: textSecondary,
+                    isDark: isDark,
+                  ),
+                  if (workspace.isTeamEnabled) ...[
+                    const SizedBox(width: 8),
+                    _FilterTab(
+                      label: l10n.filterAssignedToMe,
+                      isSelected: activeFilter == TaskFilter.assignedToMe,
+                      onTap: () => ref
+                          .read(taskFilterProvider(workspace.id).notifier)
+                          .state = TaskFilter.assignedToMe,
+                      purple: purple,
+                      textSecondary: textSecondary,
+                      isDark: isDark,
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-          const SizedBox(height: 10),
+            const SizedBox(height: 10),
+          ],
         ],
 
-        // Task Items List
+        // Task Items List or Kanban Board
         tasksAsync.when(
           loading: () => Center(
             child: Padding(
@@ -1379,6 +1399,53 @@ class _TasksView extends ConsumerWidget {
             ),
           ),
           data: (tasks) {
+            if (displayMode == TaskDisplayMode.board) {
+              if (tasks.isEmpty) {
+                return Container(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: cardBorder),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        isLesson
+                            ? Icons.fact_check_outlined
+                            : Icons.checklist_rounded,
+                        color: accentColor,
+                        size: 28,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        isLesson ? l10n.noStepsYet : l10n.noTasksYet,
+                        style: TextStyle(
+                          color: textPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        isLesson ? l10n.noStepsSubtitle : l10n.noTasksSubtitle,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: textSecondary, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return KanbanBoardView(
+                workspace: workspace,
+                tasks: tasks,
+                isReadOnly: isReadOnly,
+              );
+            }
+
             final uid = ref.watch(currentUserIdProvider) ?? '';
             final filtered =
                 tasks.where((t) => activeFilter.matches(t, uid)).toList();
@@ -2085,11 +2152,32 @@ class _SprintsView extends ConsumerWidget {
                         ),
                       ],
 
-                      if (!isReadOnly) ...[
-                        const SizedBox(height: 10),
-                        // Action buttons: Start / Complete, Edit, Delete
-                        Row(
-                          children: [
+                      const SizedBox(height: 10),
+                      // Action buttons: Pano, Start / Complete, Edit, Delete
+                      Row(
+                        children: [
+                          FilledButton.tonalIcon(
+                            icon: const Icon(Icons.view_kanban_outlined,
+                                size: 14),
+                            label: Text(
+                              l10n.viewSprintBoard,
+                              style: const TextStyle(fontSize: 11),
+                            ),
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            onPressed: () => SprintDetailSheet.show(
+                              context: context,
+                              workspace: workspace,
+                              sprint: sprint,
+                              isReadOnly: isReadOnly,
+                            ),
+                          ),
+                          if (!isReadOnly) ...[
+                            const SizedBox(width: 8),
                             if (sprint.status == SprintStatus.planned)
                               FilledButton.icon(
                                 icon: const Icon(Icons.play_arrow_rounded,
@@ -2135,7 +2223,9 @@ class _SprintsView extends ConsumerWidget {
                                 onPressed: () => _handleCompleteSprint(
                                     context, ref, sprint, sprintTasks),
                               ),
-                            const Spacer(),
+                          ],
+                          const Spacer(),
+                          if (!isReadOnly) ...[
                             IconButton(
                               icon: const Icon(Icons.edit_outlined, size: 16),
                               color: textSecondary,
@@ -2155,8 +2245,8 @@ class _SprintsView extends ConsumerWidget {
                                   context, ref, sprint, sprintTasks),
                             ),
                           ],
-                        ),
-                      ],
+                        ],
+                      ),
 
                       // Display tasks assigned to this sprint
                       if (sprintTasks.isNotEmpty) ...[
@@ -3386,6 +3476,122 @@ class _InfoSectionState extends ConsumerState<_InfoSection> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _DisplayModeToggle extends StatelessWidget {
+  const _DisplayModeToggle({
+    required this.displayMode,
+    required this.onChanged,
+    required this.purple,
+    required this.isDark,
+    required this.textSecondary,
+  });
+
+  final TaskDisplayMode displayMode;
+  final ValueChanged<TaskDisplayMode> onChanged;
+  final Color purple;
+  final bool isDark;
+  final Color textSecondary;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Container(
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1B1928) : const Color(0xFFEDEBF5),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _ToggleItem(
+            icon: Icons.format_list_bulleted_rounded,
+            label: l10n.taskViewList,
+            isSelected: displayMode == TaskDisplayMode.list,
+            onTap: () => onChanged(TaskDisplayMode.list),
+            purple: purple,
+            textSecondary: textSecondary,
+            isDark: isDark,
+          ),
+          _ToggleItem(
+            icon: Icons.view_kanban_outlined,
+            label: l10n.taskViewBoard,
+            isSelected: displayMode == TaskDisplayMode.board,
+            onTap: () => onChanged(TaskDisplayMode.board),
+            purple: purple,
+            textSecondary: textSecondary,
+            isDark: isDark,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ToggleItem extends StatelessWidget {
+  const _ToggleItem({
+    required this.icon,
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+    required this.purple,
+    required this.textSecondary,
+    required this.isDark,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final Color purple;
+  final Color textSecondary;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? (isDark ? const Color(0xFF2C2842) : Colors.white)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 14,
+              color: isSelected ? purple : textSecondary,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? purple : textSecondary,
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
