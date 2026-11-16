@@ -223,4 +223,107 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get retry => 'Retry';
+
+  @override
+  String get createFirstAreaTitle => 'Create your first area';
+
+  @override
+  String get createFirstAreaSubtitle =>
+      'Organize your projects and lessons visually by adding them to the map.';
+
+  @override
+  String get createAreaButton => 'Create Area';
+
+  @override
+  String get newAreaTitle => 'Create New Area';
+
+  @override
+  String get areaNameLabel => 'Area Name';
+
+  @override
+  String get areaNamePlaceholder => 'e.g. Mobile App Project';
+
+  @override
+  String get areaDescriptionLabel => 'Description (Optional)';
+
+  @override
+  String get areaDescriptionPlaceholder => 'Brief info about the area...';
+
+  @override
+  String get areaTypeLabel => 'Type';
+
+  @override
+  String get typeProject => 'Project';
+
+  @override
+  String get typeLesson => 'Lesson';
+
+  @override
+  String get typeFreeform => 'Freeform';
+
+  @override
+  String get allFilter => 'All';
+
+  @override
+  String get areaColorLabel => 'Color';
+
+  @override
+  String get create => 'Create';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get editMode => 'Edit';
+
+  @override
+  String get viewMode => 'View';
+
+  @override
+  String get centerView => 'Center View';
+
+  @override
+  String get editModeBanner =>
+      'Edit Mode: Drag areas to move them or use the handle to resize.';
+
+  @override
+  String get areaDetailTitle => 'Area Detail';
+
+  @override
+  String get createdAtLabel => 'Created';
+
+  @override
+  String get editArea => 'Edit Area';
+
+  @override
+  String get deleteArea => 'Delete Area';
+
+  @override
+  String get deleteConfirmTitle => 'Are you sure you want to delete this area?';
+
+  @override
+  String get deleteConfirmBody =>
+      'This area and its map position will be permanently deleted. This action cannot be undone.';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get noDescription => 'No description provided';
+
+  @override
+  String get areaNameRequired => 'Please enter an area name';
+
+  @override
+  String get noWorkspacesYet => 'No areas created yet';
+
+  @override
+  String get noWorkspacesSubtitle =>
+      'Add a new project or lesson to organize your workflow.';
+
+  @override
+  String get themeModeLight => 'Light Theme';
+
+  @override
+  String get themeModeDark => 'Dark Theme';
 }

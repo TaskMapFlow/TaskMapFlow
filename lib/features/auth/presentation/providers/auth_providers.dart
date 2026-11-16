@@ -57,6 +57,40 @@ class LocaleNotifier extends StateNotifier<Locale> {
   }
 }
 
+/// Persisted theme mode provider (dark / light / system).
+final themeModeProvider =
+    StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return ThemeModeNotifier(prefs);
+});
+
+class ThemeModeNotifier extends StateNotifier<ThemeMode> {
+  ThemeModeNotifier(this._prefs) : super(_loadInitialTheme(_prefs));
+
+  final SharedPreferences _prefs;
+  static const _kThemeKey = 'taskmapflow_preferred_theme';
+
+  static ThemeMode _loadInitialTheme(SharedPreferences prefs) {
+    final mode = prefs.getString(_kThemeKey);
+    return switch (mode) {
+      'dark' => ThemeMode.dark,
+      'light' => ThemeMode.light,
+      _ => ThemeMode.dark, // Default to sleek dark mode
+    };
+  }
+
+  Future<void> toggleTheme() async {
+    final next = state == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+    state = next;
+    await _prefs.setString(_kThemeKey, next.name);
+  }
+
+  Future<void> setTheme(ThemeMode mode) async {
+    state = mode;
+    await _prefs.setString(_kThemeKey, mode.name);
+  }
+}
+
 /// Controller managing async actions (login, signup, guest, link, etc.) and loading states.
 final authControllerProvider =
     StateNotifierProvider<AuthController, AsyncValue<void>>((ref) {

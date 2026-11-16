@@ -499,6 +499,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Retry'**
   String get retry;
+
+  /// Empty map headline
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first area'**
+  String get createFirstAreaTitle;
+
+  /// Empty map subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Organize your projects and lessons visually by adding them to the map.'**
+  String get createFirstAreaSubtitle;
+
+  /// Create area button
+  ///
+  /// In en, this message translates to:
+  /// **'Create Area'**
+  String get createAreaButton;
+
+  /// Create area sheet title
+  ///
+  /// In en, this message translates to:
+  /// **'Create New Area'**
+  String get newAreaTitle;
+
+  /// Area name input label
+  ///
+  /// In en, this message translates to:
+  /// **'Area Name'**
+  String get areaNameLabel;
+
+  /// Area name placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Mobile App Project'**
+  String get areaNamePlaceholder;
+
+  /// Area description input label
+  ///
+  /// In en, this message translates to:
+  /// **'Description (Optional)'**
+  String get areaDescriptionLabel;
+
+  /// Area description placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Brief info about the area...'**
+  String get areaDescriptionPlaceholder;
+
+  /// Area type picker label
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get areaTypeLabel;
+
+  /// Project type
+  ///
+  /// In en, this message translates to:
+  /// **'Project'**
+  String get typeProject;
+
+  /// Lesson type
+  ///
+  /// In en, this message translates to:
+  /// **'Lesson'**
+  String get typeLesson;
+
+  /// Freeform type
+  ///
+  /// In en, this message translates to:
+  /// **'Freeform'**
+  String get typeFreeform;
+
+  /// All filter
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get allFilter;
+
+  /// Area color picker label
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get areaColorLabel;
+
+  /// Create button
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get create;
+
+  /// Save button
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// Map edit mode button
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get editMode;
+
+  /// Map view mode button
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get viewMode;
+
+  /// Center map view button
+  ///
+  /// In en, this message translates to:
+  /// **'Center View'**
+  String get centerView;
+
+  /// Map edit mode info banner
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Mode: Drag areas to move them or use the handle to resize.'**
+  String get editModeBanner;
+
+  /// Area detail screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Area Detail'**
+  String get areaDetailTitle;
+
+  /// Creation date label
+  ///
+  /// In en, this message translates to:
+  /// **'Created'**
+  String get createdAtLabel;
+
+  /// Edit area action
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Area'**
+  String get editArea;
+
+  /// Delete area action
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Area'**
+  String get deleteArea;
+
+  /// Delete confirmation dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this area?'**
+  String get deleteConfirmTitle;
+
+  /// Delete confirmation dialog body
+  ///
+  /// In en, this message translates to:
+  /// **'This area and its map position will be permanently deleted. This action cannot be undone.'**
+  String get deleteConfirmBody;
+
+  /// Delete button
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
+  /// Text when no description is set
+  ///
+  /// In en, this message translates to:
+  /// **'No description provided'**
+  String get noDescription;
+
+  /// Error when area name is empty
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter an area name'**
+  String get areaNameRequired;
+
+  /// Empty state title on manage screen
+  ///
+  /// In en, this message translates to:
+  /// **'No areas created yet'**
+  String get noWorkspacesYet;
+
+  /// Empty state subtitle on manage screen
+  ///
+  /// In en, this message translates to:
+  /// **'Add a new project or lesson to organize your workflow.'**
+  String get noWorkspacesSubtitle;
+
+  /// Light theme option
+  ///
+  /// In en, this message translates to:
+  /// **'Light Theme'**
+  String get themeModeLight;
+
+  /// Dark theme option
+  ///
+  /// In en, this message translates to:
+  /// **'Dark Theme'**
+  String get themeModeDark;
 }
 
 class _AppLocalizationsDelegate

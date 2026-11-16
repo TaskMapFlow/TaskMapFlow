@@ -7,7 +7,9 @@ import 'package:task_map_flow/app/app.dart';
 import 'package:task_map_flow/features/auth/domain/models/auth_state.dart';
 import 'package:task_map_flow/features/auth/domain/models/auth_user.dart';
 import 'package:task_map_flow/features/auth/presentation/providers/auth_providers.dart';
+import 'package:task_map_flow/features/workspaces/presentation/providers/workspace_providers.dart';
 import 'helpers/fake_auth_repository.dart';
+import 'helpers/fake_workspace_repository.dart';
 
 void main() {
   late SharedPreferences prefs;
@@ -79,11 +81,14 @@ void main() {
         ),
       );
 
+      final fakeWorkspace = FakeWorkspaceRepository();
+
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             sharedPreferencesProvider.overrideWithValue(prefs),
             authRepositoryProvider.overrideWithValue(fakeAuth),
+            workspaceRepositoryProvider.overrideWithValue(fakeWorkspace),
           ],
           child: const TaskMapFlowApp(
             firebaseReady: true,
@@ -98,12 +103,8 @@ void main() {
       expect(find.text('Home'), findsOneWidget);
       expect(find.text('Manage'), findsOneWidget);
 
-      // Default selected screen is Home (center tab)
-      expect(find.text('TaskMapFlow'), findsOneWidget);
-      expect(
-        find.text('Map canvas will be added in a future phase.'),
-        findsOneWidget,
-      );
+      // Default selected screen is Home (center tab) with real empty state
+      expect(find.text('Create your first area'), findsOneWidget);
 
       // Navigate to Profile tab (left)
       await tester.tap(find.text('Profile'));
@@ -117,10 +118,7 @@ void main() {
       // Navigate to Manage tab (right)
       await tester.tap(find.text('Manage'));
       await tester.pumpAndSettle();
-      expect(
-        find.text('Workspace management will be added in a future phase.'),
-        findsOneWidget,
-      );
+      expect(find.text('No areas created yet'), findsOneWidget);
     });
 
     testWidgets('renders tabs in order [Profil, Ana Sayfa, Yönet] in Turkish',
@@ -136,12 +134,14 @@ void main() {
           ),
         ),
       );
+      final fakeWorkspace = FakeWorkspaceRepository();
 
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             sharedPreferencesProvider.overrideWithValue(prefs),
             authRepositoryProvider.overrideWithValue(fakeAuth),
+            workspaceRepositoryProvider.overrideWithValue(fakeWorkspace),
           ],
           child: const TaskMapFlowApp(
             firebaseReady: true,
@@ -156,11 +156,8 @@ void main() {
       expect(find.text('Ana Sayfa'), findsOneWidget);
       expect(find.text('Yönet'), findsOneWidget);
 
-      // Default selected screen is Home in Turkish
-      expect(
-        find.text('Harita görünümü bir sonraki aşamada eklenecek.'),
-        findsOneWidget,
-      );
+      // Default selected screen is Home in Turkish with real empty state
+      expect(find.text('İlk alanını oluştur'), findsOneWidget);
 
       // Navigate to Profil tab
       await tester.tap(find.text('Profil'));
@@ -174,10 +171,7 @@ void main() {
       // Navigate to Yönet tab
       await tester.tap(find.text('Yönet'));
       await tester.pumpAndSettle();
-      expect(
-        find.text('Çalışma alanı yönetimi bir sonraki aşamada eklenecek.'),
-        findsOneWidget,
-      );
+      expect(find.text('Henüz bir alan oluşturmadınız'), findsOneWidget);
     });
   });
 }

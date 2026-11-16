@@ -13,6 +13,7 @@ import 'package:task_map_flow/features/auth/presentation/screens/verify_email_sc
 import 'package:task_map_flow/features/home/presentation/home_screen.dart';
 import 'package:task_map_flow/features/manage/presentation/manage_screen.dart';
 import 'package:task_map_flow/features/profile/presentation/profile_screen.dart';
+import 'package:task_map_flow/features/workspaces/presentation/screens/workspace_detail_screen.dart';
 
 class RouterNotifier extends ChangeNotifier {
   RouterNotifier(this._ref) {
@@ -59,6 +60,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/link-account',
         builder: (context, state) => const LinkAccountScreen(),
+      ),
+      GoRoute(
+        path: '/workspace/:id',
+        builder: (context, state) => WorkspaceDetailScreen(
+          workspaceId: state.pathParameters['id'] ?? '',
+        ),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => _AppShell(shell: shell),
@@ -117,7 +124,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         final isAllowed = location == '/home' ||
             location == '/manage' ||
             location == '/profile' ||
-            location == '/link-account';
+            location == '/link-account' ||
+            location.startsWith('/workspace/');
         return isAllowed ? null : '/home';
       }
 
@@ -125,7 +133,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (status is AuthAuthenticated) {
         final isAllowed = location == '/home' ||
             location == '/manage' ||
-            location == '/profile';
+            location == '/profile' ||
+            location.startsWith('/workspace/');
         return isAllowed ? null : '/home';
       }
 

@@ -6,7 +6,9 @@ import 'package:task_map_flow/app/app.dart';
 import 'package:task_map_flow/features/auth/domain/models/auth_state.dart';
 import 'package:task_map_flow/features/auth/domain/models/auth_user.dart';
 import 'package:task_map_flow/features/auth/presentation/providers/auth_providers.dart';
+import 'package:task_map_flow/features/workspaces/presentation/providers/workspace_providers.dart';
 import '../../../helpers/fake_auth_repository.dart';
+import '../../../helpers/fake_workspace_repository.dart';
 
 void main() {
   late SharedPreferences prefs;
@@ -33,6 +35,8 @@ void main() {
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         authRepositoryProvider.overrideWithValue(fakeRepo),
+        workspaceRepositoryProvider
+            .overrideWithValue(FakeWorkspaceRepository()),
       ],
       child: const TaskMapFlowApp(
         firebaseReady: true,
@@ -70,7 +74,7 @@ void main() {
 
       expect(fakeRepo.reloadCallCount, 1);
       // Once verified, router redirects to Home
-      expect(find.text('TaskMapFlow'), findsOneWidget);
+      expect(find.byKey(const Key('homeAddAreaButton')), findsOneWidget);
     });
 
     testWidgets('resend button triggers cooldown timer', (tester) async {

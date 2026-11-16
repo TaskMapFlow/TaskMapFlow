@@ -3,13 +3,86 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ============================================================
-    // AŞAMA 1 BASELINE: DENY ALL
-    // Bütün istemci erişimleri varsayılan olarak reddedilir.
-    // İleriki aşamalarda özellikler geliştirildikçe kurallar
-    // kapsamlı testler eşliğinde genişletilecektir.
-    // ============================================================
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
 
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidHexColor(color) {
+      return color is string && color.matches('^#[0-9a-fA-F]{6}$');
+    }
+
+    function isValidWorkspaceType(type) {
+      return type in ['project', 'lesson', 'freeform'];
+    }
+
+    function isValidWorkspace(data, ownerId) {
+      return data.keys().hasOnly(['id', 'name', 'description', 'type', 'color', 'ownerId', 'createdAt', 'updatedAt'])
+        && data.id is string && data.id.size() > 0
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 100
+        && data.description is string && data.description.size() <= 500
+        && isValidWorkspaceType(data.type)
+        && isValidHexColor(data.color)
+        && data.ownerId == ownerId
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidMapNode(data, ownerId) {
+      return data.keys().hasOnly(['id', 'workspaceId', 'ownerId', 'positionX', 'positionY', 'width', 'height', 'createdAt', 'updatedAt'])
+        && data.id is string && data.id.size() > 0
+        && data.workspaceId is string && data.workspaceId.size() > 0
+        && data.ownerId == ownerId
+        && data.positionX is number
+        && data.positionY is number
+        && data.width is number && data.width >= 60 && data.width <= 1000
+        && data.height is number && data.height >= 40 && data.height <= 800
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    // Workspaces collection – owner-only access
+    match /workspaces/{workspaceId} {
+      allow read: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
+      
+      allow create: if isAuthenticated() 
+        && isValidWorkspace(request.resource.data, request.auth.uid)
+        && request.resource.data.id == workspaceId;
+        
+      allow update: if isAuthenticated()
+        && resource.data.ownerId == request.auth.uid
+        && request.resource.data.ownerId == resource.data.ownerId
+        && request.resource.data.id == workspaceId
+        && isValidWorkspace(request.resource.data, resource.data.ownerId);
+        
+      allow delete: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
+    }
+
+    // Map Nodes collection – owner-only access, linked to user's workspace
+    match /map_nodes/{nodeId} {
+      allow read: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
+      
+      allow create: if isAuthenticated() 
+        && isValidMapNode(request.resource.data, request.auth.uid)
+        && request.resource.data.id == nodeId
+        && (!exists(/databases/$(database)/documents/workspaces/$(request.resource.data.workspaceId))
+            || get(/databases/$(database)/documents/workspaces/$(request.resource.data.workspaceId)).data.ownerId == request.auth.uid);
+        
+      allow update: if isAuthenticated()
+        && resource.data.ownerId == request.auth.uid
+        && request.resource.data.ownerId == resource.data.ownerId
+        && request.resource.data.workspaceId == resource.data.workspaceId
+        && request.resource.data.id == nodeId
+        && isValidMapNode(request.resource.data, resource.data.ownerId);
+        
+      allow delete: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
+    }
+
+    // Baseline catch-all: all other collections strictly denied
     match /{document=**} {
       allow read, write: if false;
     }

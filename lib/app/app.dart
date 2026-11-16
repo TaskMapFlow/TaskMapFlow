@@ -33,12 +33,19 @@ class TaskMapFlowApp extends ConsumerWidget {
       }
     }
 
+    ThemeMode effectiveThemeMode = ThemeMode.dark;
+    try {
+      effectiveThemeMode = ref.watch(themeModeProvider);
+    } catch (_) {
+      effectiveThemeMode = ThemeMode.dark;
+    }
+
     if (!firebaseReady) {
       return MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
-        themeMode: ThemeMode.system,
+        themeMode: effectiveThemeMode,
         locale: effectiveLocale,
         localizationsDelegates: const [
           AppLocalizations.delegate,
@@ -58,7 +65,7 @@ class TaskMapFlowApp extends ConsumerWidget {
       routerConfig: effectiveRouter,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
+      themeMode: effectiveThemeMode,
       locale: effectiveLocale,
       localizationsDelegates: const [
         AppLocalizations.delegate,

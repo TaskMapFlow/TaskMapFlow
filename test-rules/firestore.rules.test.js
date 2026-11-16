@@ -141,6 +141,132 @@ describe('Firestore Deny-All Baseline Tests', () => {
       });
     });
   });
+
+  describe('Workspace & MapNode Private Owner Security Tests', () => {
+    const ownerUid = 'ws_owner_1';
+    const strangerUid = 'ws_stranger_2';
+    const now = new Date();
+
+    const validWorkspace = (id, owner = ownerUid) => ({
+      id,
+      name: 'Mobile App Project',
+      description: 'Flutter app development',
+      type: 'project',
+      color: '#7C5CE8',
+      ownerId: owner,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    const validMapNode = (id, wsId, owner = ownerUid) => ({
+      id,
+      workspaceId: wsId,
+      ownerId: owner,
+      positionX: 100,
+      positionY: 150,
+      width: 180,
+      height: 120,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    test('sahip kendi çalışma alanını ve bağlı harita düğümünü oluşturabilir', async () => {
+      const ownerDb = testEnv.authenticatedContext(ownerUid).firestore();
+      const wsRef = ownerDb.collection('workspaces').doc('my_ws_1');
+      await wsRef.set(validWorkspace('my_ws_1'));
+
+      const nodeRef = ownerDb.collection('map_nodes').doc('my_node_1');
+      await nodeRef.set(validMapNode('my_node_1', 'my_ws_1'));
+
+      const fetchedWs = await wsRef.get();
+      expect(fetchedWs.exists).toBe(true);
+      expect(fetchedWs.data().name).toBe('Mobile App Project');
+    });
+
+    test('başka kullanıcı başkasının çalışma alanını veya harita düğümünü okuyamaz/yazamaz/silemez', async () => {
+      // Önce sahibi ile oluştur
+      const ownerDb = testEnv.authenticatedContext(ownerUid).firestore();
+      await ownerDb.collection('workspaces').doc('secret_ws').set(validWorkspace('secret_ws'));
+      await ownerDb.collection('map_nodes').doc('secret_node').set(validMapNode('secret_node', 'secret_ws'));
+
+      // Yabancı kullanıcı erişmeyi dener
+      const strangerDb = testEnv.authenticatedContext(strangerUid).firestore();
+      await assertFails(strangerDb.collection('workspaces').doc('secret_ws').get());
+      await assertFails(strangerDb.collection('workspaces').doc('secret_ws').update({ name: 'Hacked' }));
+      await assertFails(strangerDb.collection('workspaces').doc('secret_ws').delete());
+
+      await assertFails(strangerDb.collection('map_nodes').doc('secret_node').get());
+      await assertFails(strangerDb.collection('map_nodes').doc('secret_node').update({ positionX: 999 }));
+      await assertFails(strangerDb.collection('map_nodes').doc('secret_node').delete());
+    });
+
+    test('harita düğümü var olmayan veya başkasına ait çalışma alanına bağlanamaz', async () => {
+      const ownerDb = testEnv.authenticatedContext(ownerUid).firestore();
+      await ownerDb.collection('workspaces').doc('owner_ws').set(validWorkspace('owner_ws'));
+
+      const strangerDb = testEnv.authenticatedContext(strangerUid).firestore();
+      // Stranger tries to link their node to owner's workspace
+      await assertFails(
+        strangerDb.collection('map_nodes').doc('stranger_node').set(validMapNode('stranger_node', 'owner_ws', strangerUid))
+      );
+
+      // Owner tries to link to non-existent workspace
+      await assertFails(
+        ownerDb.collection('map_nodes').doc('orphan_node').set(validMapNode('orphan_node', 'non_existent_ws'))
+      );
+    });
+
+    test('geçersiz alanlar, bilinmeyen özellikler veya değiştirilen ownerId reddedilir', async () => {
+      const ownerDb = testEnv.authenticatedContext(ownerUid).firestore();
+      
+      // Geçersiz renk formatı
+      await assertFails(
+        ownerDb.collection('workspaces').doc('bad_color_ws').set({
+          ...validWorkspace('bad_color_ws'),
+          color: 'not-a-hex',
+        })
+      );
+
+      // Geçersiz tür
+      await assertFails(
+        ownerDb.collection('workspaces').doc('bad_type_ws').set({
+          ...validWorkspace('bad_type_ws'),
+          type: 'invalid_type',
+        })
+      );
+
+      // Beklenmeyen fazladan alan
+      await assertFails(
+        ownerDb.collection('workspaces').doc('extra_field_ws').set({
+          ...validWorkspace('extra_field_ws'),
+          extraDangerousField: true,
+        })
+      );
+
+      // Doğru oluşturup ardından ownerId değiştirmeyi deneme
+      await ownerDb.collection('workspaces').doc('locked_owner_ws').set(validWorkspace('locked_owner_ws'));
+      await assertFails(
+        ownerDb.collection('workspaces').doc('locked_owner_ws').update({
+          ownerId: strangerUid,
+        })
+      );
+    });
+
+    test('anonim misafir kullanıcı da yalnızca kendi alanlarını oluşturup yönetebilir', async () => {
+      const anonUid = 'anon_guest_xyz';
+      const anonDb = testEnv.authenticatedContext(anonUid, { provider_id: 'anonymous' }).firestore();
+
+      await anonDb.collection('workspaces').doc('anon_ws').set(validWorkspace('anon_ws', anonUid));
+      await anonDb.collection('map_nodes').doc('anon_node').set(validMapNode('anon_node', 'anon_ws', anonUid));
+
+      const readWs = await anonDb.collection('workspaces').doc('anon_ws').get();
+      expect(readWs.exists).toBe(true);
+
+      // Başka kullanıcı anonim kullanıcının verisine erişemez
+      const strangerDb = testEnv.authenticatedContext(strangerUid).firestore();
+      await assertFails(strangerDb.collection('workspaces').doc('anon_ws').get());
+    });
+  });
 });
 
 describe('Firebase Storage Deny-All Baseline Tests', () => {

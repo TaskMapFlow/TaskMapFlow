@@ -1,27 +1,365 @@
-// Home screen – visual task map canvas.
-// Map implementation is a future phase; screen is intentionally minimal.
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:task_map_flow/app/theme.dart';
 import 'package:task_map_flow/core/extensions/context_extensions.dart';
+import 'package:task_map_flow/features/auth/presentation/providers/auth_providers.dart';
+import 'package:task_map_flow/features/workspaces/domain/models/workspace.dart';
+import 'package:task_map_flow/features/workspaces/presentation/providers/workspace_providers.dart';
+import 'package:task_map_flow/features/workspaces/presentation/screens/create_workspace_sheet.dart';
+import 'package:task_map_flow/features/workspaces/presentation/widgets/map_canvas.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isEditMode = ref.watch(isEditModeProvider);
+    final workspacesAsync = ref.watch(workspacesStreamProvider);
+    final nodesAsync = ref.watch(mapNodesStreamProvider);
+    final currentLocale = ref.watch(localeProvider);
+    final currentThemeMode = ref.watch(themeModeProvider);
+
+    final textPrimary =
+        isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final purple =
+        isDark ? AppColors.darkPrimaryPurple : AppColors.lightPrimaryPurple;
+    final topBarBg = isDark ? const Color(0xFF100F17) : Colors.white;
+    final topBarBorder =
+        isDark ? const Color(0xFF232133) : const Color(0xFFE6E4F0);
+
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Top Bar with settings, language/theme, and map options
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: topBarBg,
+                border: Border(bottom: BorderSide(color: topBarBorder)),
+              ),
+              child: Row(
+                children: [
+                  // Left: Map Options (Edit Mode toggle)
+                  Tooltip(
+                    message: isEditMode ? l10n.viewMode : l10n.editMode,
+                    child: OutlinedButton.icon(
+                      key: const Key('mapEditModeToggle'),
+                      icon: Icon(
+                        isEditMode ? Icons.check_rounded : Icons.edit_outlined,
+                        size: 16,
+                      ),
+                      label: Text(
+                        isEditMode ? l10n.viewMode : l10n.editMode,
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        side: BorderSide(
+                          color: isEditMode
+                              ? purple
+                              : (isDark
+                                  ? const Color(0xFF2C293C)
+                                  : const Color(0xFFDCD9EB)),
+                        ),
+                        backgroundColor: isEditMode
+                            ? purple.withValues(alpha: 0.15)
+                            : Colors.transparent,
+                        foregroundColor: isEditMode ? purple : textSecondary,
+                      ),
+                      onPressed: () {
+                        ref.read(isEditModeProvider.notifier).state =
+                            !isEditMode;
+                      },
+                    ),
+                  ),
+
+                  const Spacer(),
+
+                  // Right: Settings / Language & Theme Pill
+                  Container(
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF191724)
+                          : const Color(0xFFEDEDF5),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isDark
+                            ? const Color(0xFF2B283A)
+                            : const Color(0xFFDFDDE8),
+                      ),
+                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // TR / EN switcher
+                        GestureDetector(
+                          onTap: () {
+                            final next = currentLocale.languageCode == 'tr'
+                                ? const Locale('en')
+                                : const Locale('tr');
+                            ref.read(localeProvider.notifier).setLocale(next);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? const Color(0xFF2C293C)
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Text(
+                              currentLocale.languageCode.toUpperCase(),
+                              style: TextStyle(
+                                color: textPrimary,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        // Dark / Light theme toggle
+                        GestureDetector(
+                          onTap: () {
+                            ref.read(themeModeProvider.notifier).toggleTheme();
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(4),
+                            child: Icon(
+                              currentThemeMode == ThemeMode.dark ||
+                                      (currentThemeMode == ThemeMode.system &&
+                                          isDark)
+                                  ? Icons.dark_mode_outlined
+                                  : Icons.light_mode_outlined,
+                              size: 16,
+                              color: textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+
+                  // "+ Alan Ekle" Primary Button
+                  FilledButton.icon(
+                    key: const Key('homeAddAreaButton'),
+                    icon: const Icon(Icons.add_rounded, size: 16),
+                    label: Text(
+                      l10n.createAreaButton,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: purple,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    onPressed: () => _openCreateSheet(context, ref),
+                  ),
+                ],
+              ),
+            ),
+
+            // Map Body / Empty State / Loading State / Error State
+            Expanded(
+              child: () {
+                if (workspacesAsync.hasError || nodesAsync.hasError) {
+                  final err = workspacesAsync.error ?? nodesAsync.error;
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.error_outline_rounded,
+                              size: 48,
+                              color: Theme.of(context).colorScheme.error),
+                          const SizedBox(height: 12),
+                          Text(
+                            err.toString(),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: textSecondary),
+                          ),
+                          const SizedBox(height: 16),
+                          OutlinedButton(
+                            onPressed: () {
+                              ref.invalidate(workspacesStreamProvider);
+                              ref.invalidate(mapNodesStreamProvider);
+                            },
+                            child: Text(l10n.retry),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                if (workspacesAsync.isLoading || nodesAsync.isLoading) {
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircularProgressIndicator(color: purple),
+                        const SizedBox(height: 16),
+                        Text(
+                          l10n.sessionLoading,
+                          style: TextStyle(color: textSecondary, fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                final workspaces = workspacesAsync.value ?? [];
+                final nodes = nodesAsync.value ?? [];
+
+                if (workspaces.isEmpty) {
+                  return _EmptyMapState(
+                    onAddArea: () => _openCreateSheet(context, ref),
+                  );
+                }
+
+                return MapCanvas(
+                  workspaces: workspaces,
+                  nodes: nodes,
+                  onOpenDetail: (ws) => _openDetail(context, ws),
+                );
+              }(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openCreateSheet(BuildContext context, WidgetRef ref) {
+    final nodes = ref.read(mapNodesStreamProvider).valueOrNull ?? [];
+    double initialX = 1100;
+    double initialY = 1100;
+
+    if (nodes.isNotEmpty) {
+      final last = nodes.last;
+      initialX = (last.positionX + 220) % 2000;
+      initialY = last.positionY;
+      if (initialX < 200) initialX = 1100;
+    }
+
+    CreateWorkspaceSheet.show(
+      context,
+      initialX: initialX,
+      initialY: initialY,
+    );
+  }
+
+  void _openDetail(BuildContext context, Workspace ws) {
+    context.push('/workspace/${ws.id}');
+  }
+}
+
+class _EmptyMapState extends StatelessWidget {
+  const _EmptyMapState({required this.onAddArea});
+  final VoidCallback onAddArea;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.appTitle)),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.map_outlined, size: 64),
-            const SizedBox(height: 16),
-            Text(
-              l10n.homeScreenPlaceholder,
-              textAlign: TextAlign.center,
-            ),
-          ],
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary =
+        isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final purple =
+        isDark ? AppColors.darkPrimaryPurple : AppColors.lightPrimaryPurple;
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 380),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: purple.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: purple.withValues(alpha: 0.25),
+                    width: 1.5,
+                  ),
+                ),
+                child: Icon(
+                  Icons.map_outlined,
+                  size: 40,
+                  color: purple,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                l10n.createFirstAreaTitle,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: textPrimary,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.4,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                l10n.createFirstAreaSubtitle,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: textSecondary,
+                  fontSize: 14,
+                  height: 1.45,
+                ),
+              ),
+              const SizedBox(height: 28),
+              FilledButton.icon(
+                key: const Key('emptyMapAddAreaButton'),
+                icon: const Icon(Icons.add_rounded, size: 20),
+                label: Text(
+                  l10n.createAreaButton,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: FilledButton.styleFrom(
+                  backgroundColor: purple,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                onPressed: onAddArea,
+              ),
+            ],
+          ),
         ),
       ),
     );

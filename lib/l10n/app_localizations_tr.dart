@@ -224,4 +224,107 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get retry => 'Yeniden dene';
+
+  @override
+  String get createFirstAreaTitle => 'İlk alanını oluştur';
+
+  @override
+  String get createFirstAreaSubtitle =>
+      'Projelerini veya derslerini haritaya ekleyerek görsel olarak organize et.';
+
+  @override
+  String get createAreaButton => 'Alan Oluştur';
+
+  @override
+  String get newAreaTitle => 'Yeni Alan Oluştur';
+
+  @override
+  String get areaNameLabel => 'Alan Adı';
+
+  @override
+  String get areaNamePlaceholder => 'Örn: Mobil Uygulama Projesi';
+
+  @override
+  String get areaDescriptionLabel => 'Açıklama (İsteğe bağlı)';
+
+  @override
+  String get areaDescriptionPlaceholder => 'Alan hakkında kısa bilgi...';
+
+  @override
+  String get areaTypeLabel => 'Tür';
+
+  @override
+  String get typeProject => 'Proje';
+
+  @override
+  String get typeLesson => 'Ders';
+
+  @override
+  String get typeFreeform => 'Serbest';
+
+  @override
+  String get allFilter => 'Tümü';
+
+  @override
+  String get areaColorLabel => 'Renk';
+
+  @override
+  String get create => 'Oluştur';
+
+  @override
+  String get save => 'Kaydet';
+
+  @override
+  String get editMode => 'Düzenle';
+
+  @override
+  String get viewMode => 'Görüntüle';
+
+  @override
+  String get centerView => 'Görünümü Ortala';
+
+  @override
+  String get editModeBanner =>
+      'Düzenleme Modu: Alanları sürükleyip tutamaçla boyutlandırabilirsiniz.';
+
+  @override
+  String get areaDetailTitle => 'Alan Ayrıntısı';
+
+  @override
+  String get createdAtLabel => 'Oluşturulma';
+
+  @override
+  String get editArea => 'Alanı Düzenle';
+
+  @override
+  String get deleteArea => 'Alanı Sil';
+
+  @override
+  String get deleteConfirmTitle => 'Alanı Silmek İstediğinize Emin Misiniz?';
+
+  @override
+  String get deleteConfirmBody =>
+      'Bu alan ve haritadaki yerleşimi kalıcı olarak silinecektir. Bu işlem geri alınamaz.';
+
+  @override
+  String get delete => 'Sil';
+
+  @override
+  String get noDescription => 'Açıklama belirtilmemiş';
+
+  @override
+  String get areaNameRequired => 'Lütfen alan adı girin';
+
+  @override
+  String get noWorkspacesYet => 'Henüz bir alan oluşturmadınız';
+
+  @override
+  String get noWorkspacesSubtitle =>
+      'Yeni bir proje veya ders ekleyerek çalışmalarınızı organize edin.';
+
+  @override
+  String get themeModeLight => 'Açık Tema';
+
+  @override
+  String get themeModeDark => 'Koyu Tema';
 }
