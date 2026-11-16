@@ -904,4 +904,56 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get guestJoinWarning =>
       'Misafir kullanıcılar ekip davetlerini kabul edemez. Lütfen önce profil ekranından bir hesap bağlayın veya kayıt olun.';
+
+  @override
+  String get mapView => 'Harita';
+
+  @override
+  String get overviewView => 'Genel Bakış';
+
+  @override
+  String get dailySummaryTitle => 'Günlük Çalışma Özeti';
+
+  @override
+  String get todayTasks => 'Bugün';
+
+  @override
+  String get overdueTasks => 'Gecikmiş';
+
+  @override
+  String get upcomingTasks => 'Önümüzdeki 7 Gün';
+
+  @override
+  String get inProgressTasks => 'Devam Eden';
+
+  @override
+  String get activeWorkspaces => 'Aktif Alanlar';
+
+  @override
+  String seeAll(int count) {
+    return 'Tümünü Gör ($count)';
+  }
+
+  @override
+  String get showLess => 'Daha Az Göster';
+
+  @override
+  String get searchWorkspacesPlaceholder => 'Alan ara...';
+
+  @override
+  String get noMatchingWorkspaces => 'Eşleşen alan bulunamadı.';
+
+  @override
+  String get dailySummaryEmptyTitle => 'Henüz görev veya alan yok';
+
+  @override
+  String get dailySummaryEmptySubtitle =>
+      'Planlarını yönetmek için ilk alanını oluştur ve görevlerini ekle.';
+
+  @override
+  String get allClearTitle => 'Her şey yolunda!';
+
+  @override
+  String get allClearSubtitle =>
+      'Bugün veya geciken bekleyen görev bulunmuyor.';
 }

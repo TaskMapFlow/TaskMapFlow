@@ -601,5 +601,42 @@
   "noJoinedWorkspaces": "You haven't joined any team workspaces yet.",
   "@noJoinedWorkspaces": {"description": "No joined workspaces placeholder"},
   "guestJoinWarning": "Guest users cannot accept team invites. Please link an account or sign up first.",
-  "@guestJoinWarning": {"description": "Guest join warning"}
+  "@guestJoinWarning": {"description": "Guest join warning"},
+  "mapView": "Map",
+  "@mapView": {"description": "Map view option"},
+  "overviewView": "Overview",
+  "@overviewView": {"description": "Overview view option"},
+  "dailySummaryTitle": "Daily Work Summary",
+  "@dailySummaryTitle": {"description": "Daily work summary header"},
+  "todayTasks": "Today",
+  "@todayTasks": {"description": "Tasks due today header"},
+  "overdueTasks": "Overdue",
+  "@overdueTasks": {"description": "Overdue tasks header"},
+  "upcomingTasks": "Next 7 Days",
+  "@upcomingTasks": {"description": "Upcoming tasks in next 7 days header"},
+  "inProgressTasks": "In Progress",
+  "@inProgressTasks": {"description": "In progress tasks header"},
+  "activeWorkspaces": "Active Areas",
+  "@activeWorkspaces": {"description": "Active areas header"},
+  "seeAll": "See All ({count})",
+  "@seeAll": {
+    "description": "See all button",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "showLess": "Show Less",
+  "@showLess": {"description": "Show less button"},
+  "searchWorkspacesPlaceholder": "Search areas...",
+  "@searchWorkspacesPlaceholder": {"description": "Search areas placeholder"},
+  "noMatchingWorkspaces": "No matching areas found.",
+  "@noMatchingWorkspaces": {"description": "No matching areas found warning"},
+  "dailySummaryEmptyTitle": "No tasks or areas yet",
+  "@dailySummaryEmptyTitle": {"description": "Daily summary empty title"},
+  "dailySummaryEmptySubtitle": "Create your first area and add tasks to start managing your work.",
+  "@dailySummaryEmptySubtitle": {"description": "Daily summary empty subtitle"},
+  "allClearTitle": "All clear!",
+  "@allClearTitle": {"description": "All clear title"},
+  "allClearSubtitle": "No overdue or due today tasks pending.",
+  "@allClearSubtitle": {"description": "No urgent tasks pending subtitle"}
 }

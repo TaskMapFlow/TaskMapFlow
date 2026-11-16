@@ -601,5 +601,42 @@
   "noJoinedWorkspaces": "Henüz katıldığınız bir ekip alanı yok.",
   "@noJoinedWorkspaces": {"description": "Katılınan alan yok yer tutucusu"},
   "guestJoinWarning": "Misafir kullanıcılar ekip davetlerini kabul edemez. Lütfen önce profil ekranından bir hesap bağlayın veya kayıt olun.",
-  "@guestJoinWarning": {"description": "Misafir davet kabul edemez uyarısı"}
+  "@guestJoinWarning": {"description": "Misafir davet kabul edemez uyarısı"},
+  "mapView": "Harita",
+  "@mapView": {"description": "Harita görünümü seçeneği"},
+  "overviewView": "Genel Bakış",
+  "@overviewView": {"description": "Genel bakış görünümü seçeneği"},
+  "dailySummaryTitle": "Günlük Çalışma Özeti",
+  "@dailySummaryTitle": {"description": "Günlük çalışma özeti başlığı"},
+  "todayTasks": "Bugün",
+  "@todayTasks": {"description": "Bugün teslim edilecek görevler başlığı"},
+  "overdueTasks": "Gecikmiş",
+  "@overdueTasks": {"description": "Gecikmiş görevler başlığı"},
+  "upcomingTasks": "Önümüzdeki 7 Gün",
+  "@upcomingTasks": {"description": "Önümüzdeki 7 gün yaklaşan görevler başlığı"},
+  "inProgressTasks": "Devam Eden",
+  "@inProgressTasks": {"description": "Devam eden görevler başlığı"},
+  "activeWorkspaces": "Aktif Alanlar",
+  "@activeWorkspaces": {"description": "Aktif alanlar başlığı"},
+  "seeAll": "Tümünü Gör ({count})",
+  "@seeAll": {
+    "description": "Tümünü gör butonu",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "showLess": "Daha Az Göster",
+  "@showLess": {"description": "Daha az göster butonu"},
+  "searchWorkspacesPlaceholder": "Alan ara...",
+  "@searchWorkspacesPlaceholder": {"description": "Alan arama yer tutucusu"},
+  "noMatchingWorkspaces": "Eşleşen alan bulunamadı.",
+  "@noMatchingWorkspaces": {"description": "Eşleşen alan bulunamadı uyarısı"},
+  "dailySummaryEmptyTitle": "Henüz görev veya alan yok",
+  "@dailySummaryEmptyTitle": {"description": "Günlük özet boş başlığı"},
+  "dailySummaryEmptySubtitle": "Planlarını yönetmek için ilk alanını oluştur ve görevlerini ekle.",
+  "@dailySummaryEmptySubtitle": {"description": "Günlük özet boş açıklaması"},
+  "allClearTitle": "Her şey yolunda!",
+  "@allClearTitle": {"description": "Tüm görevler tamam veya beklemede yok başlığı"},
+  "allClearSubtitle": "Bugün veya geciken bekleyen görev bulunmuyor.",
+  "@allClearSubtitle": {"description": "Bekleyen acil görev yok açıklaması"}
 }

@@ -325,7 +325,7 @@ class _SectionTabButton extends StatelessWidget {
   }
 }
 
-class _MyWorkspacesView extends ConsumerWidget {
+class _MyWorkspacesView extends ConsumerStatefulWidget {
   const _MyWorkspacesView({
     required this.filterType,
     required this.onFilterChanged,
@@ -337,7 +337,21 @@ class _MyWorkspacesView extends ConsumerWidget {
   final VoidCallback onJoinCode;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_MyWorkspacesView> createState() => _MyWorkspacesViewState();
+}
+
+class _MyWorkspacesViewState extends ConsumerState<_MyWorkspacesView> {
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final workspacesAsync = ref.watch(workspacesStreamProvider);
@@ -436,62 +450,148 @@ class _MyWorkspacesView extends ConsumerWidget {
           );
         }
 
-        final filteredWorkspaces = filterType == null
-            ? workspaces
-            : workspaces.where((w) => w.type == filterType).toList();
+        final query = _searchQuery.toLowerCase();
+        final filteredWorkspaces = workspaces.where((w) {
+          if (widget.filterType != null && w.type != widget.filterType) {
+            return false;
+          }
+          if (query.isNotEmpty && !w.name.toLowerCase().contains(query)) {
+            return false;
+          }
+          return true;
+        }).toList();
 
         return Column(
           children: [
+            // Search Bar
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+              child: TextField(
+                controller: _searchController,
+                style: TextStyle(color: textPrimary, fontSize: 13),
+                decoration: InputDecoration(
+                  hintText: l10n.searchWorkspacesPlaceholder,
+                  hintStyle: TextStyle(
+                    color: textSecondary.withValues(alpha: 0.6),
+                    fontSize: 13,
+                  ),
+                  prefixIcon: Icon(
+                    Icons.search_rounded,
+                    size: 18,
+                    color: textSecondary,
+                  ),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear_rounded, size: 16),
+                          color: textSecondary,
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() => _searchQuery = '');
+                          },
+                        )
+                      : null,
+                  filled: true,
+                  fillColor: isDark
+                      ? const Color(0xFF161522)
+                      : const Color(0xFFF3F2F8),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: isDark
+                          ? const Color(0xFF262335)
+                          : const Color(0xFFE2E0EE),
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: isDark
+                          ? const Color(0xFF262335)
+                          : const Color(0xFFE2E0EE),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: purple, width: 1.5),
+                  ),
+                ),
+                onChanged: (val) {
+                  setState(() => _searchQuery = val.trim());
+                },
+              ),
+            ),
+
             // Filter Chips
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               child: Row(
                 children: [
                   _FilterChip(
                     label: l10n.allFilter,
-                    isSelected: filterType == null,
-                    onTap: () => onFilterChanged(null),
+                    isSelected: widget.filterType == null,
+                    onTap: () => widget.onFilterChanged(null),
                   ),
                   const SizedBox(width: 8),
                   _FilterChip(
                     label: l10n.typeProject,
-                    isSelected: filterType == WorkspaceType.project,
-                    onTap: () => onFilterChanged(WorkspaceType.project),
+                    isSelected: widget.filterType == WorkspaceType.project,
+                    onTap: () => widget.onFilterChanged(WorkspaceType.project),
                   ),
                   const SizedBox(width: 8),
                   _FilterChip(
                     label: l10n.typeLesson,
-                    isSelected: filterType == WorkspaceType.lesson,
-                    onTap: () => onFilterChanged(WorkspaceType.lesson),
+                    isSelected: widget.filterType == WorkspaceType.lesson,
+                    onTap: () => widget.onFilterChanged(WorkspaceType.lesson),
                   ),
                   const SizedBox(width: 8),
                   _FilterChip(
                     label: l10n.typeFreeform,
-                    isSelected: filterType == WorkspaceType.freeform,
-                    onTap: () => onFilterChanged(WorkspaceType.freeform),
+                    isSelected: widget.filterType == WorkspaceType.freeform,
+                    onTap: () => widget.onFilterChanged(WorkspaceType.freeform),
                   ),
                 ],
               ),
             ),
 
-            // Workspaces List
+            // Workspaces List or Empty Search
             Expanded(
-              child: ListView.builder(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                itemCount: filteredWorkspaces.length,
-                itemBuilder: (context, index) {
-                  final ws = filteredWorkspaces[index];
-                  return WorkspaceCard(
-                    key: ValueKey(ws.id),
-                    workspace: ws,
-                    onTap: () {
-                      context.push('/workspace/${ws.id}');
-                    },
-                  );
-                },
-              ),
+              child: filteredWorkspaces.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.search_off_rounded,
+                                size: 36, color: textSecondary),
+                            const SizedBox(height: 10),
+                            Text(
+                              l10n.noMatchingWorkspaces,
+                              style:
+                                  TextStyle(color: textSecondary, fontSize: 13),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      itemCount: filteredWorkspaces.length,
+                      itemBuilder: (context, index) {
+                        final ws = filteredWorkspaces[index];
+                        return WorkspaceCard(
+                          key: ValueKey(ws.id),
+                          workspace: ws,
+                          onTap: () {
+                            context.push('/workspace/${ws.id}');
+                          },
+                        );
+                      },
+                    ),
             ),
           ],
         );

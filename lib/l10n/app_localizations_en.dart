@@ -902,4 +902,55 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get guestJoinWarning =>
       'Guest users cannot accept team invites. Please link an account or sign up first.';
+
+  @override
+  String get mapView => 'Map';
+
+  @override
+  String get overviewView => 'Overview';
+
+  @override
+  String get dailySummaryTitle => 'Daily Work Summary';
+
+  @override
+  String get todayTasks => 'Today';
+
+  @override
+  String get overdueTasks => 'Overdue';
+
+  @override
+  String get upcomingTasks => 'Next 7 Days';
+
+  @override
+  String get inProgressTasks => 'In Progress';
+
+  @override
+  String get activeWorkspaces => 'Active Areas';
+
+  @override
+  String seeAll(int count) {
+    return 'See All ($count)';
+  }
+
+  @override
+  String get showLess => 'Show Less';
+
+  @override
+  String get searchWorkspacesPlaceholder => 'Search areas...';
+
+  @override
+  String get noMatchingWorkspaces => 'No matching areas found.';
+
+  @override
+  String get dailySummaryEmptyTitle => 'No tasks or areas yet';
+
+  @override
+  String get dailySummaryEmptySubtitle =>
+      'Create your first area and add tasks to start managing your work.';
+
+  @override
+  String get allClearTitle => 'All clear!';
+
+  @override
+  String get allClearSubtitle => 'No overdue or due today tasks pending.';
 }

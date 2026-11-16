@@ -1789,6 +1789,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Guest users cannot accept team invites. Please link an account or sign up first.'**
   String get guestJoinWarning;
+
+  /// Map view option
+  ///
+  /// In en, this message translates to:
+  /// **'Map'**
+  String get mapView;
+
+  /// Overview view option
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get overviewView;
+
+  /// Daily work summary header
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Work Summary'**
+  String get dailySummaryTitle;
+
+  /// Tasks due today header
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get todayTasks;
+
+  /// Overdue tasks header
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get overdueTasks;
+
+  /// Upcoming tasks in next 7 days header
+  ///
+  /// In en, this message translates to:
+  /// **'Next 7 Days'**
+  String get upcomingTasks;
+
+  /// In progress tasks header
+  ///
+  /// In en, this message translates to:
+  /// **'In Progress'**
+  String get inProgressTasks;
+
+  /// Active areas header
+  ///
+  /// In en, this message translates to:
+  /// **'Active Areas'**
+  String get activeWorkspaces;
+
+  /// See all button
+  ///
+  /// In en, this message translates to:
+  /// **'See All ({count})'**
+  String seeAll(int count);
+
+  /// Show less button
+  ///
+  /// In en, this message translates to:
+  /// **'Show Less'**
+  String get showLess;
+
+  /// Search areas placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Search areas...'**
+  String get searchWorkspacesPlaceholder;
+
+  /// No matching areas found warning
+  ///
+  /// In en, this message translates to:
+  /// **'No matching areas found.'**
+  String get noMatchingWorkspaces;
+
+  /// Daily summary empty title
+  ///
+  /// In en, this message translates to:
+  /// **'No tasks or areas yet'**
+  String get dailySummaryEmptyTitle;
+
+  /// Daily summary empty subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first area and add tasks to start managing your work.'**
+  String get dailySummaryEmptySubtitle;
+
+  /// All clear title
+  ///
+  /// In en, this message translates to:
+  /// **'All clear!'**
+  String get allClearTitle;
+
+  /// No urgent tasks pending subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'No overdue or due today tasks pending.'**
+  String get allClearSubtitle;
 }
 
 class _AppLocalizationsDelegate
