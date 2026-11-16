@@ -151,6 +151,300 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No Firebase project is configured yet. Add GoogleService-Info.plist (iOS) after completing the steps in docs/firebase-setup.md.'**
   String get setupRequiredBody;
+
+  /// Sign in button and header
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In'**
+  String get signIn;
+
+  /// Sign up button and header
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Up'**
+  String get signUp;
+
+  /// Email input field label
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get email;
+
+  /// Password input field label
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get password;
+
+  /// Confirm password input field label
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Password'**
+  String get confirmPassword;
+
+  /// First name input field label
+  ///
+  /// In en, this message translates to:
+  /// **'First Name'**
+  String get firstName;
+
+  /// Last name input field label
+  ///
+  /// In en, this message translates to:
+  /// **'Last Name'**
+  String get lastName;
+
+  /// Guest login button label
+  ///
+  /// In en, this message translates to:
+  /// **'Continue as Guest'**
+  String get continueAsGuest;
+
+  /// Forgot password link
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot Password?'**
+  String get forgotPassword;
+
+  /// Reset password screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Password'**
+  String get forgotPasswordTitle;
+
+  /// Reset password explanation
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email address to receive a password reset link.'**
+  String get forgotPasswordDescription;
+
+  /// Send reset link button
+  ///
+  /// In en, this message translates to:
+  /// **'Send Reset Link'**
+  String get sendResetLink;
+
+  /// Generic message after requesting password reset
+  ///
+  /// In en, this message translates to:
+  /// **'If an account exists with this email address, a password reset link has been sent.'**
+  String get resetLinkSent;
+
+  /// Prompt for new users
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account?'**
+  String get noAccountPrompt;
+
+  /// Prompt for registered users
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account?'**
+  String get alreadyHaveAccount;
+
+  /// Email verification screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Verify Your Email'**
+  String get verifyEmailTitle;
+
+  /// Email verification explanation
+  ///
+  /// In en, this message translates to:
+  /// **'A verification email has been sent to {email}. Please verify your email to access all features.'**
+  String verifyEmailBody(String email);
+
+  /// Button to resend email verification
+  ///
+  /// In en, this message translates to:
+  /// **'Resend Verification Email'**
+  String get resendVerificationEmail;
+
+  /// Cooldown timer text for resending verification email
+  ///
+  /// In en, this message translates to:
+  /// **'Resend in {seconds}s'**
+  String resendCooldown(int seconds);
+
+  /// Button to reload user profile and check email verification
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ve Verified, Refresh Status'**
+  String get checkVerificationStatus;
+
+  /// Sign out button label
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Out'**
+  String get signOut;
+
+  /// Sign out confirmation dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Sign Out'**
+  String get signOutConfirmTitle;
+
+  /// Sign out confirmation dialog body
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to sign out?'**
+  String get signOutConfirmBody;
+
+  /// Badge showing user is in guest session
+  ///
+  /// In en, this message translates to:
+  /// **'Guest Session'**
+  String get guestAccountBadge;
+
+  /// Notice for guest users on profile screen
+  ///
+  /// In en, this message translates to:
+  /// **'You are currently signed in as a guest. Link an email to protect your progress and use your account across devices.'**
+  String get guestAccountNotice;
+
+  /// Button to open link account flow
+  ///
+  /// In en, this message translates to:
+  /// **'Save Account with Email'**
+  String get linkAccount;
+
+  /// Link account screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Link Email Account'**
+  String get linkAccountTitle;
+
+  /// Explanation of linking guest to permanent email account
+  ///
+  /// In en, this message translates to:
+  /// **'Create credentials to convert this guest session into a permanent account while preserving your data and ID.'**
+  String get linkAccountDescription;
+
+  /// Notice when email linking fails because account already exists
+  ///
+  /// In en, this message translates to:
+  /// **'This email is already registered to an existing account. Automatic account merging is disabled to protect your data. Please sign in to that account or use a different email.'**
+  String get linkAccountConflict;
+
+  /// Success banner when guest account is linked
+  ///
+  /// In en, this message translates to:
+  /// **'Account successfully linked!'**
+  String get linkAccountSuccess;
+
+  /// Validation message when email is empty
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your email'**
+  String get emailRequired;
+
+  /// Validation message when email is malformed
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid email address'**
+  String get invalidEmail;
+
+  /// Validation message when password is empty
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your password'**
+  String get passwordRequired;
+
+  /// Validation message when password is less than 6 chars
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 6 characters'**
+  String get passwordTooShort;
+
+  /// Validation message when confirm password does not match
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get passwordsDoNotMatch;
+
+  /// Validation message when first name is empty
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your first name'**
+  String get firstNameRequired;
+
+  /// Validation message when last name is empty
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your last name'**
+  String get lastNameRequired;
+
+  /// Generic auth error for incorrect credentials
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect email or password'**
+  String get authErrorInvalidCredentials;
+
+  /// Auth error when signing up with existing email
+  ///
+  /// In en, this message translates to:
+  /// **'This email address is already in use'**
+  String get authErrorEmailInUse;
+
+  /// Auth error when password is weak
+  ///
+  /// In en, this message translates to:
+  /// **'Password is too weak. Please choose a stronger password.'**
+  String get authErrorWeakPassword;
+
+  /// Auth error when rate limited
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Please try again later.'**
+  String get authErrorTooManyRequests;
+
+  /// Auth error on network issue
+  ///
+  /// In en, this message translates to:
+  /// **'Network error. Please check your connection.'**
+  String get authErrorNetwork;
+
+  /// Generic auth error
+  ///
+  /// In en, this message translates to:
+  /// **'An unexpected authentication error occurred.'**
+  String get authErrorUnknown;
+
+  /// Cancel button
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// Language label
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
+
+  /// Turkish language name
+  ///
+  /// In en, this message translates to:
+  /// **'Türkçe'**
+  String get turkish;
+
+  /// English language name
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get english;
+
+  /// Loading message during initial session check
+  ///
+  /// In en, this message translates to:
+  /// **'Checking session...'**
+  String get sessionLoading;
+
+  /// Retry button
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
 }
 
 class _AppLocalizationsDelegate

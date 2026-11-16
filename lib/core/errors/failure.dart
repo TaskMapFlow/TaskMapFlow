@@ -17,6 +17,29 @@ final class AuthFailure extends Failure {
   const AuthFailure([super.message = 'Authentication required']);
 }
 
+final class InvalidCredentialsFailure extends Failure {
+  const InvalidCredentialsFailure(
+      [super.message = 'Invalid email or password']);
+}
+
+final class EmailAlreadyInUseFailure extends Failure {
+  const EmailAlreadyInUseFailure([super.message = 'Email is already in use']);
+}
+
+final class WeakPasswordFailure extends Failure {
+  const WeakPasswordFailure([super.message = 'Password is too weak']);
+}
+
+final class TooManyRequestsFailure extends Failure {
+  const TooManyRequestsFailure(
+      [super.message = 'Too many requests. Please try again later.']);
+}
+
+final class CredentialAlreadyInUseFailure extends Failure {
+  const CredentialAlreadyInUseFailure(
+      [super.message = 'Credential already in use']);
+}
+
 final class PermissionFailure extends Failure {
   const PermissionFailure([super.message = 'You do not have permission']);
 }

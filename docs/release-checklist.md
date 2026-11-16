@@ -2,7 +2,20 @@
 
 > This checklist is NOT exhaustive. Refer to the current [Apple App Store Review Guidelines](https://developer.apple.com/app-store/review/guidelines/) and Apple Developer documentation at submission time, as requirements change.
 
-## Sign in with Apple (Required)
+## Phase 2A Authentication Status
+
+- [x] Email/Password Sign-In & Sign-Up with Clean Architecture (Domain pure Dart, FirebaseAuth adapter only).
+- [x] Guest (Anonymous) session support with UID preservation via `linkWithCredential`.
+- [x] Conflict handling on guest account linking (reject automatic data merging; prompt clear user choice).
+- [x] Email verification flow: initial delivery, resend with client cooldown, and status reload.
+- [x] Password reset request flow with email enumeration mitigation.
+- [x] Language selector (TR/EN) on login screen with persistent user preference across app restarts.
+- [x] Session state management from Firebase Auth stream without screen flashing.
+- [x] Denial-of-access (Deny-All) maintained on Firestore and Storage rules regardless of auth status.
+- [ ] Social logins (Sign in with Apple, Google Sign-In) intentionally excluded from Phase 2A and scheduled for subsequent phases. Non-functional placeholder buttons are omitted from the UI.
+- [ ] **Release Readiness**: This build is a Phase 2A milestone build and is **NOT** declared production/App Store release-ready until full account deletion, App Check enforcement, and App Store review compliance are finalized.
+
+## Sign in with Apple & Social Logins (Phase 2B - Next Phase)
 
 Apple requires Sign in with Apple if any third-party login (Google, etc.) is offered.
 
@@ -11,10 +24,11 @@ Apple requires Sign in with Apple if any third-party login (Google, etc.) is off
 - [ ] Handle both real name disclosure and private email relay
 - [ ] Test Apple sign-in on a real device (simulator has limitations)
 - [ ] Implement token revocation on account deletion (required by Apple)
+- [ ] Google Sign-In integration and credential linking
 
-## Account Deletion (Required by App Store)
+## Account Deletion (Mandatory Blocker for App Store Submission)
 
-Apple requires apps to offer in-app account deletion (App Store Review Guideline 5.1.1(v), effective June 2022).
+Apple requires apps to offer in-app account deletion (App Store Review Guideline 5.1.1(v), effective June 2022). **The app cannot be submitted to App Store until this section is completely implemented.**
 
 - [ ] Implement "Delete Account" accessible from within the app (not just via email/support)
 - [ ] Account deletion must remove or anonymise:
@@ -28,12 +42,22 @@ Apple requires apps to offer in-app account deletion (App Store Review Guideline
 - [ ] Revoke Firebase Auth session on deletion
 - [ ] Data deletion must be permanent (not just hidden)
 
+## App Check Enforcement (Phase 3)
+
+App Check must NOT be silently assumed active.
+
+- [ ] Register iOS App Attest / DeviceCheck in Firebase Console
+- [ ] Register debug tokens for simulator / CI environments
+- [ ] Verify App Check token exchange on real physical device
+- [ ] Set App Check mode to "Monitor" (Audit) before strict "Enforce"
+- [ ] Plan and verify production enforcement rollout for Firestore and Storage
+
 ## Privacy
 
 - [ ] Add Privacy Nutrition Labels in App Store Connect matching actual data collected
 - [ ] Privacy policy URL required before submission (must be accessible without login)
 - [ ] Privacy policy must accurately describe:
-  - Data collected: email, display name, optionally photo
+  - Data collected: email, display name
   - Third-party services: Firebase (Google) — full SDK list
   - Data retention and deletion policy
   - Contact information for privacy requests
@@ -64,8 +88,6 @@ The following must be designed and implemented before the "public" visibility op
 - [ ] Blocking mechanism (user-to-user)
 - [ ] Moderation workflow (manual or automated)
 - [ ] Response policy for reported content
-
-> **Note**: Public content moderation is NOT designed in Phase 1. The public sharing feature must NOT be released until this is in place.
 
 ## Google Sign-In / Android (Future)
 

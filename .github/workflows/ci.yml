@@ -41,8 +41,8 @@ jobs:
       - name: Run Flutter tests
         run: flutter test --coverage
 
-  firebase-rules-tests:
-    name: Firestore & Storage Security Rules Tests
+  firebase-emulator-tests:
+    name: Firebase Emulator Tests (Rules & Auth)
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -70,9 +70,16 @@ jobs:
         working-directory: test-rules
         run: npm ci
 
-      - name: Run Firestore & Storage rules tests (emulator)
+      - name: Run Firestore & Storage Security Rules tests (emulator)
         run: |
           firebase emulators:exec \
-            --only firestore,storage,auth \
+            --only firestore,storage \
             --project demo-taskmapflow \
-            "cd test-rules && npm test"
+            "cd test-rules && npm run test:rules"
+
+      - name: Run Firebase Auth Emulator SDK tests (emulator)
+        run: |
+          firebase emulators:exec \
+            --only auth,firestore,storage \
+            --project demo-taskmapflow \
+            "cd test-rules && npm run test:auth"

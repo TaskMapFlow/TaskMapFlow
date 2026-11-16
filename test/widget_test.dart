@@ -2,16 +2,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:task_map_flow/app/app.dart';
-import 'package:task_map_flow/app/router.dart';
+import 'package:task_map_flow/features/auth/domain/models/auth_state.dart';
+import 'package:task_map_flow/features/auth/domain/models/auth_user.dart';
+import 'package:task_map_flow/features/auth/presentation/providers/auth_providers.dart';
+import 'helpers/fake_auth_repository.dart';
 
 void main() {
+  late SharedPreferences prefs;
+
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    prefs = await SharedPreferences.getInstance();
+  });
+
   group('Setup Required Screen Tests', () {
     testWidgets('renders setup-required screen in English when locale is en',
         (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
-          child: TaskMapFlowApp(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+          ],
+          child: const TaskMapFlowApp(
             firebaseReady: false,
             locale: Locale('en'),
           ),
@@ -29,8 +43,11 @@ void main() {
     testWidgets('renders setup-required screen in Turkish when locale is tr',
         (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
-          child: TaskMapFlowApp(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+          ],
+          child: const TaskMapFlowApp(
             firebaseReady: false,
             locale: Locale('tr'),
           ),
@@ -50,10 +67,25 @@ void main() {
     testWidgets(
         'renders tabs in order [Profile, Home, Manage] with Home selected by default (en)',
         (tester) async {
-      router.go('/home');
+      final fakeAuth = FakeAuthRepository(
+        initialStatus: const AuthAuthenticated(
+          AuthUser(
+            id: 'u1',
+            email: 'user@example.com',
+            displayName: 'Test User',
+            isAnonymous: false,
+            isEmailVerified: true,
+          ),
+        ),
+      );
+
       await tester.pumpWidget(
-        const ProviderScope(
-          child: TaskMapFlowApp(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            authRepositoryProvider.overrideWithValue(fakeAuth),
+          ],
+          child: const TaskMapFlowApp(
             firebaseReady: true,
             locale: Locale('en'),
           ),
@@ -80,6 +112,7 @@ void main() {
         find.text('Profile content will be added in a future phase.'),
         findsOneWidget,
       );
+      expect(find.text('Test User'), findsOneWidget);
 
       // Navigate to Manage tab (right)
       await tester.tap(find.text('Manage'));
@@ -92,10 +125,25 @@ void main() {
 
     testWidgets('renders tabs in order [Profil, Ana Sayfa, Yönet] in Turkish',
         (tester) async {
-      router.go('/home');
+      final fakeAuth = FakeAuthRepository(
+        initialStatus: const AuthAuthenticated(
+          AuthUser(
+            id: 'u1',
+            email: 'user@example.com',
+            displayName: 'Test Kullanıcı',
+            isAnonymous: false,
+            isEmailVerified: true,
+          ),
+        ),
+      );
+
       await tester.pumpWidget(
-        const ProviderScope(
-          child: TaskMapFlowApp(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            authRepositoryProvider.overrideWithValue(fakeAuth),
+          ],
+          child: const TaskMapFlowApp(
             firebaseReady: true,
             locale: Locale('tr'),
           ),
@@ -121,6 +169,7 @@ void main() {
         find.text('Profil içeriği bir sonraki aşamada eklenecek.'),
         findsOneWidget,
       );
+      expect(find.text('Test Kullanıcı'), findsOneWidget);
 
       // Navigate to Yönet tab
       await tester.tap(find.text('Yönet'));

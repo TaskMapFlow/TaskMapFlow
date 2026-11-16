@@ -4,10 +4,14 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:task_map_flow/app/app.dart';
+import 'package:task_map_flow/features/auth/presentation/providers/auth_providers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  final prefs = await SharedPreferences.getInstance();
 
   bool firebaseReady = false;
   try {
@@ -22,6 +26,9 @@ Future<void> main() async {
 
   runApp(
     ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+      ],
       child: TaskMapFlowApp(firebaseReady: firebaseReady),
     ),
   );

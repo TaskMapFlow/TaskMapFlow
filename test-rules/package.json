@@ -2,13 +2,17 @@
   "name": "taskmapflow-rules-tests",
   "version": "1.0.0",
   "private": true,
-  "description": "Firestore Security Rules tests using the Firebase Emulator",
+  "description": "Firestore Security Rules and Auth tests using the Firebase Emulator",
   "scripts": {
-    "test": "node --experimental-vm-modules node_modules/.bin/jest"
+    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "test:rules": "node --experimental-vm-modules node_modules/.bin/jest firestore.rules.test.js",
+    "test:auth": "node --experimental-vm-modules node_modules/.bin/jest auth.emulator.test.js"
   },
   "jest": {
     "testEnvironment": "node",
-    "testMatch": ["**/*.test.js"],
+    "testMatch": [
+      "**/*.test.js"
+    ],
     "testTimeout": 30000
   },
   "dependencies": {
