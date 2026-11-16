@@ -46,7 +46,7 @@ void main() {
       await tester.pumpWidget(buildTestApp());
       await tester.pumpAndSettle();
 
-      expect(find.text('Verify Your Email'), findsNWidgets(2));
+      expect(find.text('Verify Your Email'), findsOneWidget);
       expect(
         find.textContaining('unverified@example.com'),
         findsOneWidget,
@@ -63,7 +63,9 @@ void main() {
       await tester.pumpWidget(buildTestApp());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byKey(const Key('checkVerificationStatusButton')));
+      final checkBtn = find.byKey(const Key('checkVerificationStatusButton'));
+      await tester.ensureVisible(checkBtn);
+      await tester.tap(checkBtn);
       await tester.pumpAndSettle();
 
       expect(fakeRepo.reloadCallCount, 1);
@@ -75,7 +77,9 @@ void main() {
       await tester.pumpWidget(buildTestApp());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byKey(const Key('resendVerificationButton')));
+      final resendBtn = find.byKey(const Key('resendVerificationButton'));
+      await tester.ensureVisible(resendBtn);
+      await tester.tap(resendBtn);
       await tester.pump();
 
       expect(fakeRepo.verificationCallCount, 1);
@@ -91,7 +95,9 @@ void main() {
       await tester.pumpWidget(buildTestApp());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byKey(const Key('verifyEmailSignOutButton')));
+      final signOutBtn = find.byKey(const Key('verifyEmailSignOutButton'));
+      await tester.ensureVisible(signOutBtn);
+      await tester.tap(signOutBtn);
       await tester.pumpAndSettle();
 
       expect(fakeRepo.signOutCallCount, 1);

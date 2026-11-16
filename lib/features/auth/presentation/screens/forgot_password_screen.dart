@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:task_map_flow/app/theme.dart';
 import 'package:task_map_flow/core/extensions/context_extensions.dart';
 import 'package:task_map_flow/core/result/result.dart';
 import 'package:task_map_flow/features/auth/presentation/providers/auth_providers.dart';
+import 'package:task_map_flow/features/auth/presentation/widgets/abstract_spheres_header.dart';
+import 'package:task_map_flow/features/auth/presentation/widgets/auth_form_components.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -36,9 +40,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         .sendPasswordResetEmail(email: email);
 
     if (mounted) {
-      if (result is Err) {
+      if (result case Err(:final failure)) {
         setState(() {
-          _errorMessage = mapAuthFailureToMessage(context, result.failure);
+          _errorMessage = mapAuthFailureToMessage(context, failure);
         });
       } else {
         setState(() {
@@ -52,133 +56,172 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final isLoading = ref.watch(authControllerProvider).isLoading;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final textPrimary =
+        isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.forgotPasswordTitle),
-      ),
-      body: Center(
+      body: SafeArea(
+        top: false,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
-            child: _submitted
-                ? Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.mark_email_read_outlined,
-                        size: 64,
-                        color: Colors.green,
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        l10n.resetLinkSent,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                      const SizedBox(height: 24),
-                      FilledButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: Text(l10n.signIn),
-                      ),
-                    ],
-                  )
-                : Form(
-                    key: _formKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          l10n.forgotPasswordTitle,
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium
-                              ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          l10n.forgotPasswordDescription,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        const SizedBox(height: 24),
-                        if (_errorMessage != null) ...[
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color:
-                                  Theme.of(context).colorScheme.errorContainer,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.error_outline_rounded,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onErrorContainer,
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              AbstractSpheresHeader(
+                showBackButton: true,
+                onBack: () => context.pop(),
+                height: 210,
+              ),
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: _submitted
+                        ? Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const SizedBox(height: 24),
+                              Container(
+                                width: 72,
+                                height: 72,
+                                decoration: BoxDecoration(
+                                  color: (isDark
+                                          ? AppColors.darkPrimaryPurple
+                                          : AppColors.lightPrimaryPurple)
+                                      .withValues(alpha: 0.15),
+                                  shape: BoxShape.circle,
                                 ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    _errorMessage!,
-                                    style: TextStyle(
+                                child: Icon(
+                                  Icons.mark_email_read_outlined,
+                                  size: 40,
+                                  color: isDark
+                                      ? AppColors.darkPrimaryPurple
+                                      : AppColors.lightPrimaryPurple,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              Text(
+                                l10n.resetLinkSent,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: textPrimary,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  height: 1.4,
+                                ),
+                              ),
+                              const SizedBox(height: 32),
+                              AuthPrimaryButton(
+                                text: l10n.signIn,
+                                onPressed: () => context.pop(),
+                              ),
+                            ],
+                          )
+                        : Form(
+                            key: _formKey,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                const SizedBox(height: 8),
+                                Text(
+                                  l10n.forgotPasswordTitle,
+                                  style: TextStyle(
+                                    color: textPrimary,
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: -0.6,
+                                    height: 1.2,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  l10n.forgotPasswordDescription,
+                                  style: TextStyle(
+                                    color: textSecondary,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w400,
+                                    height: 1.35,
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                if (_errorMessage != null) ...[
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
                                       color: Theme.of(context)
                                           .colorScheme
-                                          .onErrorContainer,
+                                          .errorContainer,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.error_outline_rounded,
+                                          size: 20,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onErrorContainer,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            _errorMessage!,
+                                            style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onErrorContainer,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
+                                  const SizedBox(height: 16),
+                                ],
+                                AuthInputField(
+                                  fieldKey:
+                                      const Key('forgotPasswordEmailField'),
+                                  controller: _emailController,
+                                  label: l10n.email,
+                                  hintText: l10n.emailPlaceholder,
+                                  keyboardType: TextInputType.emailAddress,
+                                  autofillHints: const [AutofillHints.email],
+                                  textInputAction: TextInputAction.done,
+                                  onFieldSubmitted: (_) => _submitReset(),
+                                  validator: (value) {
+                                    if (value == null || value.trim().isEmpty) {
+                                      return l10n.emailRequired;
+                                    }
+                                    final emailRegex = RegExp(
+                                        r'^[\w\.-]+@([\w-]+\.)+[\w-]{2,4}$');
+                                    if (!emailRegex.hasMatch(value.trim())) {
+                                      return l10n.invalidEmail;
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 24),
+                                AuthPrimaryButton(
+                                  buttonKey:
+                                      const Key('forgotPasswordSubmitButton'),
+                                  text: l10n.sendResetLink,
+                                  isLoading: isLoading,
+                                  onPressed: _submitReset,
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(height: 16),
-                        ],
-                        TextFormField(
-                          key: const Key('forgotPasswordEmailField'),
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          autofillHints: const [AutofillHints.email],
-                          textInputAction: TextInputAction.done,
-                          onFieldSubmitted: (_) => _submitReset(),
-                          decoration: InputDecoration(
-                            labelText: l10n.email,
-                            prefixIcon: const Icon(Icons.email_outlined),
-                            border: const OutlineInputBorder(),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return l10n.emailRequired;
-                            }
-                            final emailRegex =
-                                RegExp(r'^[\w\.-]+@([\w-]+\.)+[\w-]{2,4}$');
-                            if (!emailRegex.hasMatch(value.trim())) {
-                              return l10n.invalidEmail;
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 24),
-                        FilledButton(
-                          key: const Key('forgotPasswordSubmitButton'),
-                          onPressed: isLoading ? null : _submitReset,
-                          child: isLoading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : Text(l10n.sendResetLink),
-                        ),
-                      ],
-                    ),
                   ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

@@ -68,7 +68,7 @@ void main() {
       await tester.pumpWidget(buildTestApp());
       await tester.pumpAndSettle();
 
-      expect(find.text('Verify Your Email'), findsNWidgets(2));
+      expect(find.text('Verify Your Email'), findsOneWidget);
       expect(find.text('Home'), findsNothing);
     });
 

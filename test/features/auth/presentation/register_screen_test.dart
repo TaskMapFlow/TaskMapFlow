@@ -33,14 +33,20 @@ void main() {
     );
   }
 
+  Future<void> navigateToRegister(WidgetTester tester) async {
+    await tester.pumpWidget(buildTestApp());
+    await tester.pumpAndSettle();
+
+    final registerBtn = find.byKey(const Key('goToRegisterButton'));
+    await tester.ensureVisible(registerBtn);
+    await tester.tap(registerBtn);
+    await tester.pumpAndSettle();
+  }
+
   group('RegisterScreen Tests', () {
     testWidgets('navigates to register screen and renders all fields',
         (tester) async {
-      await tester.pumpWidget(buildTestApp());
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byKey(const Key('goToRegisterButton')));
-      await tester.pumpAndSettle();
+      await navigateToRegister(tester);
 
       expect(find.byKey(const Key('registerFirstNameField')), findsOneWidget);
       expect(find.byKey(const Key('registerLastNameField')), findsOneWidget);
@@ -53,13 +59,11 @@ void main() {
 
     testWidgets('validates required fields and password length',
         (tester) async {
-      await tester.pumpWidget(buildTestApp());
-      await tester.pumpAndSettle();
+      await navigateToRegister(tester);
 
-      await tester.tap(find.byKey(const Key('goToRegisterButton')));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byKey(const Key('registerSubmitButton')));
+      final submitBtn = find.byKey(const Key('registerSubmitButton'));
+      await tester.ensureVisible(submitBtn);
+      await tester.tap(submitBtn);
       await tester.pumpAndSettle();
 
       expect(find.text('Please enter your first name'), findsOneWidget);
@@ -69,11 +73,7 @@ void main() {
     });
 
     testWidgets('validates password mismatch and length < 6', (tester) async {
-      await tester.pumpWidget(buildTestApp());
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byKey(const Key('goToRegisterButton')));
-      await tester.pumpAndSettle();
+      await navigateToRegister(tester);
 
       await tester.enterText(
           find.byKey(const Key('registerFirstNameField')), 'John');
@@ -86,7 +86,9 @@ void main() {
       await tester.enterText(
           find.byKey(const Key('registerConfirmPasswordField')), '123456');
 
-      await tester.tap(find.byKey(const Key('registerSubmitButton')));
+      final submitBtn = find.byKey(const Key('registerSubmitButton'));
+      await tester.ensureVisible(submitBtn);
+      await tester.tap(submitBtn);
       await tester.pumpAndSettle();
 
       expect(
@@ -95,11 +97,7 @@ void main() {
     });
 
     testWidgets('successful registration invokes sign up', (tester) async {
-      await tester.pumpWidget(buildTestApp());
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byKey(const Key('goToRegisterButton')));
-      await tester.pumpAndSettle();
+      await navigateToRegister(tester);
 
       await tester.enterText(
           find.byKey(const Key('registerFirstNameField')), 'John');
@@ -112,7 +110,9 @@ void main() {
       await tester.enterText(
           find.byKey(const Key('registerConfirmPasswordField')), 'password123');
 
-      await tester.tap(find.byKey(const Key('registerSubmitButton')));
+      final submitBtn = find.byKey(const Key('registerSubmitButton'));
+      await tester.ensureVisible(submitBtn);
+      await tester.tap(submitBtn);
       await tester.pumpAndSettle();
 
       expect(fakeRepo.signUpCallCount, 1);
@@ -121,11 +121,7 @@ void main() {
     testWidgets('shows email already in use error', (tester) async {
       fakeRepo.signUpResult = const Err<AuthUser>(EmailAlreadyInUseFailure());
 
-      await tester.pumpWidget(buildTestApp());
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byKey(const Key('goToRegisterButton')));
-      await tester.pumpAndSettle();
+      await navigateToRegister(tester);
 
       await tester.enterText(
           find.byKey(const Key('registerFirstNameField')), 'John');
@@ -138,7 +134,9 @@ void main() {
       await tester.enterText(
           find.byKey(const Key('registerConfirmPasswordField')), 'password123');
 
-      await tester.tap(find.byKey(const Key('registerSubmitButton')));
+      final submitBtn = find.byKey(const Key('registerSubmitButton'));
+      await tester.ensureVisible(submitBtn);
+      await tester.tap(submitBtn);
       await tester.pumpAndSettle();
 
       expect(find.text('This email address is already in use'), findsOneWidget);

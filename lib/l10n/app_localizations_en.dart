@@ -40,6 +40,33 @@ class AppLocalizationsEn extends AppLocalizations {
       'No Firebase project is configured yet. Add GoogleService-Info.plist (iOS) after completing the steps in docs/firebase-setup.md.';
 
   @override
+  String get loginHeadline => 'Everything is connected.';
+
+  @override
+  String get loginSubtitle => 'Manage your projects and classes in one place.';
+
+  @override
+  String get registerHeadline => 'Make space for your plans.';
+
+  @override
+  String get createAccountButton => 'Create account';
+
+  @override
+  String get firstNamePlaceholder => 'Enter your first name';
+
+  @override
+  String get lastNamePlaceholder => 'Enter your last name';
+
+  @override
+  String get emailPlaceholder => 'Enter your email address';
+
+  @override
+  String get passwordPlaceholder => 'Enter your password';
+
+  @override
+  String get confirmPasswordPlaceholder => 'Re-enter your password';
+
+  @override
   String get signIn => 'Sign In';
 
   @override

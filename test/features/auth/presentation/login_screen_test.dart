@@ -52,7 +52,9 @@ void main() {
       await tester.pumpWidget(buildTestApp());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byKey(const Key('signInSubmitButton')));
+      final submitBtn = find.byKey(const Key('signInSubmitButton'));
+      await tester.ensureVisible(submitBtn);
+      await tester.tap(submitBtn);
       await tester.pumpAndSettle();
 
       expect(find.text('Please enter your email'), findsOneWidget);
@@ -72,7 +74,9 @@ void main() {
         find.byKey(const Key('loginPasswordField')),
         'password123',
       );
-      await tester.tap(find.byKey(const Key('signInSubmitButton')));
+      final submitBtn = find.byKey(const Key('signInSubmitButton'));
+      await tester.ensureVisible(submitBtn);
+      await tester.tap(submitBtn);
       await tester.pumpAndSettle();
 
       expect(find.text('Please enter a valid email address'), findsOneWidget);
@@ -92,7 +96,9 @@ void main() {
         find.byKey(const Key('loginPasswordField')),
         'securePassword123',
       );
-      await tester.tap(find.byKey(const Key('signInSubmitButton')));
+      final submitBtn = find.byKey(const Key('signInSubmitButton'));
+      await tester.ensureVisible(submitBtn);
+      await tester.tap(submitBtn);
       await tester.pumpAndSettle();
 
       expect(fakeRepo.signInCallCount, 1);
@@ -113,7 +119,9 @@ void main() {
         find.byKey(const Key('loginPasswordField')),
         'wrongpassword',
       );
-      await tester.tap(find.byKey(const Key('signInSubmitButton')));
+      final submitBtn = find.byKey(const Key('signInSubmitButton'));
+      await tester.ensureVisible(submitBtn);
+      await tester.tap(submitBtn);
       await tester.pumpAndSettle();
 
       expect(find.text('Incorrect email or password'), findsOneWidget);
@@ -123,7 +131,9 @@ void main() {
       await tester.pumpWidget(buildTestApp());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byKey(const Key('guestSignInButton')));
+      final guestBtn = find.byKey(const Key('guestSignInButton'));
+      await tester.ensureVisible(guestBtn);
+      await tester.tap(guestBtn);
       await tester.pumpAndSettle();
 
       expect(fakeRepo.guestCallCount, 1);
@@ -140,7 +150,7 @@ void main() {
       await tester.tap(find.text('TR'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Giriş Yap'), findsWidgets);
+      expect(find.text('Giriş yap'), findsWidgets);
 
       // Switch back to EN
       await tester.tap(find.text('EN'));

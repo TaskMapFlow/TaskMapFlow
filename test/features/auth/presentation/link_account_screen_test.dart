@@ -74,7 +74,9 @@ void main() {
       expect(find.byKey(const Key('linkPasswordField')), findsOneWidget);
       expect(find.byKey(const Key('linkConfirmPasswordField')), findsOneWidget);
 
-      await tester.tap(find.byKey(const Key('linkAccountSubmitButton')));
+      final submitBtn = find.byKey(const Key('linkAccountSubmitButton'));
+      await tester.ensureVisible(submitBtn);
+      await tester.tap(submitBtn);
       await tester.pumpAndSettle();
 
       expect(find.text('Please enter your first name'), findsOneWidget);
@@ -105,12 +107,14 @@ void main() {
       await tester.enterText(
           find.byKey(const Key('linkConfirmPasswordField')), 'password123');
 
-      await tester.tap(find.byKey(const Key('linkAccountSubmitButton')));
+      final submitBtn = find.byKey(const Key('linkAccountSubmitButton'));
+      await tester.ensureVisible(submitBtn);
+      await tester.tap(submitBtn);
       await tester.pumpAndSettle();
 
       expect(fakeRepo.linkCallCount, 1);
       // Status changes to unverified, router moves to verify-email
-      expect(find.text('Verify Your Email'), findsNWidgets(2));
+      expect(find.text('Verify Your Email'), findsOneWidget);
     });
 
     testWidgets(
@@ -142,7 +146,9 @@ void main() {
       await tester.enterText(
           find.byKey(const Key('linkConfirmPasswordField')), 'password123');
 
-      await tester.tap(find.byKey(const Key('linkAccountSubmitButton')));
+      final submitBtn2 = find.byKey(const Key('linkAccountSubmitButton'));
+      await tester.ensureVisible(submitBtn2);
+      await tester.tap(submitBtn2);
       await tester.pumpAndSettle();
 
       expect(

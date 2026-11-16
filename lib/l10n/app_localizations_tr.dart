@@ -40,10 +40,37 @@ class AppLocalizationsTr extends AppLocalizations {
       'Henüz Firebase projesi yapılandırılmamış. docs/firebase-setup.md adımlarını tamamladıktan sonra GoogleService-Info.plist (iOS) ekleyin.';
 
   @override
-  String get signIn => 'Giriş Yap';
+  String get loginHeadline => 'Her şey birbiriyle bağlı.';
 
   @override
-  String get signUp => 'Kayıt Ol';
+  String get loginSubtitle => 'Projelerini ve derslerini tek yerde yönet.';
+
+  @override
+  String get registerHeadline => 'Planlarına alan aç.';
+
+  @override
+  String get createAccountButton => 'Hesap oluştur';
+
+  @override
+  String get firstNamePlaceholder => 'Adını gir';
+
+  @override
+  String get lastNamePlaceholder => 'Soyadını gir';
+
+  @override
+  String get emailPlaceholder => 'E-posta adresini gir';
+
+  @override
+  String get passwordPlaceholder => 'Şifreni gir';
+
+  @override
+  String get confirmPasswordPlaceholder => 'Şifreni tekrar gir';
+
+  @override
+  String get signIn => 'Giriş yap';
+
+  @override
+  String get signUp => 'Kayıt ol';
 
   @override
   String get email => 'E-posta';
@@ -52,7 +79,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get password => 'Şifre';
 
   @override
-  String get confirmPassword => 'Şifre Doğrulama';
+  String get confirmPassword => 'Şifreyi doğrula';
 
   @override
   String get firstName => 'Ad';
@@ -61,33 +88,33 @@ class AppLocalizationsTr extends AppLocalizations {
   String get lastName => 'Soyad';
 
   @override
-  String get continueAsGuest => 'Misafir Olarak Devam Et';
+  String get continueAsGuest => 'Misafir olarak devam et';
 
   @override
-  String get forgotPassword => 'Şifremi Unuttum';
+  String get forgotPassword => 'Şifremi unuttum';
 
   @override
-  String get forgotPasswordTitle => 'Şifre Sıfırlama';
+  String get forgotPasswordTitle => 'Şifre sıfırlama';
 
   @override
   String get forgotPasswordDescription =>
       'Şifre sıfırlama bağlantısı almak için e-posta adresinizi girin.';
 
   @override
-  String get sendResetLink => 'Sıfırlama Bağlantısı Gönder';
+  String get sendResetLink => 'Sıfırlama bağlantısı gönder';
 
   @override
   String get resetLinkSent =>
       'Bu e-posta adresiyle bir hesap varsa, şifre sıfırlama bağlantısı gönderildi.';
 
   @override
-  String get noAccountPrompt => 'Hesabınız yok mu?';
+  String get noAccountPrompt => 'Hesabın yok mu?';
 
   @override
-  String get alreadyHaveAccount => 'Zaten hesabınız var mı?';
+  String get alreadyHaveAccount => 'Zaten hesabın var mı?';
 
   @override
-  String get verifyEmailTitle => 'E-postanızı Doğrulayın';
+  String get verifyEmailTitle => 'E-postanızı doğrulayın';
 
   @override
   String verifyEmailBody(String email) {
@@ -95,7 +122,7 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get resendVerificationEmail => 'Doğrulama E-postasını Yeniden Gönder';
+  String get resendVerificationEmail => 'Doğrulama e-postasını yeniden gönder';
 
   @override
   String resendCooldown(int seconds) {
@@ -103,29 +130,29 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get checkVerificationStatus => 'Doğruladım, Durumu Yenile';
+  String get checkVerificationStatus => 'Doğruladım, durumu yenile';
 
   @override
-  String get signOut => 'Çıkış Yap';
+  String get signOut => 'Çıkış yap';
 
   @override
-  String get signOutConfirmTitle => 'Çıkış Yapmayı Onayla';
+  String get signOutConfirmTitle => 'Çıkış yapmayı onayla';
 
   @override
   String get signOutConfirmBody => 'Çıkış yapmak istediğinize emin misiniz?';
 
   @override
-  String get guestAccountBadge => 'Misafir Oturumu';
+  String get guestAccountBadge => 'Misafir oturumu';
 
   @override
   String get guestAccountNotice =>
       'Şu anda misafir olarak oturum açtınız. İlerlemenizi korumak ve hesabınızı cihazlar arasında kullanmak için bir e-posta bağlayın.';
 
   @override
-  String get linkAccount => 'Hesabı E-posta ile Kaydet';
+  String get linkAccount => 'Hesabı e-posta ile kaydet';
 
   @override
-  String get linkAccountTitle => 'E-posta Hesabı Bağla';
+  String get linkAccountTitle => 'E-posta hesabı bağla';
 
   @override
   String get linkAccountDescription =>
@@ -196,5 +223,5 @@ class AppLocalizationsTr extends AppLocalizations {
   String get sessionLoading => 'Oturum kontrol ediliyor...';
 
   @override
-  String get retry => 'Yeniden Dene';
+  String get retry => 'Yeniden dene';
 }

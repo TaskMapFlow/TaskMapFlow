@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:task_map_flow/app/theme.dart';
 import 'package:task_map_flow/core/extensions/context_extensions.dart';
 import 'package:task_map_flow/core/result/result.dart';
 import 'package:task_map_flow/features/auth/domain/models/auth_state.dart';
 import 'package:task_map_flow/features/auth/presentation/providers/auth_providers.dart';
+import 'package:task_map_flow/features/auth/presentation/widgets/abstract_spheres_header.dart';
+import 'package:task_map_flow/features/auth/presentation/widgets/auth_form_components.dart';
 
 class VerifyEmailScreen extends ConsumerStatefulWidget {
   const VerifyEmailScreen({super.key});
@@ -91,6 +94,14 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
     final l10n = context.l10n;
     final status = ref.watch(authStatusProvider);
     final isLoading = ref.watch(authControllerProvider).isLoading;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final textPrimary =
+        isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final purpleAccent =
+        isDark ? AppColors.darkPrimaryPurple : AppColors.lightPrimaryPurple;
 
     final email = switch (status) {
       AuthUnverified(:final user) => user.email ?? '',
@@ -98,88 +109,146 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
     };
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.verifyEmailTitle),
-        actions: [
-          IconButton(
-            tooltip: l10n.signOut,
-            icon: const Icon(Icons.logout),
-            onPressed: isLoading ? null : _signOut,
-          ),
-        ],
-      ),
-      body: Center(
+      body: SafeArea(
+        top: false,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Icon(
-                  Icons.mark_email_unread_outlined,
-                  size: 72,
-                  color: Colors.blueAccent,
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  l10n.verifyEmailTitle,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  l10n.verifyEmailBody(email),
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 24),
-                if (_errorMessage != null) ...[
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.errorContainer,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      _errorMessage!,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onErrorContainer,
-                      ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const AbstractSpheresHeader(
+                height: 210,
+              ),
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SizedBox(height: 12),
+                        Center(
+                          child: Container(
+                            width: 68,
+                            height: 68,
+                            decoration: BoxDecoration(
+                              color: purpleAccent.withValues(alpha: 0.15),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.mark_email_unread_outlined,
+                              size: 36,
+                              color: purpleAccent,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          l10n.verifyEmailTitle,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: textPrimary,
+                            fontSize: 26,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          l10n.verifyEmailBody(email),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: textSecondary,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            height: 1.4,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        if (_errorMessage != null) ...[
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color:
+                                  Theme.of(context).colorScheme.errorContainer,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              _errorMessage!,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onErrorContainer,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                        AuthPrimaryButton(
+                          buttonKey: const Key('checkVerificationStatusButton'),
+                          text: l10n.checkVerificationStatus,
+                          isLoading: isLoading,
+                          onPressed: _refreshStatus,
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          height: 50,
+                          child: OutlinedButton(
+                            key: const Key('resendVerificationButton'),
+                            onPressed: (isLoading || _cooldownSeconds > 0)
+                                ? null
+                                : _resendEmail,
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(
+                                color: isDark
+                                    ? AppColors.darkInputBorder
+                                    : AppColors.lightInputBorder,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              foregroundColor: textSecondary,
+                            ),
+                            child: Text(
+                              _cooldownSeconds > 0
+                                  ? l10n.resendCooldown(_cooldownSeconds)
+                                  : l10n.resendVerificationEmail,
+                              style: TextStyle(
+                                color: textSecondary,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Center(
+                          child: TextButton(
+                            key: const Key('verifyEmailSignOutButton'),
+                            onPressed: isLoading ? null : _signOut,
+                            style: TextButton.styleFrom(
+                              foregroundColor: textSecondary,
+                            ),
+                            child: Text(
+                              l10n.signOut,
+                              style: TextStyle(
+                                color: textSecondary,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 28),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 16),
-                ],
-                FilledButton.icon(
-                  key: const Key('checkVerificationStatusButton'),
-                  onPressed: isLoading ? null : _refreshStatus,
-                  icon: const Icon(Icons.refresh),
-                  label: Text(l10n.checkVerificationStatus),
                 ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  key: const Key('resendVerificationButton'),
-                  onPressed:
-                      (isLoading || _cooldownSeconds > 0) ? null : _resendEmail,
-                  icon: const Icon(Icons.send_outlined),
-                  label: Text(
-                    _cooldownSeconds > 0
-                        ? l10n.resendCooldown(_cooldownSeconds)
-                        : l10n.resendVerificationEmail,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                TextButton(
-                  key: const Key('verifyEmailSignOutButton'),
-                  onPressed: isLoading ? null : _signOut,
-                  child: Text(l10n.signOut),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

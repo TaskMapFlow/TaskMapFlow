@@ -152,6 +152,60 @@ abstract class AppLocalizations {
   /// **'No Firebase project is configured yet. Add GoogleService-Info.plist (iOS) after completing the steps in docs/firebase-setup.md.'**
   String get setupRequiredBody;
 
+  /// Headline on Login screen
+  ///
+  /// In en, this message translates to:
+  /// **'Everything is connected.'**
+  String get loginHeadline;
+
+  /// Subtitle on Login screen
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your projects and classes in one place.'**
+  String get loginSubtitle;
+
+  /// Headline on Register screen
+  ///
+  /// In en, this message translates to:
+  /// **'Make space for your plans.'**
+  String get registerHeadline;
+
+  /// Create account button label on register screen
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get createAccountButton;
+
+  /// Placeholder for first name input
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your first name'**
+  String get firstNamePlaceholder;
+
+  /// Placeholder for last name input
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your last name'**
+  String get lastNamePlaceholder;
+
+  /// Placeholder for email input
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email address'**
+  String get emailPlaceholder;
+
+  /// Placeholder for password input
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password'**
+  String get passwordPlaceholder;
+
+  /// Placeholder for confirm password input
+  ///
+  /// In en, this message translates to:
+  /// **'Re-enter your password'**
+  String get confirmPasswordPlaceholder;
+
   /// Sign in button and header
   ///
   /// In en, this message translates to:
