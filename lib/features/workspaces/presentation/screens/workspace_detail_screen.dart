@@ -3224,40 +3224,25 @@ class _InfoSectionState extends ConsumerState<_InfoSection> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        l10n.tagsTitle,
-                        style: TextStyle(
-                          color: widget.textPrimary,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        '(${widget.workspace.tags.length}/20)',
-                        style: TextStyle(
-                          color: widget.textSecondary,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (!widget.isReadOnly && widget.workspace.tags.length < 20)
-                    TextButton.icon(
-                      icon: const Icon(Icons.add_rounded, size: 16),
-                      label: Text(l10n.addTag),
-                      style: TextButton.styleFrom(
-                        foregroundColor: widget.purple,
-                        visualDensity: VisualDensity.compact,
-                      ),
-                      onPressed: _showAddTagDialog,
-                    ),
-                ],
+              _SectionHeader(
+                title: l10n.tagsTitle,
+                count: widget.workspace.tags.length,
+                maxCount: 20,
+                textPrimary: widget.textPrimary,
+                textSecondary: widget.textSecondary,
+                action:
+                    (!widget.isReadOnly && widget.workspace.tags.length < 20)
+                        ? TextButton.icon(
+                            icon: const Icon(Icons.add_rounded, size: 16),
+                            label: Text(l10n.addTag),
+                            style: TextButton.styleFrom(
+                              foregroundColor: widget.purple,
+                              visualDensity: VisualDensity.compact,
+                            ),
+                            onPressed: _showAddTagDialog,
+                          )
+                        : null,
+                actionLabel: l10n.addTag,
               ),
               const SizedBox(height: 10),
               if (widget.workspace.tags.isEmpty)
@@ -3334,41 +3319,25 @@ class _InfoSectionState extends ConsumerState<_InfoSection> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        l10n.resourcesTitle,
-                        style: TextStyle(
-                          color: widget.textPrimary,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
+              _SectionHeader(
+                title: l10n.resourcesTitle,
+                count: widget.workspace.resources.length,
+                maxCount: 20,
+                textPrimary: widget.textPrimary,
+                textSecondary: widget.textSecondary,
+                action: (!widget.isReadOnly &&
+                        widget.workspace.resources.length < 20)
+                    ? TextButton.icon(
+                        icon: const Icon(Icons.add_rounded, size: 16),
+                        label: Text(l10n.addResource),
+                        style: TextButton.styleFrom(
+                          foregroundColor: widget.purple,
+                          visualDensity: VisualDensity.compact,
                         ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        '(${widget.workspace.resources.length}/20)',
-                        style: TextStyle(
-                          color: widget.textSecondary,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (!widget.isReadOnly &&
-                      widget.workspace.resources.length < 20)
-                    TextButton.icon(
-                      icon: const Icon(Icons.add_rounded, size: 16),
-                      label: Text(l10n.addResource),
-                      style: TextButton.styleFrom(
-                        foregroundColor: widget.purple,
-                        visualDensity: VisualDensity.compact,
-                      ),
-                      onPressed: () => _showResourceDialog(),
-                    ),
-                ],
+                        onPressed: () => _showResourceDialog(),
+                      )
+                    : null,
+                actionLabel: l10n.addResource,
               ),
               const SizedBox(height: 10),
               if (widget.workspace.resources.isEmpty)
@@ -3476,6 +3445,156 @@ class _InfoSectionState extends ConsumerState<_InfoSection> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({
+    required this.title,
+    required this.count,
+    required this.maxCount,
+    required this.textPrimary,
+    required this.textSecondary,
+    this.action,
+    this.actionLabel,
+  });
+
+  final String title;
+  final int count;
+  final int maxCount;
+  final Color textPrimary;
+  final Color textSecondary;
+  final Widget? action;
+  final String? actionLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final countText = '($count/$maxCount)';
+
+    if (action == null) {
+      return Row(
+        children: [
+          Flexible(
+            child: Text(
+              title,
+              style: TextStyle(
+                color: textPrimary,
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            countText,
+            style: TextStyle(
+              color: textSecondary,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final textScaler = MediaQuery.textScalerOf(context);
+
+        final titlePainter = TextPainter(
+          text: TextSpan(
+            text: '$title $countText',
+            style: TextStyle(
+              color: textPrimary,
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          textDirection: Directionality.of(context),
+          textScaler: textScaler,
+        )..layout();
+
+        final buttonLabel = actionLabel ?? '';
+        final buttonPainter = TextPainter(
+          text: TextSpan(
+            text: buttonLabel,
+            style: const TextStyle(fontSize: 14),
+          ),
+          textDirection: Directionality.of(context),
+          textScaler: textScaler,
+        )..layout();
+
+        // Estimated button width: icon(16) + gap(8) + text + horizontal padding(16)
+        final buttonWidth = buttonPainter.width + 44;
+        final totalNeeded = titlePainter.width + buttonWidth + 12;
+
+        final shouldWrap = totalNeeded > constraints.maxWidth;
+
+        if (shouldWrap) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        color: textPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    countText,
+                    style: TextStyle(
+                      color: textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              action!,
+            ],
+          );
+        }
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        color: textPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    countText,
+                    style: TextStyle(
+                      color: textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            action!,
+          ],
+        );
+      },
     );
   }
 }
