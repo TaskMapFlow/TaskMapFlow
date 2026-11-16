@@ -108,6 +108,94 @@ class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
     }
   }
 
+  Future<void> _confirmArchive() async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.archiveAreaConfirmTitle),
+        content: Text(l10n.archiveAreaConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF7C5CE8),
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l10n.archiveArea),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final result = await ref
+          .read(workspaceControllerProvider.notifier)
+          .archiveWorkspace(widget.workspaceId);
+      if (mounted) {
+        if (result case Success()) {
+          context.pop();
+        } else if (result case Err(:final failure)) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(failure.message),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _confirmRestore() async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.restoreArea),
+        content: Text(l10n.restoreAreaConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF7C5CE8),
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l10n.restoreArea),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final result = await ref
+          .read(workspaceControllerProvider.notifier)
+          .restoreWorkspace(widget.workspaceId);
+      if (mounted) {
+        if (result case Success()) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l10n.restoreArea),
+            ),
+          );
+        } else if (result case Err(:final failure)) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(failure.message),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   Future<void> _confirmDelete(String mapNodeId) async {
     final l10n = context.l10n;
     final uid = ref.read(currentUserIdProvider) ?? '';
@@ -216,6 +304,13 @@ class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
     final workspacesAsync = ref.watch(workspacesStreamProvider);
     final nodesAsync = ref.watch(mapNodesStreamProvider);
 
+    final workspaces = workspacesAsync.valueOrNull ?? [];
+    final currentWorkspace = workspaces.cast<Workspace?>().firstWhere(
+          (w) => w?.id == widget.workspaceId,
+          orElse: () => null,
+        );
+    final isArchived = currentWorkspace?.isArchived ?? false;
+
     final bg = isDark ? const Color(0xFF0F0E17) : const Color(0xFFF9F9FC);
     final cardBg = isDark ? const Color(0xFF161522) : Colors.white;
     final cardBorder =
@@ -247,13 +342,14 @@ class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
           onPressed: () => context.pop(),
         ),
         actions: [
-          IconButton(
-            icon: Icon(_isEditing ? Icons.close_rounded : Icons.edit_outlined,
-                size: 22),
-            color: textPrimary,
-            tooltip: _isEditing ? l10n.cancel : l10n.editArea,
-            onPressed: () => setState(() => _isEditing = !_isEditing),
-          ),
+          if (!isArchived)
+            IconButton(
+              icon: Icon(_isEditing ? Icons.close_rounded : Icons.edit_outlined,
+                  size: 22),
+              color: textPrimary,
+              tooltip: _isEditing ? l10n.cancel : l10n.editArea,
+              onPressed: () => setState(() => _isEditing = !_isEditing),
+            ),
         ],
       ),
       body: workspacesAsync.when(
@@ -320,6 +416,62 @@ class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                if (workspace.isArchived) ...[
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF7C5CE8).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFF7C5CE8).withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.archive_outlined,
+                            color: Color(0xFF7C5CE8), size: 20),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                l10n.areaArchivedNotice,
+                                style: TextStyle(
+                                  color: textPrimary,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              if (workspace.archivedAt != null) ...[
+                                const SizedBox(height: 2),
+                                Text(
+                                  '${l10n.archivedAtLabel}: ${DateFormat.yMMMMd(locale).format(workspace.archivedAt!)}',
+                                  style: TextStyle(
+                                    color: textSecondary,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        FilledButton.tonal(
+                          style: FilledButton.styleFrom(
+                            visualDensity: VisualDensity.compact,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                          ),
+                          onPressed: _confirmRestore,
+                          child: Text(l10n.restoreArea,
+                              style: const TextStyle(fontSize: 12)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
                 // Header Area Card
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -334,39 +486,66 @@ class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: accentColor.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  switch (workspace.type) {
-                                    WorkspaceType.project =>
-                                      Icons.rocket_launch_outlined,
-                                    WorkspaceType.lesson =>
-                                      Icons.school_outlined,
-                                    WorkspaceType.freeform =>
-                                      Icons.bubble_chart_outlined,
-                                  },
-                                  size: 13,
-                                  color: accentColor,
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: accentColor.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(20),
                                 ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  typeName,
-                                  style: TextStyle(
-                                    color: accentColor,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      switch (workspace.type) {
+                                        WorkspaceType.project =>
+                                          Icons.rocket_launch_outlined,
+                                        WorkspaceType.lesson =>
+                                          Icons.school_outlined,
+                                        WorkspaceType.freeform =>
+                                          Icons.bubble_chart_outlined,
+                                      },
+                                      size: 13,
+                                      color: accentColor,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      typeName,
+                                      style: TextStyle(
+                                        color: accentColor,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (workspace.isArchived) ...[
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: Colors.amber.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                        color: Colors.amber
+                                            .withValues(alpha: 0.3)),
+                                  ),
+                                  child: Text(
+                                    l10n.areaArchivedBadge,
+                                    style: const TextStyle(
+                                      color: Colors.amber,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
                                 ),
                               ],
-                            ),
+                            ],
                           ),
                           Container(
                             width: 20,
@@ -595,6 +774,7 @@ class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
                       textSecondary: textSecondary,
                       purple: purple,
                       inputBg: inputBg,
+                      isReadOnly: workspace.isArchived,
                     ),
                   _WorkspaceDetailTab.notes => _NotesSection(
                       workspace: workspace,
@@ -605,6 +785,7 @@ class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
                       textSecondary: textSecondary,
                       purple: purple,
                       inputBg: inputBg,
+                      isReadOnly: workspace.isArchived,
                     ),
                   _WorkspaceDetailTab.info => _InfoSection(
                       workspace: workspace,
@@ -615,73 +796,109 @@ class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
                       textSecondary: textSecondary,
                       purple: purple,
                       inputBg: inputBg,
+                      isReadOnly: workspace.isArchived,
                     ),
                 },
                 const SizedBox(height: 20),
 
-                // Edit Mode Actions or Delete Action
-                if (_isEditing) ...[
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: () => setState(() => _isEditing = false),
-                          child: Text(l10n.cancel),
-                        ),
+                // Bottom Actions: Restore if archived, else Edit/Archive/Delete
+                if (workspace.isArchived) ...[
+                  FilledButton.icon(
+                    key: const Key('restoreWorkspaceButton'),
+                    icon: const Icon(Icons.unarchive_outlined, size: 18),
+                    label: Text(l10n.restoreArea),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: purple,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: FilledButton(
-                          style: FilledButton.styleFrom(
-                            backgroundColor: purple,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: _isSubmitting ? null : _saveChanges,
-                          child: _isSubmitting
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                      strokeWidth: 2, color: Colors.white),
-                                )
-                              : Text(l10n.save),
-                        ),
-                      ),
-                    ],
+                    ),
+                    onPressed: _confirmRestore,
                   ),
-                  const SizedBox(height: 16),
+                ] else ...[
+                  if (_isEditing) ...[
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: () => setState(() => _isEditing = false),
+                            child: Text(l10n.cancel),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: FilledButton(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: purple,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: _isSubmitting ? null : _saveChanges,
+                            child: _isSubmitting
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2, color: Colors.white),
+                                  )
+                                : Text(l10n.save),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  OutlinedButton.icon(
+                    key: const Key('archiveWorkspaceButton'),
+                    icon: const Icon(Icons.archive_outlined, size: 18),
+                    label: Text(
+                      l10n.archiveArea,
+                      style: TextStyle(color: purple),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      side: BorderSide(
+                        color: purple.withValues(alpha: 0.5),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: _confirmArchive,
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    key: const Key('deleteWorkspaceButton'),
+                    icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                    label: Text(
+                      l10n.deleteArea,
+                      style:
+                          TextStyle(color: Theme.of(context).colorScheme.error),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      side: BorderSide(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .error
+                            .withValues(alpha: 0.5),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () => _confirmDelete(node.id),
+                  ),
                 ],
-                OutlinedButton.icon(
-                  key: const Key('deleteWorkspaceButton'),
-                  icon: const Icon(Icons.delete_outline_rounded, size: 18),
-                  label: Text(
-                    l10n.deleteArea,
-                    style:
-                        TextStyle(color: Theme.of(context).colorScheme.error),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    side: BorderSide(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .error
-                          .withValues(alpha: 0.5),
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: () => _confirmDelete(node.id),
-                ),
               ],
             ),
           );
@@ -702,6 +919,7 @@ class _WorkSection extends ConsumerWidget {
     required this.textSecondary,
     required this.purple,
     required this.inputBg,
+    this.isReadOnly = false,
   });
 
   final Workspace workspace;
@@ -713,6 +931,7 @@ class _WorkSection extends ConsumerWidget {
   final Color textSecondary;
   final Color purple;
   final Color inputBg;
+  final bool isReadOnly;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -784,6 +1003,7 @@ class _WorkSection extends ConsumerWidget {
               textSecondary: textSecondary,
               purple: purple,
               inputBg: inputBg,
+              isReadOnly: isReadOnly,
             ),
           WorkspaceViewMode.backlog => _BacklogView(
               workspace: workspace,
@@ -795,6 +1015,7 @@ class _WorkSection extends ConsumerWidget {
               textSecondary: textSecondary,
               purple: purple,
               inputBg: inputBg,
+              isReadOnly: isReadOnly,
             ),
           WorkspaceViewMode.sprints => _SprintsView(
               workspace: workspace,
@@ -806,6 +1027,7 @@ class _WorkSection extends ConsumerWidget {
               textSecondary: textSecondary,
               purple: purple,
               inputBg: inputBg,
+              isReadOnly: isReadOnly,
             ),
         },
       ],
@@ -876,6 +1098,7 @@ class _TasksView extends ConsumerWidget {
     required this.textSecondary,
     required this.purple,
     required this.inputBg,
+    this.isReadOnly = false,
   });
 
   final Workspace workspace;
@@ -887,6 +1110,7 @@ class _TasksView extends ConsumerWidget {
   final Color textSecondary;
   final Color purple;
   final Color inputBg;
+  final bool isReadOnly;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -913,30 +1137,31 @@ class _TasksView extends ConsumerWidget {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            FilledButton.icon(
-              key: const Key('addTaskButton'),
-              icon: const Icon(Icons.add_rounded, size: 16),
-              label: Text(
-                addActionLabel,
-                style:
-                    const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-              ),
-              style: FilledButton.styleFrom(
-                backgroundColor: purple,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+            if (!isReadOnly)
+              FilledButton.icon(
+                key: const Key('addTaskButton'),
+                icon: const Icon(Icons.add_rounded, size: 16),
+                label: Text(
+                  addActionLabel,
+                  style: const TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.w600),
+                ),
+                style: FilledButton.styleFrom(
+                  backgroundColor: purple,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: () => TaskFormSheet.show(
+                  context: context,
+                  workspaceId: workspace.id,
+                  workspaceType: workspace.type,
                 ),
               ),
-              onPressed: () => TaskFormSheet.show(
-                context: context,
-                workspaceId: workspace.id,
-                workspaceType: workspace.type,
-              ),
-            ),
           ],
         ),
         const SizedBox(height: 10),
@@ -1118,19 +1343,25 @@ class _TasksView extends ConsumerWidget {
                 return TaskItemCard(
                   key: ValueKey(task.id),
                   task: task,
-                  onTap: () => TaskFormSheet.show(
-                    context: context,
-                    workspaceId: workspace.id,
-                    workspaceType: workspace.type,
-                    initialTask: task,
-                  ),
-                  onToggleStatus: (newStatus) {
-                    ref.read(taskControllerProvider.notifier).updateTaskStatus(
-                          workspaceId: workspace.id,
-                          taskId: task.id,
-                          status: newStatus,
-                        );
-                  },
+                  onTap: isReadOnly
+                      ? null
+                      : () => TaskFormSheet.show(
+                            context: context,
+                            workspaceId: workspace.id,
+                            workspaceType: workspace.type,
+                            initialTask: task,
+                          ),
+                  onToggleStatus: isReadOnly
+                      ? null
+                      : (newStatus) {
+                          ref
+                              .read(taskControllerProvider.notifier)
+                              .updateTaskStatus(
+                                workspaceId: workspace.id,
+                                taskId: task.id,
+                                status: newStatus,
+                              );
+                        },
                 );
               }).toList(),
             );
@@ -1152,6 +1383,7 @@ class _BacklogView extends ConsumerWidget {
     required this.textSecondary,
     required this.purple,
     required this.inputBg,
+    this.isReadOnly = false,
   });
 
   final Workspace workspace;
@@ -1163,6 +1395,7 @@ class _BacklogView extends ConsumerWidget {
   final Color textSecondary;
   final Color purple;
   final Color inputBg;
+  final bool isReadOnly;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1185,29 +1418,30 @@ class _BacklogView extends ConsumerWidget {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            FilledButton.icon(
-              icon: const Icon(Icons.add_rounded, size: 16),
-              label: Text(
-                l10n.addTask,
-                style:
-                    const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-              ),
-              style: FilledButton.styleFrom(
-                backgroundColor: purple,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+            if (!isReadOnly)
+              FilledButton.icon(
+                icon: const Icon(Icons.add_rounded, size: 16),
+                label: Text(
+                  l10n.addTask,
+                  style: const TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.w600),
+                ),
+                style: FilledButton.styleFrom(
+                  backgroundColor: purple,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: () => TaskFormSheet.show(
+                  context: context,
+                  workspaceId: workspace.id,
+                  workspaceType: workspace.type,
                 ),
               ),
-              onPressed: () => TaskFormSheet.show(
-                context: context,
-                workspaceId: workspace.id,
-                workspaceType: workspace.type,
-              ),
-            ),
           ],
         ),
         const SizedBox(height: 12),
@@ -1267,23 +1501,27 @@ class _BacklogView extends ConsumerWidget {
                     TaskItemCard(
                       key: ValueKey(task.id),
                       task: task,
-                      onTap: () => TaskFormSheet.show(
-                        context: context,
-                        workspaceId: workspace.id,
-                        workspaceType: workspace.type,
-                        initialTask: task,
-                      ),
-                      onToggleStatus: (newStatus) {
-                        ref
-                            .read(taskControllerProvider.notifier)
-                            .updateTaskStatus(
-                              workspaceId: workspace.id,
-                              taskId: task.id,
-                              status: newStatus,
-                            );
-                      },
+                      onTap: isReadOnly
+                          ? null
+                          : () => TaskFormSheet.show(
+                                context: context,
+                                workspaceId: workspace.id,
+                                workspaceType: workspace.type,
+                                initialTask: task,
+                              ),
+                      onToggleStatus: isReadOnly
+                          ? null
+                          : (newStatus) {
+                              ref
+                                  .read(taskControllerProvider.notifier)
+                                  .updateTaskStatus(
+                                    workspaceId: workspace.id,
+                                    taskId: task.id,
+                                    status: newStatus,
+                                  );
+                            },
                     ),
-                    if (sprints.isNotEmpty)
+                    if (sprints.isNotEmpty && !isReadOnly)
                       Positioned(
                         top: 8,
                         right: 8,
@@ -1330,6 +1568,7 @@ class _SprintsView extends ConsumerWidget {
     required this.textSecondary,
     required this.purple,
     required this.inputBg,
+    this.isReadOnly = false,
   });
 
   final Workspace workspace;
@@ -1341,6 +1580,7 @@ class _SprintsView extends ConsumerWidget {
   final Color textSecondary;
   final Color purple;
   final Color inputBg;
+  final bool isReadOnly;
 
   Future<void> _handleCompleteSprint(
     BuildContext context,
@@ -1485,28 +1725,29 @@ class _SprintsView extends ConsumerWidget {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            FilledButton.icon(
-              icon: const Icon(Icons.add_rounded, size: 16),
-              label: Text(
-                l10n.createSprint,
-                style:
-                    const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-              ),
-              style: FilledButton.styleFrom(
-                backgroundColor: purple,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+            if (!isReadOnly)
+              FilledButton.icon(
+                icon: const Icon(Icons.add_rounded, size: 16),
+                label: Text(
+                  l10n.createSprint,
+                  style: const TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.w600),
+                ),
+                style: FilledButton.styleFrom(
+                  backgroundColor: purple,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: () => SprintFormSheet.show(
+                  context: context,
+                  workspaceId: workspace.id,
                 ),
               ),
-              onPressed: () => SprintFormSheet.show(
-                context: context,
-                workspaceId: workspace.id,
-              ),
-            ),
           ],
         ),
         const SizedBox(height: 12),
@@ -1696,74 +1937,78 @@ class _SprintsView extends ConsumerWidget {
                         ),
                       ],
 
-                      const SizedBox(height: 10),
-                      // Action buttons: Start / Complete, Edit, Delete
-                      Row(
-                        children: [
-                          if (sprint.status == SprintStatus.planned)
-                            FilledButton.icon(
-                              icon: const Icon(Icons.play_arrow_rounded,
-                                  size: 14),
-                              label: Text(
-                                l10n.startSprint,
-                                style: const TextStyle(fontSize: 11),
+                      if (!isReadOnly) ...[
+                        const SizedBox(height: 10),
+                        // Action buttons: Start / Complete, Edit, Delete
+                        Row(
+                          children: [
+                            if (sprint.status == SprintStatus.planned)
+                              FilledButton.icon(
+                                icon: const Icon(Icons.play_arrow_rounded,
+                                    size: 14),
+                                label: Text(
+                                  l10n.startSprint,
+                                  style: const TextStyle(fontSize: 11),
+                                ),
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: const Color(0xFF10B981),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 4),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                onPressed: () {
+                                  ref
+                                      .read(sprintControllerProvider.notifier)
+                                      .updateSprintStatus(
+                                        workspaceId: workspace.id,
+                                        sprintId: sprint.id,
+                                        status: SprintStatus.active,
+                                      );
+                                },
+                              )
+                            else if (sprint.status == SprintStatus.active)
+                              FilledButton.icon(
+                                icon: const Icon(Icons.check_circle_outline,
+                                    size: 14),
+                                label: Text(
+                                  l10n.completeSprint,
+                                  style: const TextStyle(fontSize: 11),
+                                ),
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: purple,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 4),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                onPressed: () => _handleCompleteSprint(
+                                    context, ref, sprint, sprintTasks),
                               ),
-                              style: FilledButton.styleFrom(
-                                backgroundColor: const Color(0xFF10B981),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 4),
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            const Spacer(),
+                            IconButton(
+                              icon: const Icon(Icons.edit_outlined, size: 16),
+                              color: textSecondary,
+                              tooltip: l10n.editSprint,
+                              onPressed: () => SprintFormSheet.show(
+                                context: context,
+                                workspaceId: workspace.id,
+                                initialSprint: sprint,
                               ),
-                              onPressed: () {
-                                ref
-                                    .read(sprintControllerProvider.notifier)
-                                    .updateSprintStatus(
-                                      workspaceId: workspace.id,
-                                      sprintId: sprint.id,
-                                      status: SprintStatus.active,
-                                    );
-                              },
-                            )
-                          else if (sprint.status == SprintStatus.active)
-                            FilledButton.icon(
-                              icon: const Icon(Icons.check_circle_outline,
-                                  size: 14),
-                              label: Text(
-                                l10n.completeSprint,
-                                style: const TextStyle(fontSize: 11),
-                              ),
-                              style: FilledButton.styleFrom(
-                                backgroundColor: purple,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 4),
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              onPressed: () => _handleCompleteSprint(
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline_rounded,
+                                  size: 16),
+                              color: Theme.of(context).colorScheme.error,
+                              tooltip: l10n.deleteSprint,
+                              onPressed: () => _handleDeleteSprint(
                                   context, ref, sprint, sprintTasks),
                             ),
-                          const Spacer(),
-                          IconButton(
-                            icon: const Icon(Icons.edit_outlined, size: 16),
-                            color: textSecondary,
-                            tooltip: l10n.editSprint,
-                            onPressed: () => SprintFormSheet.show(
-                              context: context,
-                              workspaceId: workspace.id,
-                              initialSprint: sprint,
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline_rounded,
-                                size: 16),
-                            color: Theme.of(context).colorScheme.error,
-                            tooltip: l10n.deleteSprint,
-                            onPressed: () => _handleDeleteSprint(
-                                context, ref, sprint, sprintTasks),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
+                      ],
 
                       // Display tasks assigned to this sprint
                       if (sprintTasks.isNotEmpty) ...[
@@ -1931,6 +2176,7 @@ class _NotesSection extends ConsumerWidget {
     required this.textSecondary,
     required this.purple,
     required this.inputBg,
+    this.isReadOnly = false,
   });
 
   final Workspace workspace;
@@ -1941,6 +2187,7 @@ class _NotesSection extends ConsumerWidget {
   final Color textSecondary;
   final Color purple;
   final Color inputBg;
+  final bool isReadOnly;
 
   Future<void> _deleteNote(
       BuildContext context, WidgetRef ref, String noteId) async {
@@ -2004,22 +2251,23 @@ class _NotesSection extends ConsumerWidget {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            FilledButton.icon(
-              icon: const Icon(Icons.add_rounded, size: 16),
-              label: Text(l10n.addNote),
-              style: FilledButton.styleFrom(
-                backgroundColor: purple,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+            if (!isReadOnly)
+              FilledButton.icon(
+                icon: const Icon(Icons.add_rounded, size: 16),
+                label: Text(l10n.addNote),
+                style: FilledButton.styleFrom(
+                  backgroundColor: purple,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: () => NoteFormSheet.show(
+                  context,
+                  workspaceId: workspace.id,
                 ),
               ),
-              onPressed: () => NoteFormSheet.show(
-                context,
-                workspaceId: workspace.id,
-              ),
-            ),
           ],
         ),
         const SizedBox(height: 14),
@@ -2089,22 +2337,24 @@ class _NotesSection extends ConsumerWidget {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 16),
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.add_rounded, size: 16),
-                  label: Text(l10n.addNote),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: purple,
-                    side: BorderSide(color: purple),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                if (!isReadOnly) ...[
+                  const SizedBox(height: 16),
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.add_rounded, size: 16),
+                    label: Text(l10n.addNote),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: purple,
+                      side: BorderSide(color: purple),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onPressed: () => NoteFormSheet.show(
+                      context,
+                      workspaceId: workspace.id,
                     ),
                   ),
-                  onPressed: () => NoteFormSheet.show(
-                    context,
-                    workspaceId: workspace.id,
-                  ),
-                ),
+                ],
               ],
             ),
           )
@@ -2125,19 +2375,27 @@ class _NotesSection extends ConsumerWidget {
                   note: note,
                   isDark: isDark,
                   accentColor: purple,
-                  onEdit: () => NoteFormSheet.show(
-                    context,
-                    workspaceId: workspace.id,
-                    existingNote: note,
-                  ),
-                  onDelete: () => _deleteNote(context, ref, note.id),
+                  onEdit: isReadOnly
+                      ? null
+                      : () => NoteFormSheet.show(
+                            context,
+                            workspaceId: workspace.id,
+                            existingNote: note,
+                          ),
+                  onDelete: isReadOnly
+                      ? null
+                      : () => _deleteNote(context, ref, note.id),
                 ),
-                onEdit: () => NoteFormSheet.show(
-                  context,
-                  workspaceId: workspace.id,
-                  existingNote: note,
-                ),
-                onDelete: () => _deleteNote(context, ref, note.id),
+                onEdit: isReadOnly
+                    ? null
+                    : () => NoteFormSheet.show(
+                          context,
+                          workspaceId: workspace.id,
+                          existingNote: note,
+                        ),
+                onDelete: isReadOnly
+                    ? null
+                    : () => _deleteNote(context, ref, note.id),
               );
             },
           ),
@@ -2184,6 +2442,7 @@ class _InfoSection extends ConsumerStatefulWidget {
     required this.textSecondary,
     required this.purple,
     required this.inputBg,
+    this.isReadOnly = false,
   });
 
   final Workspace workspace;
@@ -2194,6 +2453,7 @@ class _InfoSection extends ConsumerStatefulWidget {
   final Color textSecondary;
   final Color purple;
   final Color inputBg;
+  final bool isReadOnly;
 
   @override
   ConsumerState<_InfoSection> createState() => _InfoSectionState();
@@ -2658,29 +2918,31 @@ class _InfoSectionState extends ConsumerState<_InfoSection> {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  TextButton.icon(
-                    icon: _isSavingDesc
-                        ? SizedBox(
-                            width: 14,
-                            height: 14,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: widget.purple,
-                            ),
-                          )
-                        : const Icon(Icons.check_rounded, size: 16),
-                    label: Text(l10n.save),
-                    style: TextButton.styleFrom(
-                      foregroundColor: widget.purple,
-                      visualDensity: VisualDensity.compact,
+                  if (!widget.isReadOnly)
+                    TextButton.icon(
+                      icon: _isSavingDesc
+                          ? SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: widget.purple,
+                              ),
+                            )
+                          : const Icon(Icons.check_rounded, size: 16),
+                      label: Text(l10n.save),
+                      style: TextButton.styleFrom(
+                        foregroundColor: widget.purple,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      onPressed: _isSavingDesc ? null : _saveDescription,
                     ),
-                    onPressed: _isSavingDesc ? null : _saveDescription,
-                  ),
                 ],
               ),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _descController,
+                readOnly: widget.isReadOnly,
                 maxLines: 4,
                 maxLength: 500,
                 style: TextStyle(color: widget.textPrimary, fontSize: 13),
@@ -2747,7 +3009,7 @@ class _InfoSectionState extends ConsumerState<_InfoSection> {
                       ),
                     ],
                   ),
-                  if (widget.workspace.tags.length < 20)
+                  if (!widget.isReadOnly && widget.workspace.tags.length < 20)
                     TextButton.icon(
                       icon: const Icon(Icons.add_rounded, size: 16),
                       label: Text(l10n.addTag),
@@ -2797,19 +3059,21 @@ class _InfoSectionState extends ConsumerState<_InfoSection> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          const SizedBox(width: 4),
-                          InkWell(
-                            onTap: () => _deleteTag(tag),
-                            borderRadius: BorderRadius.circular(10),
-                            child: Padding(
-                              padding: const EdgeInsets.all(2),
-                              child: Icon(
-                                Icons.close_rounded,
-                                size: 14,
-                                color: widget.purple,
+                          if (!widget.isReadOnly) ...[
+                            const SizedBox(width: 4),
+                            InkWell(
+                              onTap: () => _deleteTag(tag),
+                              borderRadius: BorderRadius.circular(10),
+                              child: Padding(
+                                padding: const EdgeInsets.all(2),
+                                child: Icon(
+                                  Icons.close_rounded,
+                                  size: 14,
+                                  color: widget.purple,
+                                ),
                               ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     );
@@ -2854,7 +3118,8 @@ class _InfoSectionState extends ConsumerState<_InfoSection> {
                       ),
                     ],
                   ),
-                  if (widget.workspace.resources.length < 20)
+                  if (!widget.isReadOnly &&
+                      widget.workspace.resources.length < 20)
                     TextButton.icon(
                       icon: const Icon(Icons.add_rounded, size: 16),
                       label: Text(l10n.addResource),
@@ -2940,26 +3205,28 @@ class _InfoSectionState extends ConsumerState<_InfoSection> {
                             tooltip: res.url,
                             onPressed: () => _launchSafeUrl(res.url),
                           ),
-                          const SizedBox(width: 8),
-                          IconButton(
-                            icon: const Icon(Icons.edit_outlined, size: 16),
-                            color: widget.textSecondary,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            tooltip: l10n.editResource,
-                            onPressed: () =>
-                                _showResourceDialog(existingResource: res),
-                          ),
-                          const SizedBox(width: 8),
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline_rounded,
-                                size: 16),
-                            color: Theme.of(context).colorScheme.error,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            tooltip: l10n.delete,
-                            onPressed: () => _deleteResource(res.id),
-                          ),
+                          if (!widget.isReadOnly) ...[
+                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: const Icon(Icons.edit_outlined, size: 16),
+                              color: widget.textSecondary,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              tooltip: l10n.editResource,
+                              onPressed: () =>
+                                  _showResourceDialog(existingResource: res),
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline_rounded,
+                                  size: 16),
+                              color: Theme.of(context).colorScheme.error,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              tooltip: l10n.delete,
+                              onPressed: () => _deleteResource(res.id),
+                            ),
+                          ],
                         ],
                       ),
                     );

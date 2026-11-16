@@ -10,13 +10,13 @@ class TaskItemCard extends StatelessWidget {
   const TaskItemCard({
     super.key,
     required this.task,
-    required this.onTap,
-    required this.onToggleStatus,
+    this.onTap,
+    this.onToggleStatus,
   });
 
   final TaskModel task;
-  final VoidCallback onTap;
-  final ValueChanged<TaskStatus> onToggleStatus;
+  final VoidCallback? onTap;
+  final ValueChanged<TaskStatus>? onToggleStatus;
 
   @override
   Widget build(BuildContext context) {
@@ -60,11 +60,14 @@ class TaskItemCard extends StatelessWidget {
               children: [
                 // Status Toggle Button / Checkbox
                 GestureDetector(
-                  onTap: () {
-                    final nextStatus =
-                        isCompleted ? TaskStatus.todo : TaskStatus.completed;
-                    onToggleStatus(nextStatus);
-                  },
+                  onTap: onToggleStatus == null
+                      ? null
+                      : () {
+                          final nextStatus = isCompleted
+                              ? TaskStatus.todo
+                              : TaskStatus.completed;
+                          onToggleStatus!(nextStatus);
+                        },
                   child: Container(
                     margin: const EdgeInsets.only(top: 2, right: 12),
                     width: 22,

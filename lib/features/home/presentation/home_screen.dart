@@ -230,8 +230,14 @@ class HomeScreen extends ConsumerWidget {
                   );
                 }
 
-                final workspaces = workspacesAsync.value ?? [];
+                final allWorkspaces = workspacesAsync.value ?? [];
                 final nodes = nodesAsync.value ?? [];
+                final workspaces =
+                    allWorkspaces.where((w) => !w.isArchived).toList();
+                final activeIds = workspaces.map((w) => w.id).toSet();
+                final activeNodes = nodes
+                    .where((n) => activeIds.contains(n.workspaceId))
+                    .toList();
 
                 if (workspaces.isEmpty) {
                   return _EmptyMapState(
@@ -241,7 +247,7 @@ class HomeScreen extends ConsumerWidget {
 
                 return MapCanvas(
                   workspaces: workspaces,
-                  nodes: nodes,
+                  nodes: activeNodes,
                   onOpenDetail: (ws) => _openDetail(context, ws),
                 );
               }(),

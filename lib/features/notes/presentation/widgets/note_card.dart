@@ -13,16 +13,16 @@ class NoteCard extends StatelessWidget {
     required this.isDark,
     required this.accentColor,
     required this.onTap,
-    required this.onEdit,
-    required this.onDelete,
+    this.onEdit,
+    this.onDelete,
   });
 
   final NoteModel note;
   final bool isDark;
   final Color accentColor;
   final VoidCallback onTap;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -76,57 +76,60 @@ class NoteCard extends StatelessWidget {
                           ),
                         ),
                 ),
-                PopupMenuButton<String>(
-                  icon: Icon(Icons.more_horiz_rounded,
-                      size: 20, color: textSecondary),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  color: isDark ? const Color(0xFF1E1C2E) : Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: cardBorder),
-                  ),
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      onEdit();
-                    } else if (value == 'delete') {
-                      onDelete();
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit_outlined,
-                              size: 16, color: textPrimary),
-                          const SizedBox(width: 8),
-                          Text(l10n.editNote,
-                              style:
-                                  TextStyle(color: textPrimary, fontSize: 13)),
-                        ],
-                      ),
+                if (onEdit != null || onDelete != null)
+                  PopupMenuButton<String>(
+                    icon: Icon(Icons.more_horiz_rounded,
+                        size: 20, color: textSecondary),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    color: isDark ? const Color(0xFF1E1C2E) : Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: cardBorder),
                     ),
-                    PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete_outline_rounded,
-                              size: 16,
-                              color: Theme.of(context).colorScheme.error),
-                          const SizedBox(width: 8),
-                          Text(
-                            l10n.delete,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.error,
-                              fontSize: 13,
-                            ),
+                    onSelected: (value) {
+                      if (value == 'edit') {
+                        onEdit?.call();
+                      } else if (value == 'delete') {
+                        onDelete?.call();
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      if (onEdit != null)
+                        PopupMenuItem(
+                          value: 'edit',
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit_outlined,
+                                  size: 16, color: textPrimary),
+                              const SizedBox(width: 8),
+                              Text(l10n.editNote,
+                                  style: TextStyle(
+                                      color: textPrimary, fontSize: 13)),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                        ),
+                      if (onDelete != null)
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete_outline_rounded,
+                                  size: 16,
+                                  color: Theme.of(context).colorScheme.error),
+                              const SizedBox(width: 8),
+                              Text(
+                                l10n.delete,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
               ],
             ),
             const SizedBox(height: 6),
@@ -168,23 +171,23 @@ class NoteDetailSheet extends StatelessWidget {
     required this.note,
     required this.isDark,
     required this.accentColor,
-    required this.onEdit,
-    required this.onDelete,
+    this.onEdit,
+    this.onDelete,
   });
 
   final NoteModel note;
   final bool isDark;
   final Color accentColor;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   static Future<void> show(
     BuildContext context, {
     required NoteModel note,
     required bool isDark,
     required Color accentColor,
-    required VoidCallback onEdit,
-    required VoidCallback onDelete,
+    VoidCallback? onEdit,
+    VoidCallback? onDelete,
   }) {
     return showModalBottomSheet(
       context: context,
@@ -347,24 +350,26 @@ class NoteDetailSheet extends StatelessWidget {
                     ),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined, size: 20),
-                  color: textSecondary,
-                  tooltip: l10n.editNote,
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    onEdit();
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline_rounded, size: 20),
-                  color: Theme.of(context).colorScheme.error,
-                  tooltip: l10n.delete,
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    onDelete();
-                  },
-                ),
+                if (onEdit != null)
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined, size: 20),
+                    color: textSecondary,
+                    tooltip: l10n.editNote,
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      onEdit?.call();
+                    },
+                  ),
+                if (onDelete != null)
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline_rounded, size: 20),
+                    color: Theme.of(context).colorScheme.error,
+                    tooltip: l10n.delete,
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      onDelete?.call();
+                    },
+                  ),
               ],
             ),
             Text(

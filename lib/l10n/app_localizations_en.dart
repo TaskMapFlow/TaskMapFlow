@@ -703,4 +703,89 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get infoSavedSuccess => 'Information updated.';
+
+  @override
+  String get archivedAreasTitle => 'Archive';
+
+  @override
+  String get noArchivedAreasYet => 'No archived areas.';
+
+  @override
+  String get noArchivedAreasSubtitle =>
+      'Areas you archive will appear here in read-only mode.';
+
+  @override
+  String get archiveArea => 'Archive Area';
+
+  @override
+  String get archiveAreaConfirmTitle => 'Archive Area';
+
+  @override
+  String get archiveAreaConfirmBody =>
+      'Are you sure you want to archive this area? Archived areas are hidden from the main map and become read-only. You can restore them anytime from Profile > Archive.';
+
+  @override
+  String get restoreArea => 'Restore Area';
+
+  @override
+  String get restoreAreaConfirm =>
+      'Are you sure you want to restore this area from archive?';
+
+  @override
+  String get areaArchivedBadge => 'Archived';
+
+  @override
+  String get areaArchivedNotice => 'This area is archived and read-only.';
+
+  @override
+  String get archivedAtLabel => 'Archived on';
+
+  @override
+  String get connectedAreaArchivedWarning => 'Connected area is archived';
+
+  @override
+  String get editProfile => 'Edit Profile';
+
+  @override
+  String get profileNameLabel => 'Full Name';
+
+  @override
+  String get profileNamePlaceholder => 'Enter your full name';
+
+  @override
+  String get profileNameEmptyError => 'Please enter your name';
+
+  @override
+  String get profileBioLabel => 'Bio';
+
+  @override
+  String get profileBioPlaceholder => 'A short note about yourself...';
+
+  @override
+  String get githubUrlLabel => 'GitHub Profile';
+
+  @override
+  String get githubUrlPlaceholder => 'https://github.com/username';
+
+  @override
+  String get invalidGithubUrlError =>
+      'Please enter a valid GitHub profile URL (https://github.com/... only)';
+
+  @override
+  String get profileSavedSuccess => 'Profile updated.';
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get languageSetting => 'Language';
+
+  @override
+  String get themeSetting => 'Theme';
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
+  String get themeLight => 'Light';
 }

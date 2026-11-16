@@ -110,7 +110,13 @@ class _MapCanvasState extends ConsumerState<MapCanvas> {
     final wsMap = {for (final w in widget.workspaces) w.id: w};
 
     final connectionsAsync = ref.watch(mapConnectionsStreamProvider);
-    final connections = connectionsAsync.valueOrNull ?? [];
+    final allConnections = connectionsAsync.valueOrNull ?? [];
+    final activeWsIds = widget.workspaces.map((w) => w.id).toSet();
+    final connections = allConnections
+        .where((c) =>
+            activeWsIds.contains(c.sourceWorkspaceId) &&
+            activeWsIds.contains(c.targetWorkspaceId))
+        .toList();
 
     final gridBg = isDark ? const Color(0xFF0C0B10) : const Color(0xFFF7F6FC);
     final dotColor = isDark

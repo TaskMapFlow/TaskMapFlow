@@ -128,6 +128,36 @@ class FakeWorkspaceRepository implements WorkspaceRepository {
   }
 
   @override
+  Future<Result<void>> archiveWorkspace(String workspaceId) async {
+    updateCallCount++;
+    final idx = _workspaces.indexWhere((w) => w.id == workspaceId);
+    if (idx != -1) {
+      _workspaces[idx] = _workspaces[idx].copyWith(
+        isArchived: true,
+        archivedAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+      _wsStreamController.add(Success(List.unmodifiable(_workspaces)));
+    }
+    return const Success(null);
+  }
+
+  @override
+  Future<Result<void>> restoreWorkspace(String workspaceId) async {
+    updateCallCount++;
+    final idx = _workspaces.indexWhere((w) => w.id == workspaceId);
+    if (idx != -1) {
+      _workspaces[idx] = _workspaces[idx].copyWith(
+        isArchived: false,
+        archivedAt: null,
+        updatedAt: DateTime.now(),
+      );
+      _wsStreamController.add(Success(List.unmodifiable(_workspaces)));
+    }
+    return const Success(null);
+  }
+
+  @override
   Future<Result<void>> updateMapNodeLayout({
     required String nodeId,
     required double positionX,

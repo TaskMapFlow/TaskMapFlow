@@ -241,20 +241,30 @@ class _WorkspaceBoxWidgetState extends ConsumerState<WorkspaceBoxWidget> {
         .toList();
 
     String? blockingWorkspaceName;
+    bool isSourceArchived = false;
+    final allWs = ref.watch(workspacesStreamProvider).valueOrNull ?? [];
     for (final conn in incomingBlocks) {
-      final sourceStats = ref.watch(taskStatsProvider(conn.sourceWorkspaceId));
-      // Completed criterion: has >= 1 task and all completed
-      final isSourceCompleted =
-          sourceStats.total > 0 && sourceStats.completed == sourceStats.total;
-      if (!isSourceCompleted) {
-        final allWs = ref.watch(workspacesStreamProvider).valueOrNull ?? [];
-        for (final w in allWs) {
-          if (w.id == conn.sourceWorkspaceId) {
-            blockingWorkspaceName = w.name;
-            break;
-          }
+      Workspace? sourceWs;
+      for (final w in allWs) {
+        if (w.id == conn.sourceWorkspaceId) {
+          sourceWs = w;
+          break;
         }
-        if (blockingWorkspaceName != null) break;
+      }
+      if (sourceWs != null) {
+        if (sourceWs.isArchived) {
+          blockingWorkspaceName = sourceWs.name;
+          isSourceArchived = true;
+          break;
+        }
+        final sourceStats =
+            ref.watch(taskStatsProvider(conn.sourceWorkspaceId));
+        final isSourceCompleted =
+            sourceStats.total > 0 && sourceStats.completed == sourceStats.total;
+        if (!isSourceCompleted) {
+          blockingWorkspaceName = sourceWs.name;
+          break;
+        }
       }
     }
 
@@ -451,7 +461,7 @@ class _WorkspaceBoxWidgetState extends ConsumerState<WorkspaceBoxWidget> {
               ),
             ),
 
-            // Dependency Warning Badge (if blocked by incomplete workspace)
+            // Dependency Warning Badge (if blocked by incomplete workspace or archived workspace)
             if (blockingWorkspaceName != null)
               Positioned(
                 top: -10,
@@ -462,7 +472,9 @@ class _WorkspaceBoxWidgetState extends ConsumerState<WorkspaceBoxWidget> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF59E0B),
+                      color: isSourceArchived
+                          ? const Color(0xFFEF4444)
+                          : const Color(0xFFF59E0B),
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
@@ -475,16 +487,20 @@ class _WorkspaceBoxWidgetState extends ConsumerState<WorkspaceBoxWidget> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
-                          Icons.warning_amber_rounded,
+                        Icon(
+                          isSourceArchived
+                              ? Icons.archive_outlined
+                              : Icons.warning_amber_rounded,
                           size: 12,
                           color: Colors.white,
                         ),
                         const SizedBox(width: 4),
                         Flexible(
                           child: Text(
-                            l10n.blockedByDependencyWarning(
-                                blockingWorkspaceName),
+                            isSourceArchived
+                                ? l10n.connectedAreaArchivedWarning
+                                : l10n.blockedByDependencyWarning(
+                                    blockingWorkspaceName),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(

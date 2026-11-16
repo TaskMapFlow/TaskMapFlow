@@ -20,6 +20,9 @@ class WorkspaceDto {
         .map(ResourceLink.fromMap)
         .toList();
 
+    final isArchived = data['isArchived'] as bool? ?? false;
+    final archivedAt = (data['archivedAt'] as Timestamp?)?.toDate();
+
     return Workspace(
       id: doc.id,
       name: data['name'] as String? ?? '',
@@ -29,6 +32,8 @@ class WorkspaceDto {
       ownerId: data['ownerId'] as String? ?? '',
       tags: tags,
       resources: resources,
+      isArchived: isArchived,
+      archivedAt: archivedAt,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
@@ -44,6 +49,10 @@ class WorkspaceDto {
       'ownerId': workspace.ownerId,
       'tags': workspace.tags,
       'resources': workspace.resources.map((r) => r.toMap()).toList(),
+      'isArchived': workspace.isArchived,
+      'archivedAt': workspace.archivedAt != null
+          ? Timestamp.fromDate(workspace.archivedAt!)
+          : null,
       'createdAt': Timestamp.fromDate(workspace.createdAt),
       'updatedAt': Timestamp.fromDate(workspace.updatedAt),
     };

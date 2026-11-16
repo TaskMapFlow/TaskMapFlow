@@ -7,8 +7,10 @@ import 'package:task_map_flow/app/app.dart';
 import 'package:task_map_flow/features/auth/domain/models/auth_state.dart';
 import 'package:task_map_flow/features/auth/domain/models/auth_user.dart';
 import 'package:task_map_flow/features/auth/presentation/providers/auth_providers.dart';
+import 'package:task_map_flow/features/profile/presentation/providers/profile_providers.dart';
 import 'package:task_map_flow/features/workspaces/presentation/providers/workspace_providers.dart';
 import 'helpers/fake_auth_repository.dart';
+import 'helpers/fake_profile_repository.dart';
 import 'helpers/fake_workspace_repository.dart';
 
 void main() {
@@ -89,6 +91,8 @@ void main() {
             sharedPreferencesProvider.overrideWithValue(prefs),
             authRepositoryProvider.overrideWithValue(fakeAuth),
             workspaceRepositoryProvider.overrideWithValue(fakeWorkspace),
+            profileRepositoryProvider
+                .overrideWithValue(FakeProfileRepository()),
           ],
           child: const TaskMapFlowApp(
             firebaseReady: true,
@@ -109,10 +113,8 @@ void main() {
       // Navigate to Profile tab (left)
       await tester.tap(find.text('Profile'));
       await tester.pumpAndSettle();
-      expect(
-        find.text('Profile content will be added in a future phase.'),
-        findsOneWidget,
-      );
+      expect(find.text('Settings'), findsOneWidget);
+      expect(find.text('Archive'), findsOneWidget);
       expect(find.text('Test User'), findsOneWidget);
 
       // Navigate to Manage tab (right)
@@ -142,6 +144,8 @@ void main() {
             sharedPreferencesProvider.overrideWithValue(prefs),
             authRepositoryProvider.overrideWithValue(fakeAuth),
             workspaceRepositoryProvider.overrideWithValue(fakeWorkspace),
+            profileRepositoryProvider
+                .overrideWithValue(FakeProfileRepository()),
           ],
           child: const TaskMapFlowApp(
             firebaseReady: true,
@@ -162,10 +166,8 @@ void main() {
       // Navigate to Profil tab
       await tester.tap(find.text('Profil'));
       await tester.pumpAndSettle();
-      expect(
-        find.text('Profil içeriği bir sonraki aşamada eklenecek.'),
-        findsOneWidget,
-      );
+      expect(find.text('Ayarlar'), findsOneWidget);
+      expect(find.text('Arşiv'), findsOneWidget);
       expect(find.text('Test Kullanıcı'), findsOneWidget);
 
       // Navigate to Yönet tab

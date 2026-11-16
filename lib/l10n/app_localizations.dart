@@ -1411,6 +1411,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Information updated.'**
   String get infoSavedSuccess;
+
+  /// Archived areas title
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get archivedAreasTitle;
+
+  /// No archived areas title
+  ///
+  /// In en, this message translates to:
+  /// **'No archived areas.'**
+  String get noArchivedAreasYet;
+
+  /// No archived areas subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Areas you archive will appear here in read-only mode.'**
+  String get noArchivedAreasSubtitle;
+
+  /// Archive area button
+  ///
+  /// In en, this message translates to:
+  /// **'Archive Area'**
+  String get archiveArea;
+
+  /// Archive area confirmation title
+  ///
+  /// In en, this message translates to:
+  /// **'Archive Area'**
+  String get archiveAreaConfirmTitle;
+
+  /// Archive area confirmation body
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to archive this area? Archived areas are hidden from the main map and become read-only. You can restore them anytime from Profile > Archive.'**
+  String get archiveAreaConfirmBody;
+
+  /// Restore area button
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Area'**
+  String get restoreArea;
+
+  /// Restore area confirmation message
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to restore this area from archive?'**
+  String get restoreAreaConfirm;
+
+  /// Archived badge
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get areaArchivedBadge;
+
+  /// Area archived notice
+  ///
+  /// In en, this message translates to:
+  /// **'This area is archived and read-only.'**
+  String get areaArchivedNotice;
+
+  /// Archived date label
+  ///
+  /// In en, this message translates to:
+  /// **'Archived on'**
+  String get archivedAtLabel;
+
+  /// Warning that connected area is archived
+  ///
+  /// In en, this message translates to:
+  /// **'Connected area is archived'**
+  String get connectedAreaArchivedWarning;
+
+  /// Edit profile button
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Profile'**
+  String get editProfile;
+
+  /// Profile full name label
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get profileNameLabel;
+
+  /// Profile full name placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your full name'**
+  String get profileNamePlaceholder;
+
+  /// Error when profile name is empty
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your name'**
+  String get profileNameEmptyError;
+
+  /// Bio label
+  ///
+  /// In en, this message translates to:
+  /// **'Bio'**
+  String get profileBioLabel;
+
+  /// Bio placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'A short note about yourself...'**
+  String get profileBioPlaceholder;
+
+  /// GitHub profile URL label
+  ///
+  /// In en, this message translates to:
+  /// **'GitHub Profile'**
+  String get githubUrlLabel;
+
+  /// GitHub profile placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'https://github.com/username'**
+  String get githubUrlPlaceholder;
+
+  /// Invalid GitHub URL error
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid GitHub profile URL (https://github.com/... only)'**
+  String get invalidGithubUrlError;
+
+  /// Profile saved toast
+  ///
+  /// In en, this message translates to:
+  /// **'Profile updated.'**
+  String get profileSavedSuccess;
+
+  /// Settings title
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsTitle;
+
+  /// Language setting label
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get languageSetting;
+
+  /// Theme setting label
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get themeSetting;
+
+  /// Dark theme option
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get themeDark;
+
+  /// Light theme option
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get themeLight;
 }
 
 class _AppLocalizationsDelegate

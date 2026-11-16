@@ -123,6 +123,8 @@ void main() {
       expect(find.byKey(const Key('profileSignOutButton')), findsOneWidget);
 
       // Tap Sign Out
+      await tester.ensureVisible(find.byKey(const Key('profileSignOutButton')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('profileSignOutButton')));
       await tester.pumpAndSettle();
 

@@ -34,6 +34,10 @@ abstract interface class WorkspaceRepository {
     List<ResourceLink>? resources,
   });
 
+  Future<Result<void>> archiveWorkspace(String workspaceId);
+
+  Future<Result<void>> restoreWorkspace(String workspaceId);
+
   Future<Result<void>> updateMapNodeLayout({
     required String nodeId,
     required double positionX,

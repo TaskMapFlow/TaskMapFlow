@@ -28,6 +28,8 @@ class Workspace extends Equatable {
     required this.ownerId,
     this.tags = const [],
     this.resources = const [],
+    this.isArchived = false,
+    this.archivedAt,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -40,6 +42,8 @@ class Workspace extends Equatable {
   final String ownerId;
   final List<String> tags;
   final List<ResourceLink> resources;
+  final bool isArchived;
+  final DateTime? archivedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -52,6 +56,8 @@ class Workspace extends Equatable {
     String? ownerId,
     List<String>? tags,
     List<ResourceLink>? resources,
+    bool? isArchived,
+    DateTime? archivedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -64,6 +70,8 @@ class Workspace extends Equatable {
       ownerId: ownerId ?? this.ownerId,
       tags: tags ?? this.tags,
       resources: resources ?? this.resources,
+      isArchived: isArchived ?? this.isArchived,
+      archivedAt: archivedAt ?? this.archivedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -79,6 +87,8 @@ class Workspace extends Equatable {
         ownerId,
         tags,
         resources,
+        isArchived,
+        archivedAt,
         createdAt,
         updatedAt,
       ];

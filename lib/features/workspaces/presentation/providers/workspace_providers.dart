@@ -149,6 +149,28 @@ class WorkspaceController extends StateNotifier<AsyncValue<void>> {
     return result;
   }
 
+  Future<Result<void>> archiveWorkspace(String workspaceId) async {
+    state = const AsyncLoading();
+    final result = await _repository.archiveWorkspace(workspaceId);
+    if (result case Success()) {
+      state = const AsyncData(null);
+    } else if (result case Err(:final failure)) {
+      state = AsyncError(failure.message, StackTrace.current);
+    }
+    return result;
+  }
+
+  Future<Result<void>> restoreWorkspace(String workspaceId) async {
+    state = const AsyncLoading();
+    final result = await _repository.restoreWorkspace(workspaceId);
+    if (result case Success()) {
+      state = const AsyncData(null);
+    } else if (result case Err(:final failure)) {
+      state = AsyncError(failure.message, StackTrace.current);
+    }
+    return result;
+  }
+
   Future<Result<void>> updateMapNodeLayout({
     required String nodeId,
     required double positionX,

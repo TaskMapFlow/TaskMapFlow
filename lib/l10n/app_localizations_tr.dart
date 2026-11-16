@@ -706,4 +706,89 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get infoSavedSuccess => 'Bilgiler güncellendi.';
+
+  @override
+  String get archivedAreasTitle => 'Arşiv';
+
+  @override
+  String get noArchivedAreasYet => 'Arşivlenmiş alan bulunmuyor.';
+
+  @override
+  String get noArchivedAreasSubtitle =>
+      'Arşivlediğiniz alanlar burada listelenir ve salt okunur olarak saklanır.';
+
+  @override
+  String get archiveArea => 'Alanı Arşivle';
+
+  @override
+  String get archiveAreaConfirmTitle => 'Alanı Arşivle';
+
+  @override
+  String get archiveAreaConfirmBody =>
+      'Bu alanı arşivlemek istediğinize emin misiniz? Arşivlenen alan ana haritadan gizlenir ve salt okunur hâle gelir. Dilediğiniz zaman Profil > Arşiv bölümünden geri yükleyebilirsiniz.';
+
+  @override
+  String get restoreArea => 'Alanı Geri Yükle';
+
+  @override
+  String get restoreAreaConfirm =>
+      'Bu alanı arşivden geri yüklemek istediğinize emin misiniz?';
+
+  @override
+  String get areaArchivedBadge => 'Arşivde';
+
+  @override
+  String get areaArchivedNotice => 'Bu alan arşivlenmiştir ve salt okunurdur.';
+
+  @override
+  String get archivedAtLabel => 'Arşivlenme tarihi';
+
+  @override
+  String get connectedAreaArchivedWarning => 'Bağlı alan arşivde';
+
+  @override
+  String get editProfile => 'Profili Düzenle';
+
+  @override
+  String get profileNameLabel => 'Ad Soyad';
+
+  @override
+  String get profileNamePlaceholder => 'Adını ve soyadını gir';
+
+  @override
+  String get profileNameEmptyError => 'Lütfen adınızı girin';
+
+  @override
+  String get profileBioLabel => 'Biyografi';
+
+  @override
+  String get profileBioPlaceholder => 'Kendinden kısaca bahset...';
+
+  @override
+  String get githubUrlLabel => 'GitHub Profili';
+
+  @override
+  String get githubUrlPlaceholder => 'https://github.com/kullaniciadi';
+
+  @override
+  String get invalidGithubUrlError =>
+      'Lütfen geçerli bir GitHub adresi girin (yalnızca https://github.com/...)';
+
+  @override
+  String get profileSavedSuccess => 'Profil kaydedildi.';
+
+  @override
+  String get settingsTitle => 'Ayarlar';
+
+  @override
+  String get languageSetting => 'Dil';
+
+  @override
+  String get themeSetting => 'Tema';
+
+  @override
+  String get themeDark => 'Koyu';
+
+  @override
+  String get themeLight => 'Açık';
 }

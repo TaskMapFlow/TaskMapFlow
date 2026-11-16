@@ -168,6 +168,36 @@ class FirebaseWorkspaceRepository implements WorkspaceRepository {
   }
 
   @override
+  Future<Result<void>> archiveWorkspace(String workspaceId) async {
+    try {
+      final now = DateTime.now();
+      await _workspacesCol.doc(workspaceId).update({
+        'isArchived': true,
+        'archivedAt': Timestamp.fromDate(now),
+        'updatedAt': Timestamp.fromDate(now),
+      });
+      return const Success(null);
+    } catch (e) {
+      return Err(_mapException(e));
+    }
+  }
+
+  @override
+  Future<Result<void>> restoreWorkspace(String workspaceId) async {
+    try {
+      final now = DateTime.now();
+      await _workspacesCol.doc(workspaceId).update({
+        'isArchived': false,
+        'archivedAt': null,
+        'updatedAt': Timestamp.fromDate(now),
+      });
+      return const Success(null);
+    } catch (e) {
+      return Err(_mapException(e));
+    }
+  }
+
+  @override
   Future<Result<void>> updateMapNodeLayout({
     required String nodeId,
     required double positionX,

@@ -80,7 +80,8 @@ class _ManageScreenState extends ConsumerState<ManageScreen> {
             ),
           ),
         ),
-        data: (workspaces) {
+        data: (allWorkspaces) {
+          final workspaces = allWorkspaces.where((w) => !w.isArchived).toList();
           if (workspaces.isEmpty) {
             return Center(
               child: Padding(
