@@ -592,4 +592,115 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get selfConnectionError => 'An area cannot be connected to itself.';
+
+  @override
+  String get tabWork => 'Work';
+
+  @override
+  String get tabNotes => 'Notes';
+
+  @override
+  String get tabInfo => 'Info';
+
+  @override
+  String get quickNotesTitle => 'Quick Notes';
+
+  @override
+  String get addNote => 'Add Note';
+
+  @override
+  String get editNote => 'Edit Note';
+
+  @override
+  String get noteTitleLabel => 'Title (Optional)';
+
+  @override
+  String get noteContentLabel => 'Content';
+
+  @override
+  String get noteContentPlaceholder => 'Write your note here...';
+
+  @override
+  String get noteTitlePlaceholder => 'Note title...';
+
+  @override
+  String get noNotesYet => 'No notes added yet.';
+
+  @override
+  String get noNotesSub => 'Keep your thoughts and links for this area here.';
+
+  @override
+  String get loadMore => 'Load more';
+
+  @override
+  String get deleteNoteConfirmTitle => 'Delete Note';
+
+  @override
+  String get deleteNoteConfirmMessage =>
+      'Are you sure you want to delete this note?';
+
+  @override
+  String get noteUpdated => 'Updated';
+
+  @override
+  String get tagsTitle => 'Tags';
+
+  @override
+  String get addTag => 'Add Tag';
+
+  @override
+  String get tagPlaceholder => 'e.g. react, math, mobile...';
+
+  @override
+  String get tagLimitReached => 'Maximum 20 tags allowed.';
+
+  @override
+  String get tagLengthExceeded => 'Tag can be at most 30 characters.';
+
+  @override
+  String get resourcesTitle => 'Resource Links';
+
+  @override
+  String get addResource => 'Add Resource';
+
+  @override
+  String get editResource => 'Edit Resource';
+
+  @override
+  String get resourceTitleLabel => 'Resource Title';
+
+  @override
+  String get resourceTitlePlaceholder => 'e.g. GitHub Repo, Lecture Notes...';
+
+  @override
+  String get resourceUrlLabel => 'URL (http/https)';
+
+  @override
+  String get resourceUrlPlaceholder => 'https://...';
+
+  @override
+  String get invalidUrlError => 'Please enter a valid http or https URL.';
+
+  @override
+  String get noResourcesYet => 'No resource links added yet.';
+
+  @override
+  String get deleteResourceConfirmTitle => 'Delete Resource';
+
+  @override
+  String get deleteResourceConfirmMessage =>
+      'Are you sure you want to delete this resource?';
+
+  @override
+  String get deleteAreaHasContentError =>
+      'This workspace contains tasks, sprints, or notes. Please clear them before deleting the workspace.';
+
+  @override
+  String get urlLaunchError => 'Could not open link.';
+
+  @override
+  String get saveInfo => 'Save Info';
+
+  @override
+  String get infoSavedSuccess => 'Information updated.';
 }

@@ -1,5 +1,6 @@
 import 'package:task_map_flow/core/result/result.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/map_node.dart';
+import 'package:task_map_flow/features/workspaces/domain/models/resource_link.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/workspace.dart';
 
 abstract interface class WorkspaceRepository {
@@ -24,6 +25,13 @@ abstract interface class WorkspaceRepository {
     required String name,
     String? description,
     required String color,
+  });
+
+  Future<Result<void>> updateWorkspaceInfo({
+    required String workspaceId,
+    String? description,
+    List<String>? tags,
+    List<ResourceLink>? resources,
   });
 
   Future<Result<void>> updateMapNodeLayout({

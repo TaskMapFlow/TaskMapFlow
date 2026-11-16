@@ -4,6 +4,7 @@ import 'package:task_map_flow/features/auth/domain/models/auth_state.dart';
 import 'package:task_map_flow/features/auth/presentation/providers/auth_providers.dart';
 import 'package:task_map_flow/features/workspaces/data/repositories/firebase_workspace_repository.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/map_node.dart';
+import 'package:task_map_flow/features/workspaces/domain/models/resource_link.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/workspace.dart';
 import 'package:task_map_flow/features/workspaces/domain/repositories/workspace_repository.dart';
 
@@ -116,6 +117,28 @@ class WorkspaceController extends StateNotifier<AsyncValue<void>> {
       name: name,
       description: description,
       color: color,
+    );
+
+    if (result case Success()) {
+      state = const AsyncData(null);
+    } else if (result case Err(:final failure)) {
+      state = AsyncError(failure.message, StackTrace.current);
+    }
+    return result;
+  }
+
+  Future<Result<void>> updateWorkspaceInfo({
+    required String workspaceId,
+    String? description,
+    List<String>? tags,
+    List<ResourceLink>? resources,
+  }) async {
+    state = const AsyncLoading();
+    final result = await _repository.updateWorkspaceInfo(
+      workspaceId: workspaceId,
+      description: description,
+      tags: tags,
+      resources: resources,
     );
 
     if (result case Success()) {

@@ -36,6 +36,46 @@ service cloud.firestore {
       return type in ['related', 'blocks'];
     }
 
+    function isValidSubtaskItem(item) {
+      return item is map
+        && item.keys().hasOnly(['id', 'title', 'isCompleted'])
+        && item.id is string && item.id.size() > 0
+        && item.title is string && item.title.size() > 0 && item.title.size() <= 100
+        && item.isCompleted is bool;
+    }
+
+    function isValidSubtasksList(list) {
+      return list is list
+        && list.size() <= 20
+        && (list.size() < 1 || isValidSubtaskItem(list[0]))
+        && (list.size() < 2 || isValidSubtaskItem(list[1]))
+        && (list.size() < 3 || isValidSubtaskItem(list[2]))
+        && (list.size() < 4 || isValidSubtaskItem(list[3]))
+        && (list.size() < 5 || isValidSubtaskItem(list[4]))
+        && (list.size() < 6 || isValidSubtaskItem(list[5]))
+        && (list.size() < 7 || isValidSubtaskItem(list[6]))
+        && (list.size() < 8 || isValidSubtaskItem(list[7]))
+        && (list.size() < 9 || isValidSubtaskItem(list[8]))
+        && (list.size() < 10 || isValidSubtaskItem(list[9]))
+        && (list.size() < 11 || isValidSubtaskItem(list[10]))
+        && (list.size() < 12 || isValidSubtaskItem(list[11]))
+        && (list.size() < 13 || isValidSubtaskItem(list[12]))
+        && (list.size() < 14 || isValidSubtaskItem(list[13]))
+        && (list.size() < 15 || isValidSubtaskItem(list[14]))
+        && (list.size() < 16 || isValidSubtaskItem(list[15]))
+        && (list.size() < 17 || isValidSubtaskItem(list[16]))
+        && (list.size() < 18 || isValidSubtaskItem(list[17]))
+        && (list.size() < 19 || isValidSubtaskItem(list[18]))
+        && (list.size() < 20 || isValidSubtaskItem(list[19]));
+    }
+
+    function isValidTaskSprint(data, workspaceId, ownerId) {
+      return data.sprintId == null
+        || (data.sprintId is string
+            && exists(/databases/$(database)/documents/workspaces/$(workspaceId)/sprints/$(data.sprintId))
+            && get(/databases/$(database)/documents/workspaces/$(workspaceId)/sprints/$(data.sprintId)).data.ownerId == ownerId);
+    }
+
     function isValidTask(data, workspaceId, ownerId) {
       return data.keys().hasOnly(['id', 'workspaceId', 'ownerId', 'title', 'description', 'status', 'priority', 'dueDate', 'sprintId', 'subtasks', 'createdAt', 'updatedAt'])
         && data.id is string && data.id.size() > 0
@@ -46,8 +86,8 @@ service cloud.firestore {
         && isValidTaskStatus(data.status)
         && isValidTaskPriority(data.priority)
         && (data.dueDate == null || data.dueDate is timestamp)
-        && (data.sprintId == null || data.sprintId is string)
-        && (data.subtasks == null || (data.subtasks is list && data.subtasks.size() <= 20))
+        && (data.subtasks == null || isValidSubtasksList(data.subtasks))
+        && isValidTaskSprint(data, workspaceId, ownerId)
         && data.createdAt is timestamp
         && data.updatedAt is timestamp;
     }
@@ -67,14 +107,90 @@ service cloud.firestore {
         && data.updatedAt is timestamp;
     }
 
+    function isValidTagItem(item) {
+      return item is string && item.size() > 0 && item.size() <= 30;
+    }
+
+    function isValidTagsList(list) {
+      return list is list
+        && list.size() <= 20
+        && (list.size() < 1 || isValidTagItem(list[0]))
+        && (list.size() < 2 || isValidTagItem(list[1]))
+        && (list.size() < 3 || isValidTagItem(list[2]))
+        && (list.size() < 4 || isValidTagItem(list[3]))
+        && (list.size() < 5 || isValidTagItem(list[4]))
+        && (list.size() < 6 || isValidTagItem(list[5]))
+        && (list.size() < 7 || isValidTagItem(list[6]))
+        && (list.size() < 8 || isValidTagItem(list[7]))
+        && (list.size() < 9 || isValidTagItem(list[8]))
+        && (list.size() < 10 || isValidTagItem(list[9]))
+        && (list.size() < 11 || isValidTagItem(list[10]))
+        && (list.size() < 12 || isValidTagItem(list[11]))
+        && (list.size() < 13 || isValidTagItem(list[12]))
+        && (list.size() < 14 || isValidTagItem(list[13]))
+        && (list.size() < 15 || isValidTagItem(list[14]))
+        && (list.size() < 16 || isValidTagItem(list[15]))
+        && (list.size() < 17 || isValidTagItem(list[16]))
+        && (list.size() < 18 || isValidTagItem(list[17]))
+        && (list.size() < 19 || isValidTagItem(list[18]))
+        && (list.size() < 20 || isValidTagItem(list[19]));
+    }
+
+    function isValidResourceItem(item) {
+      return item is map
+        && item.keys().hasOnly(['id', 'title', 'url'])
+        && item.id is string && item.id.size() > 0
+        && item.title is string && item.title.size() > 0 && item.title.size() <= 100
+        && item.url is string && item.url.size() > 0 && item.url.size() <= 500
+        && item.url.matches('^https?://.*');
+    }
+
+    function isValidResourcesList(list) {
+      return list is list
+        && list.size() <= 20
+        && (list.size() < 1 || isValidResourceItem(list[0]))
+        && (list.size() < 2 || isValidResourceItem(list[1]))
+        && (list.size() < 3 || isValidResourceItem(list[2]))
+        && (list.size() < 4 || isValidResourceItem(list[3]))
+        && (list.size() < 5 || isValidResourceItem(list[4]))
+        && (list.size() < 6 || isValidResourceItem(list[5]))
+        && (list.size() < 7 || isValidResourceItem(list[6]))
+        && (list.size() < 8 || isValidResourceItem(list[7]))
+        && (list.size() < 9 || isValidResourceItem(list[8]))
+        && (list.size() < 10 || isValidResourceItem(list[9]))
+        && (list.size() < 11 || isValidResourceItem(list[10]))
+        && (list.size() < 12 || isValidResourceItem(list[11]))
+        && (list.size() < 13 || isValidResourceItem(list[12]))
+        && (list.size() < 14 || isValidResourceItem(list[13]))
+        && (list.size() < 15 || isValidResourceItem(list[14]))
+        && (list.size() < 16 || isValidResourceItem(list[15]))
+        && (list.size() < 17 || isValidResourceItem(list[16]))
+        && (list.size() < 18 || isValidResourceItem(list[17]))
+        && (list.size() < 19 || isValidResourceItem(list[18]))
+        && (list.size() < 20 || isValidResourceItem(list[19]));
+    }
+
+    function isValidNote(data, workspaceId, ownerId) {
+      return data.keys().hasOnly(['id', 'workspaceId', 'ownerId', 'title', 'content', 'createdAt', 'updatedAt'])
+        && data.id is string && data.id.size() > 0
+        && data.workspaceId == workspaceId
+        && data.ownerId == ownerId
+        && data.title is string && data.title.size() <= 150
+        && data.content is string && data.content.size() > 0 && data.content.size() <= 5000
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
     function isValidWorkspace(data, ownerId) {
-      return data.keys().hasOnly(['id', 'name', 'description', 'type', 'color', 'ownerId', 'createdAt', 'updatedAt'])
+      return data.keys().hasOnly(['id', 'name', 'description', 'type', 'color', 'ownerId', 'tags', 'resources', 'createdAt', 'updatedAt'])
         && data.id is string && data.id.size() > 0
         && data.name is string && data.name.size() > 0 && data.name.size() <= 100
         && data.description is string && data.description.size() <= 500
         && isValidWorkspaceType(data.type)
         && isValidHexColor(data.color)
         && data.ownerId == ownerId
+        && (!('tags' in data) || isValidTagsList(data.tags))
+        && (!('resources' in data) || isValidResourcesList(data.resources))
         && data.createdAt is timestamp
         && data.updatedAt is timestamp;
     }
@@ -164,6 +280,31 @@ service cloud.firestore {
           && request.resource.data.ownerId == resource.data.ownerId
           && request.resource.data.createdAt == resource.data.createdAt
           && isValidSprint(request.resource.data, workspaceId, resource.data.ownerId);
+          
+        allow delete: if isAuthenticated()
+          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+          && resource.data.ownerId == request.auth.uid;
+      }
+
+      // Notes subcollection – owner-only access
+      match /notes/{noteId} {
+        allow read: if isAuthenticated()
+          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+          && resource.data.ownerId == request.auth.uid;
+          
+        allow create: if isAuthenticated()
+          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+          && isValidNote(request.resource.data, workspaceId, request.auth.uid)
+          && request.resource.data.id == noteId;
+          
+        allow update: if isAuthenticated()
+          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+          && resource.data.ownerId == request.auth.uid
+          && request.resource.data.id == resource.data.id
+          && request.resource.data.workspaceId == workspaceId
+          && request.resource.data.ownerId == resource.data.ownerId
+          && request.resource.data.createdAt == resource.data.createdAt
+          && isValidNote(request.resource.data, workspaceId, resource.data.ownerId);
           
         allow delete: if isAuthenticated()
           && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid

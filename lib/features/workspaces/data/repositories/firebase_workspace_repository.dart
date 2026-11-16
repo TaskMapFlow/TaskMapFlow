@@ -5,6 +5,7 @@ import 'package:task_map_flow/core/result/result.dart';
 import 'package:task_map_flow/features/workspaces/data/models/map_node_dto.dart';
 import 'package:task_map_flow/features/workspaces/data/models/workspace_dto.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/map_node.dart';
+import 'package:task_map_flow/features/workspaces/domain/models/resource_link.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/workspace.dart';
 import 'package:task_map_flow/features/workspaces/domain/repositories/workspace_repository.dart';
 
@@ -132,6 +133,34 @@ class FirebaseWorkspaceRepository implements WorkspaceRepository {
         'color': color,
         'updatedAt': Timestamp.fromDate(now),
       });
+      return const Success(null);
+    } catch (e) {
+      return Err(_mapException(e));
+    }
+  }
+
+  @override
+  Future<Result<void>> updateWorkspaceInfo({
+    required String workspaceId,
+    String? description,
+    List<String>? tags,
+    List<ResourceLink>? resources,
+  }) async {
+    try {
+      final now = DateTime.now();
+      final updates = <String, dynamic>{
+        'updatedAt': Timestamp.fromDate(now),
+      };
+      if (description != null) {
+        updates['description'] = description.trim();
+      }
+      if (tags != null) {
+        updates['tags'] = tags;
+      }
+      if (resources != null) {
+        updates['resources'] = resources.map((r) => r.toMap()).toList();
+      }
+      await _workspacesCol.doc(workspaceId).update(updates);
       return const Success(null);
     } catch (e) {
       return Err(_mapException(e));

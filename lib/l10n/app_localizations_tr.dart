@@ -593,4 +593,117 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get selfConnectionError => 'Bir alan kendisine bağlanamaz.';
+
+  @override
+  String get tabWork => 'Çalışma';
+
+  @override
+  String get tabNotes => 'Notlar';
+
+  @override
+  String get tabInfo => 'Bilgiler';
+
+  @override
+  String get quickNotesTitle => 'Hızlı Notlar';
+
+  @override
+  String get addNote => 'Not Ekle';
+
+  @override
+  String get editNote => 'Notu Düzenle';
+
+  @override
+  String get noteTitleLabel => 'Başlık (İsteğe bağlı)';
+
+  @override
+  String get noteContentLabel => 'İçerik';
+
+  @override
+  String get noteContentPlaceholder => 'Notunuzu buraya yazın...';
+
+  @override
+  String get noteTitlePlaceholder => 'Not başlığı...';
+
+  @override
+  String get noNotesYet => 'Henüz not eklenmemiş.';
+
+  @override
+  String get noNotesSub =>
+      'Bu alana dair düşünce ve bağlantılarını buraya not et.';
+
+  @override
+  String get loadMore => 'Daha fazla';
+
+  @override
+  String get deleteNoteConfirmTitle => 'Notu Sil';
+
+  @override
+  String get deleteNoteConfirmMessage =>
+      'Bu notu silmek istediğinize emin misiniz?';
+
+  @override
+  String get noteUpdated => 'Güncellendi';
+
+  @override
+  String get tagsTitle => 'Etiketler';
+
+  @override
+  String get addTag => 'Etiket Ekle';
+
+  @override
+  String get tagPlaceholder => 'Örn: react, matematik, mobil...';
+
+  @override
+  String get tagLimitReached => 'En fazla 20 etiket eklenebilir.';
+
+  @override
+  String get tagLengthExceeded => 'Etiket en fazla 30 karakter olabilir.';
+
+  @override
+  String get resourcesTitle => 'Kaynak Bağlantıları';
+
+  @override
+  String get addResource => 'Kaynak Ekle';
+
+  @override
+  String get editResource => 'Kaynağı Düzenle';
+
+  @override
+  String get resourceTitleLabel => 'Kaynak Başlığı';
+
+  @override
+  String get resourceTitlePlaceholder => 'Örn: GitHub Deposu, Ders Notları...';
+
+  @override
+  String get resourceUrlLabel => 'Bağlantı Adresi (http/https)';
+
+  @override
+  String get resourceUrlPlaceholder => 'https://...';
+
+  @override
+  String get invalidUrlError =>
+      'Lütfen geçerli bir http veya https adresi girin.';
+
+  @override
+  String get noResourcesYet => 'Henüz kaynak bağlantısı eklenmemiş.';
+
+  @override
+  String get deleteResourceConfirmTitle => 'Kaynağı Sil';
+
+  @override
+  String get deleteResourceConfirmMessage =>
+      'Bu kaynak bağlantısını silmek istediğinize emin misiniz?';
+
+  @override
+  String get deleteAreaHasContentError =>
+      'Bu çalışma alanında görevler, sprintler veya notlar bulunuyor. Alanı silmeden önce lütfen bunları temizleyin.';
+
+  @override
+  String get urlLaunchError => 'Bağlantı açılamadı.';
+
+  @override
+  String get saveInfo => 'Bilgileri Kaydet';
+
+  @override
+  String get infoSavedSuccess => 'Bilgiler güncellendi.';
 }

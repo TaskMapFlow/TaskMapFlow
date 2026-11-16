@@ -1195,6 +1195,222 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'An area cannot be connected to itself.'**
   String get selfConnectionError;
+
+  /// Area detail Work tab
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get tabWork;
+
+  /// Area detail Notes tab
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get tabNotes;
+
+  /// Area detail Info tab
+  ///
+  /// In en, this message translates to:
+  /// **'Info'**
+  String get tabInfo;
+
+  /// Quick notes title
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Notes'**
+  String get quickNotesTitle;
+
+  /// Add note button
+  ///
+  /// In en, this message translates to:
+  /// **'Add Note'**
+  String get addNote;
+
+  /// Edit note button
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Note'**
+  String get editNote;
+
+  /// Note title label
+  ///
+  /// In en, this message translates to:
+  /// **'Title (Optional)'**
+  String get noteTitleLabel;
+
+  /// Note content label
+  ///
+  /// In en, this message translates to:
+  /// **'Content'**
+  String get noteContentLabel;
+
+  /// Note content placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Write your note here...'**
+  String get noteContentPlaceholder;
+
+  /// Note title placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Note title...'**
+  String get noteTitlePlaceholder;
+
+  /// No notes header
+  ///
+  /// In en, this message translates to:
+  /// **'No notes added yet.'**
+  String get noNotesYet;
+
+  /// No notes subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Keep your thoughts and links for this area here.'**
+  String get noNotesSub;
+
+  /// Load more button
+  ///
+  /// In en, this message translates to:
+  /// **'Load more'**
+  String get loadMore;
+
+  /// Delete note confirmation title
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Note'**
+  String get deleteNoteConfirmTitle;
+
+  /// Delete note confirmation message
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this note?'**
+  String get deleteNoteConfirmMessage;
+
+  /// Note updated date label
+  ///
+  /// In en, this message translates to:
+  /// **'Updated'**
+  String get noteUpdated;
+
+  /// Tags title
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get tagsTitle;
+
+  /// Add tag button
+  ///
+  /// In en, this message translates to:
+  /// **'Add Tag'**
+  String get addTag;
+
+  /// Tag placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. react, math, mobile...'**
+  String get tagPlaceholder;
+
+  /// Tag limit warning
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum 20 tags allowed.'**
+  String get tagLimitReached;
+
+  /// Tag length warning
+  ///
+  /// In en, this message translates to:
+  /// **'Tag can be at most 30 characters.'**
+  String get tagLengthExceeded;
+
+  /// Resource links title
+  ///
+  /// In en, this message translates to:
+  /// **'Resource Links'**
+  String get resourcesTitle;
+
+  /// Add resource button
+  ///
+  /// In en, this message translates to:
+  /// **'Add Resource'**
+  String get addResource;
+
+  /// Edit resource button
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Resource'**
+  String get editResource;
+
+  /// Resource title label
+  ///
+  /// In en, this message translates to:
+  /// **'Resource Title'**
+  String get resourceTitleLabel;
+
+  /// Resource title placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. GitHub Repo, Lecture Notes...'**
+  String get resourceTitlePlaceholder;
+
+  /// Resource URL label
+  ///
+  /// In en, this message translates to:
+  /// **'URL (http/https)'**
+  String get resourceUrlLabel;
+
+  /// Resource URL placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'https://...'**
+  String get resourceUrlPlaceholder;
+
+  /// Invalid URL error
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid http or https URL.'**
+  String get invalidUrlError;
+
+  /// No resources message
+  ///
+  /// In en, this message translates to:
+  /// **'No resource links added yet.'**
+  String get noResourcesYet;
+
+  /// Delete resource confirmation title
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Resource'**
+  String get deleteResourceConfirmTitle;
+
+  /// Delete resource confirmation message
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this resource?'**
+  String get deleteResourceConfirmMessage;
+
+  /// Warning when trying to delete area with content
+  ///
+  /// In en, this message translates to:
+  /// **'This workspace contains tasks, sprints, or notes. Please clear them before deleting the workspace.'**
+  String get deleteAreaHasContentError;
+
+  /// URL launch error
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open link.'**
+  String get urlLaunchError;
+
+  /// Save info button
+  ///
+  /// In en, this message translates to:
+  /// **'Save Info'**
+  String get saveInfo;
+
+  /// Info updated toast
+  ///
+  /// In en, this message translates to:
+  /// **'Information updated.'**
+  String get infoSavedSuccess;
 }
 
 class _AppLocalizationsDelegate

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:task_map_flow/features/workspaces/domain/models/resource_link.dart';
 
 enum WorkspaceType {
   project,
@@ -25,6 +26,8 @@ class Workspace extends Equatable {
     required this.type,
     required this.color,
     required this.ownerId,
+    this.tags = const [],
+    this.resources = const [],
     required this.createdAt,
     required this.updatedAt,
   });
@@ -35,6 +38,8 @@ class Workspace extends Equatable {
   final WorkspaceType type;
   final String color;
   final String ownerId;
+  final List<String> tags;
+  final List<ResourceLink> resources;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -45,6 +50,8 @@ class Workspace extends Equatable {
     WorkspaceType? type,
     String? color,
     String? ownerId,
+    List<String>? tags,
+    List<ResourceLink>? resources,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -55,6 +62,8 @@ class Workspace extends Equatable {
       type: type ?? this.type,
       color: color ?? this.color,
       ownerId: ownerId ?? this.ownerId,
+      tags: tags ?? this.tags,
+      resources: resources ?? this.resources,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -68,6 +77,8 @@ class Workspace extends Equatable {
         type,
         color,
         ownerId,
+        tags,
+        resources,
         createdAt,
         updatedAt,
       ];

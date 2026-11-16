@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:task_map_flow/features/workspaces/domain/models/resource_link.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/workspace.dart';
 
 class WorkspaceDto {
@@ -9,6 +10,16 @@ class WorkspaceDto {
     final updatedAt =
         (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now();
 
+    final tags =
+        (data['tags'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
+            const <String>[];
+
+    final rawResources = data['resources'] as List<dynamic>? ?? const [];
+    final resources = rawResources
+        .whereType<Map<String, dynamic>>()
+        .map(ResourceLink.fromMap)
+        .toList();
+
     return Workspace(
       id: doc.id,
       name: data['name'] as String? ?? '',
@@ -16,6 +27,8 @@ class WorkspaceDto {
       type: WorkspaceType.fromString(data['type'] as String? ?? ''),
       color: data['color'] as String? ?? '#7C5CE8',
       ownerId: data['ownerId'] as String? ?? '',
+      tags: tags,
+      resources: resources,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
@@ -29,6 +42,8 @@ class WorkspaceDto {
       'type': workspace.type.toFirestoreString(),
       'color': workspace.color,
       'ownerId': workspace.ownerId,
+      'tags': workspace.tags,
+      'resources': workspace.resources.map((r) => r.toMap()).toList(),
       'createdAt': Timestamp.fromDate(workspace.createdAt),
       'updatedAt': Timestamp.fromDate(workspace.updatedAt),
     };

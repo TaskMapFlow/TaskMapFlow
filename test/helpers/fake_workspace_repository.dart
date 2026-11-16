@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:task_map_flow/core/result/result.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/map_node.dart';
+import 'package:task_map_flow/features/workspaces/domain/models/resource_link.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/workspace.dart';
 import 'package:task_map_flow/features/workspaces/domain/repositories/workspace_repository.dart';
 
@@ -98,6 +99,27 @@ class FakeWorkspaceRepository implements WorkspaceRepository {
         name: name,
         description: description,
         color: color,
+        updatedAt: DateTime.now(),
+      );
+      _wsStreamController.add(Success(List.unmodifiable(_workspaces)));
+    }
+    return const Success(null);
+  }
+
+  @override
+  Future<Result<void>> updateWorkspaceInfo({
+    required String workspaceId,
+    String? description,
+    List<String>? tags,
+    List<ResourceLink>? resources,
+  }) async {
+    updateCallCount++;
+    final idx = _workspaces.indexWhere((w) => w.id == workspaceId);
+    if (idx != -1) {
+      _workspaces[idx] = _workspaces[idx].copyWith(
+        description: description ?? _workspaces[idx].description,
+        tags: tags ?? _workspaces[idx].tags,
+        resources: resources ?? _workspaces[idx].resources,
         updatedAt: DateTime.now(),
       );
       _wsStreamController.add(Success(List.unmodifiable(_workspaces)));

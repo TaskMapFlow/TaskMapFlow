@@ -6,11 +6,15 @@ import 'package:task_map_flow/app/app.dart';
 import 'package:task_map_flow/features/auth/domain/models/auth_state.dart';
 import 'package:task_map_flow/features/auth/domain/models/auth_user.dart';
 import 'package:task_map_flow/features/auth/presentation/providers/auth_providers.dart';
+import 'package:task_map_flow/features/notes/presentation/providers/note_providers.dart';
+import 'package:task_map_flow/features/tasks/presentation/providers/sprint_providers.dart';
 import 'package:task_map_flow/features/tasks/presentation/providers/task_providers.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/map_node.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/workspace.dart';
 import 'package:task_map_flow/features/workspaces/presentation/providers/workspace_providers.dart';
 import '../../../helpers/fake_auth_repository.dart';
+import '../../../helpers/fake_note_repository.dart';
+import '../../../helpers/fake_sprint_repository.dart';
 import '../../../helpers/fake_task_repository.dart';
 import '../../../helpers/fake_workspace_repository.dart';
 
@@ -19,6 +23,8 @@ void main() {
   late FakeAuthRepository fakeAuth;
   late FakeWorkspaceRepository fakeWorkspace;
   late FakeTaskRepository fakeTask;
+  late FakeSprintRepository fakeSprint;
+  late FakeNoteRepository fakeNote;
 
   const testUser = AuthUser(
     id: 'user_123',
@@ -36,6 +42,8 @@ void main() {
     );
     fakeWorkspace = FakeWorkspaceRepository();
     fakeTask = FakeTaskRepository();
+    fakeSprint = FakeSprintRepository();
+    fakeNote = FakeNoteRepository();
   });
 
   Widget buildTestApp() {
@@ -45,6 +53,8 @@ void main() {
         authRepositoryProvider.overrideWithValue(fakeAuth),
         workspaceRepositoryProvider.overrideWithValue(fakeWorkspace),
         taskRepositoryProvider.overrideWithValue(fakeTask),
+        sprintRepositoryProvider.overrideWithValue(fakeSprint),
+        noteRepositoryProvider.overrideWithValue(fakeNote),
       ],
       child: const TaskMapFlowApp(
         firebaseReady: true,

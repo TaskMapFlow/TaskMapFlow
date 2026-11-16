@@ -5,6 +5,9 @@ import 'package:intl/intl.dart';
 import 'package:task_map_flow/app/theme.dart';
 import 'package:task_map_flow/core/extensions/context_extensions.dart';
 import 'package:task_map_flow/core/result/result.dart';
+import 'package:task_map_flow/features/notes/presentation/providers/note_providers.dart';
+import 'package:task_map_flow/features/notes/presentation/widgets/note_card.dart';
+import 'package:task_map_flow/features/notes/presentation/widgets/note_form_sheet.dart';
 import 'package:task_map_flow/features/tasks/domain/models/sprint_model.dart';
 import 'package:task_map_flow/features/tasks/domain/models/task_model.dart';
 import 'package:task_map_flow/features/tasks/domain/models/task_status.dart';
@@ -14,9 +17,17 @@ import 'package:task_map_flow/features/tasks/presentation/widgets/sprint_form_sh
 import 'package:task_map_flow/features/tasks/presentation/widgets/task_form_sheet.dart';
 import 'package:task_map_flow/features/tasks/presentation/widgets/task_item_card.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/map_node.dart';
+import 'package:task_map_flow/features/workspaces/domain/models/resource_link.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/workspace.dart';
 import 'package:task_map_flow/features/workspaces/presentation/providers/workspace_providers.dart';
 import 'package:task_map_flow/features/workspaces/presentation/screens/create_workspace_sheet.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+enum _WorkspaceDetailTab {
+  work,
+  notes,
+  info,
+}
 
 class WorkspaceDetailScreen extends ConsumerStatefulWidget {
   const WorkspaceDetailScreen({
@@ -33,6 +44,7 @@ class WorkspaceDetailScreen extends ConsumerStatefulWidget {
 
 class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
   bool _isEditing = false;
+  _WorkspaceDetailTab _selectedTab = _WorkspaceDetailTab.work;
   late TextEditingController _nameController;
   late TextEditingController _descController;
   late String _selectedColor;
@@ -100,8 +112,17 @@ class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
     final l10n = context.l10n;
     final uid = ref.read(currentUserIdProvider) ?? '';
 
-    // Check if tasks exist in workspace
+    // Check if tasks, sprints, or notes exist in workspace
     final hasTasksResult = await ref.read(taskRepositoryProvider).hasTasks(
+          workspaceId: widget.workspaceId,
+          ownerId: uid,
+        );
+    final hasSprintsResult =
+        await ref.read(sprintRepositoryProvider).hasSprints(
+              workspaceId: widget.workspaceId,
+              ownerId: uid,
+            );
+    final hasNotesResult = await ref.read(noteRepositoryProvider).hasNotes(
           workspaceId: widget.workspaceId,
           ownerId: uid,
         );
@@ -119,12 +140,19 @@ class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
     }
 
     final hasTasks = (hasTasksResult as Success<bool>).value;
-    if (hasTasks) {
+    final hasSprints =
+        (hasSprintsResult is Success<bool>) && hasSprintsResult.value;
+    final hasNotes = (hasNotesResult is Success<bool>) && hasNotesResult.value;
+
+    if (hasTasks || hasSprints || hasNotes) {
+      final message = (hasSprints || hasNotes)
+          ? l10n.deleteAreaHasContentError
+          : l10n.deleteAreaHasTasksError;
       await showDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(
           title: Text(l10n.deleteConfirmTitle),
-          content: Text(l10n.deleteAreaHasTasksError),
+          content: Text(message),
           actions: [
             FilledButton(
               onPressed: () => Navigator.of(ctx).pop(),
@@ -503,18 +531,92 @@ class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Tasks / Backlog / Sprints Work Section
-                _WorkSection(
-                  workspace: workspace,
-                  accentColor: accentColor,
-                  isDark: isDark,
-                  cardBg: cardBg,
-                  cardBorder: cardBorder,
-                  textPrimary: textPrimary,
-                  textSecondary: textSecondary,
-                  purple: purple,
-                  inputBg: inputBg,
+                // 3-tab segmented control: [ Çalışma | Notlar | Bilgiler ]
+                Container(
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: cardBorder),
+                  ),
+                  padding: const EdgeInsets.all(4),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _TabButton(
+                          title: l10n.tabWork,
+                          icon: Icons.checklist_rounded,
+                          isSelected: _selectedTab == _WorkspaceDetailTab.work,
+                          purple: purple,
+                          textPrimary: textPrimary,
+                          textSecondary: textSecondary,
+                          onTap: () => setState(
+                              () => _selectedTab = _WorkspaceDetailTab.work),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: _TabButton(
+                          title: l10n.tabNotes,
+                          icon: Icons.note_alt_outlined,
+                          isSelected: _selectedTab == _WorkspaceDetailTab.notes,
+                          purple: purple,
+                          textPrimary: textPrimary,
+                          textSecondary: textSecondary,
+                          onTap: () => setState(
+                              () => _selectedTab = _WorkspaceDetailTab.notes),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: _TabButton(
+                          title: l10n.tabInfo,
+                          icon: Icons.info_outline_rounded,
+                          isSelected: _selectedTab == _WorkspaceDetailTab.info,
+                          purple: purple,
+                          textPrimary: textPrimary,
+                          textSecondary: textSecondary,
+                          onTap: () => setState(
+                              () => _selectedTab = _WorkspaceDetailTab.info),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(height: 16),
+
+                switch (_selectedTab) {
+                  _WorkspaceDetailTab.work => _WorkSection(
+                      workspace: workspace,
+                      accentColor: accentColor,
+                      isDark: isDark,
+                      cardBg: cardBg,
+                      cardBorder: cardBorder,
+                      textPrimary: textPrimary,
+                      textSecondary: textSecondary,
+                      purple: purple,
+                      inputBg: inputBg,
+                    ),
+                  _WorkspaceDetailTab.notes => _NotesSection(
+                      workspace: workspace,
+                      isDark: isDark,
+                      cardBg: cardBg,
+                      cardBorder: cardBorder,
+                      textPrimary: textPrimary,
+                      textSecondary: textSecondary,
+                      purple: purple,
+                      inputBg: inputBg,
+                    ),
+                  _WorkspaceDetailTab.info => _InfoSection(
+                      workspace: workspace,
+                      isDark: isDark,
+                      cardBg: cardBg,
+                      cardBorder: cardBorder,
+                      textPrimary: textPrimary,
+                      textSecondary: textSecondary,
+                      purple: purple,
+                      inputBg: inputBg,
+                    ),
+                },
                 const SizedBox(height: 20),
 
                 // Edit Mode Actions or Delete Action
@@ -1755,6 +1857,1118 @@ class _FilterTab extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _TabButton extends StatelessWidget {
+  const _TabButton({
+    required this.title,
+    required this.icon,
+    required this.isSelected,
+    required this.purple,
+    required this.textPrimary,
+    required this.textSecondary,
+    required this.onTap,
+  });
+
+  final String title;
+  final IconData icon;
+  final bool isSelected;
+  final Color purple;
+  final Color textPrimary;
+  final Color textSecondary;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color:
+              isSelected ? purple.withValues(alpha: 0.18) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color:
+                isSelected ? purple.withValues(alpha: 0.5) : Colors.transparent,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 15,
+              color: isSelected ? purple : textSecondary,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              title,
+              style: TextStyle(
+                color: isSelected ? purple : textSecondary,
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NotesSection extends ConsumerWidget {
+  const _NotesSection({
+    required this.workspace,
+    required this.isDark,
+    required this.cardBg,
+    required this.cardBorder,
+    required this.textPrimary,
+    required this.textSecondary,
+    required this.purple,
+    required this.inputBg,
+  });
+
+  final Workspace workspace;
+  final bool isDark;
+  final Color cardBg;
+  final Color cardBorder;
+  final Color textPrimary;
+  final Color textSecondary;
+  final Color purple;
+  final Color inputBg;
+
+  Future<void> _deleteNote(
+      BuildContext context, WidgetRef ref, String noteId) async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.deleteNoteConfirmTitle),
+        content: Text(l10n.deleteNoteConfirmMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      final result = await ref.read(noteControllerProvider.notifier).deleteNote(
+            workspaceId: workspace.id,
+            noteId: noteId,
+          );
+      if (!context.mounted) return;
+      if (result case Success()) {
+        ref.read(noteListProvider(workspace.id).notifier).onNoteDeleted(noteId);
+      } else if (result case Err(:final failure)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(failure.message),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final notesState = ref.watch(noteListProvider(workspace.id));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              l10n.quickNotesTitle,
+              style: TextStyle(
+                color: textPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            FilledButton.icon(
+              icon: const Icon(Icons.add_rounded, size: 16),
+              label: Text(l10n.addNote),
+              style: FilledButton.styleFrom(
+                backgroundColor: purple,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onPressed: () => NoteFormSheet.show(
+                context,
+                workspaceId: workspace.id,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        if (notesState.isLoading && notesState.notes.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 40),
+            child: Center(child: CircularProgressIndicator(color: purple)),
+          )
+        else if (notesState.errorMessage != null && notesState.notes.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: cardBg,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: cardBorder),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  notesState.errorMessage!,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.error,
+                    fontSize: 14,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton(
+                  onPressed: () => ref
+                      .read(noteListProvider(workspace.id).notifier)
+                      .loadInitial(),
+                  child: Text(l10n.retry),
+                ),
+              ],
+            ),
+          )
+        else if (notesState.notes.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              color: cardBg,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: cardBorder),
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.note_alt_outlined,
+                  size: 40,
+                  color: textSecondary.withValues(alpha: 0.5),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  l10n.noNotesYet,
+                  style: TextStyle(
+                    color: textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  l10n.noNotesSub,
+                  style: TextStyle(
+                    color: textSecondary,
+                    fontSize: 12,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.add_rounded, size: 16),
+                  label: Text(l10n.addNote),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: purple,
+                    side: BorderSide(color: purple),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: () => NoteFormSheet.show(
+                    context,
+                    workspaceId: workspace.id,
+                  ),
+                ),
+              ],
+            ),
+          )
+        else ...[
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: notesState.notes.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            itemBuilder: (ctx, idx) {
+              final note = notesState.notes[idx];
+              return NoteCard(
+                note: note,
+                isDark: isDark,
+                accentColor: purple,
+                onTap: () => NoteDetailSheet.show(
+                  context,
+                  note: note,
+                  isDark: isDark,
+                  accentColor: purple,
+                  onEdit: () => NoteFormSheet.show(
+                    context,
+                    workspaceId: workspace.id,
+                    existingNote: note,
+                  ),
+                  onDelete: () => _deleteNote(context, ref, note.id),
+                ),
+                onEdit: () => NoteFormSheet.show(
+                  context,
+                  workspaceId: workspace.id,
+                  existingNote: note,
+                ),
+                onDelete: () => _deleteNote(context, ref, note.id),
+              );
+            },
+          ),
+          if (notesState.hasMore) ...[
+            const SizedBox(height: 14),
+            Center(
+              child: notesState.isLoadingMore
+                  ? SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: purple,
+                      ),
+                    )
+                  : OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: purple,
+                        side: BorderSide(color: purple.withValues(alpha: 0.5)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: () => ref
+                          .read(noteListProvider(workspace.id).notifier)
+                          .loadMore(),
+                      child: Text(l10n.loadMore),
+                    ),
+            ),
+          ],
+        ],
+      ],
+    );
+  }
+}
+
+class _InfoSection extends ConsumerStatefulWidget {
+  const _InfoSection({
+    required this.workspace,
+    required this.isDark,
+    required this.cardBg,
+    required this.cardBorder,
+    required this.textPrimary,
+    required this.textSecondary,
+    required this.purple,
+    required this.inputBg,
+  });
+
+  final Workspace workspace;
+  final bool isDark;
+  final Color cardBg;
+  final Color cardBorder;
+  final Color textPrimary;
+  final Color textSecondary;
+  final Color purple;
+  final Color inputBg;
+
+  @override
+  ConsumerState<_InfoSection> createState() => _InfoSectionState();
+}
+
+class _InfoSectionState extends ConsumerState<_InfoSection> {
+  late TextEditingController _descController;
+  bool _isSavingDesc = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _descController =
+        TextEditingController(text: widget.workspace.description ?? '');
+  }
+
+  @override
+  void didUpdateWidget(covariant _InfoSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.workspace.description != oldWidget.workspace.description &&
+        !_isSavingDesc) {
+      _descController.text = widget.workspace.description ?? '';
+    }
+  }
+
+  @override
+  void dispose() {
+    _descController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveDescription() async {
+    setState(() => _isSavingDesc = true);
+    final result = await ref
+        .read(workspaceControllerProvider.notifier)
+        .updateWorkspaceInfo(
+          workspaceId: widget.workspace.id,
+          description: _descController.text.trim(),
+        );
+
+    if (!mounted) return;
+    setState(() => _isSavingDesc = false);
+
+    if (result case Success()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.infoSavedSuccess),
+          backgroundColor: const Color(0xFF16A34A),
+        ),
+      );
+    } else if (result case Err(:final failure)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(failure.message),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    }
+  }
+
+  Future<void> _deleteTag(String tag) async {
+    final updatedTags = List<String>.from(widget.workspace.tags)..remove(tag);
+    final result = await ref
+        .read(workspaceControllerProvider.notifier)
+        .updateWorkspaceInfo(
+          workspaceId: widget.workspace.id,
+          tags: updatedTags,
+        );
+
+    if (!mounted) return;
+    if (result case Err(:final failure)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(failure.message),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    }
+  }
+
+  Future<void> _showAddTagDialog() async {
+    final l10n = context.l10n;
+    if (widget.workspace.tags.length >= 20) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.tagLimitReached),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+      return;
+    }
+
+    final tagController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    final addedTag = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: widget.cardBg,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: widget.cardBorder),
+        ),
+        title: Text(
+          l10n.addTag,
+          style: TextStyle(
+            color: widget.textPrimary,
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        content: Form(
+          key: formKey,
+          child: TextFormField(
+            controller: tagController,
+            maxLength: 30,
+            autofocus: true,
+            style: TextStyle(color: widget.textPrimary, fontSize: 14),
+            decoration: InputDecoration(
+              hintText: l10n.tagPlaceholder,
+              hintStyle: TextStyle(
+                  color: widget.textSecondary.withValues(alpha: 0.5),
+                  fontSize: 13),
+              counterText: '',
+              filled: true,
+              fillColor: widget.inputBg,
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: widget.cardBorder),
+              ),
+            ),
+            validator: (val) {
+              final trimmed = val?.trim() ?? '';
+              if (trimmed.isEmpty) return l10n.tagPlaceholder;
+              if (trimmed.length > 30) return l10n.tagLengthExceeded;
+              if (widget.workspace.tags.contains(trimmed)) {
+                return l10n.tagPlaceholder;
+              }
+              return null;
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: widget.purple),
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.of(ctx).pop(tagController.text.trim());
+              }
+            },
+            child: Text(l10n.save),
+          ),
+        ],
+      ),
+    );
+
+    if (addedTag != null && addedTag.isNotEmpty && mounted) {
+      final updatedTags = [...widget.workspace.tags, addedTag];
+      final result = await ref
+          .read(workspaceControllerProvider.notifier)
+          .updateWorkspaceInfo(
+            workspaceId: widget.workspace.id,
+            tags: updatedTags,
+          );
+
+      if (!mounted) return;
+      if (result case Err(:final failure)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(failure.message),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _launchSafeUrl(String urlString) async {
+    final l10n = context.l10n;
+    final trimmed = urlString.trim();
+    if (!ResourceLink.isValidUrl(trimmed)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.invalidUrlError),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+      return;
+    }
+
+    final uri = Uri.parse(trimmed);
+    try {
+      final launched =
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!launched && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.urlLaunchError),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.urlLaunchError),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _deleteResource(String resourceId) async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.deleteResourceConfirmTitle),
+        content: Text(l10n.deleteResourceConfirmMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final updatedResources =
+          widget.workspace.resources.where((r) => r.id != resourceId).toList();
+      final result = await ref
+          .read(workspaceControllerProvider.notifier)
+          .updateWorkspaceInfo(
+            workspaceId: widget.workspace.id,
+            resources: updatedResources,
+          );
+
+      if (!mounted) return;
+      if (result case Err(:final failure)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(failure.message),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _showResourceDialog({ResourceLink? existingResource}) async {
+    final l10n = context.l10n;
+    final isEditing = existingResource != null;
+
+    if (!isEditing && widget.workspace.resources.length >= 20) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.tagLimitReached),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+      return;
+    }
+
+    final titleController =
+        TextEditingController(text: existingResource?.title ?? '');
+    final urlController =
+        TextEditingController(text: existingResource?.url ?? '');
+    final formKey = GlobalKey<FormState>();
+
+    final savedResource = await showDialog<ResourceLink>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: widget.cardBg,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: widget.cardBorder),
+        ),
+        title: Text(
+          isEditing ? l10n.editResource : l10n.addResource,
+          style: TextStyle(
+            color: widget.textPrimary,
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${l10n.resourceTitleLabel} *',
+                style: TextStyle(
+                    color: widget.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 6),
+              TextFormField(
+                controller: titleController,
+                maxLength: 100,
+                style: TextStyle(color: widget.textPrimary, fontSize: 14),
+                decoration: InputDecoration(
+                  hintText: l10n.resourceTitlePlaceholder,
+                  hintStyle: TextStyle(
+                      color: widget.textSecondary.withValues(alpha: 0.5),
+                      fontSize: 13),
+                  counterText: '',
+                  filled: true,
+                  fillColor: widget.inputBg,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: widget.cardBorder),
+                  ),
+                ),
+                validator: (val) {
+                  final trimmed = val?.trim() ?? '';
+                  if (trimmed.isEmpty) return l10n.resourceTitlePlaceholder;
+                  return null;
+                },
+              ),
+              const SizedBox(height: 14),
+              Text(
+                '${l10n.resourceUrlLabel} *',
+                style: TextStyle(
+                    color: widget.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 6),
+              TextFormField(
+                controller: urlController,
+                maxLength: 500,
+                keyboardType: TextInputType.url,
+                style: TextStyle(color: widget.textPrimary, fontSize: 14),
+                decoration: InputDecoration(
+                  hintText: l10n.resourceUrlPlaceholder,
+                  hintStyle: TextStyle(
+                      color: widget.textSecondary.withValues(alpha: 0.5),
+                      fontSize: 13),
+                  counterText: '',
+                  filled: true,
+                  fillColor: widget.inputBg,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: widget.cardBorder),
+                  ),
+                ),
+                validator: (val) {
+                  final trimmed = val?.trim() ?? '';
+                  if (!ResourceLink.isValidUrl(trimmed)) {
+                    return l10n.invalidUrlError;
+                  }
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: widget.purple),
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                final id = existingResource?.id ??
+                    'res_${DateTime.now().millisecondsSinceEpoch}';
+                Navigator.of(ctx).pop(
+                  ResourceLink(
+                    id: id,
+                    title: titleController.text.trim(),
+                    url: urlController.text.trim(),
+                  ),
+                );
+              }
+            },
+            child: Text(l10n.save),
+          ),
+        ],
+      ),
+    );
+
+    if (savedResource != null && mounted) {
+      List<ResourceLink> updatedList;
+      if (isEditing) {
+        updatedList = widget.workspace.resources.map((r) {
+          return r.id == savedResource.id ? savedResource : r;
+        }).toList();
+      } else {
+        updatedList = [...widget.workspace.resources, savedResource];
+      }
+
+      final result = await ref
+          .read(workspaceControllerProvider.notifier)
+          .updateWorkspaceInfo(
+            workspaceId: widget.workspace.id,
+            resources: updatedList,
+          );
+
+      if (!mounted) return;
+      if (result case Err(:final failure)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(failure.message),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Description Card
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: widget.cardBg,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: widget.cardBorder),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    l10n.areaDescriptionLabel,
+                    style: TextStyle(
+                      color: widget.textPrimary,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  TextButton.icon(
+                    icon: _isSavingDesc
+                        ? SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: widget.purple,
+                            ),
+                          )
+                        : const Icon(Icons.check_rounded, size: 16),
+                    label: Text(l10n.save),
+                    style: TextButton.styleFrom(
+                      foregroundColor: widget.purple,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    onPressed: _isSavingDesc ? null : _saveDescription,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _descController,
+                maxLines: 4,
+                maxLength: 500,
+                style: TextStyle(color: widget.textPrimary, fontSize: 13),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: widget.inputBg,
+                  counterText: '',
+                  hintText: l10n.areaDescriptionPlaceholder,
+                  hintStyle: TextStyle(
+                    color: widget.textSecondary.withValues(alpha: 0.5),
+                    fontSize: 13,
+                  ),
+                  contentPadding: const EdgeInsets.all(12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: widget.cardBorder),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: widget.cardBorder),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: widget.purple, width: 1.5),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // Tags Card
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: widget.cardBg,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: widget.cardBorder),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        l10n.tagsTitle,
+                        style: TextStyle(
+                          color: widget.textPrimary,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '(${widget.workspace.tags.length}/20)',
+                        style: TextStyle(
+                          color: widget.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (widget.workspace.tags.length < 20)
+                    TextButton.icon(
+                      icon: const Icon(Icons.add_rounded, size: 16),
+                      label: Text(l10n.addTag),
+                      style: TextButton.styleFrom(
+                        foregroundColor: widget.purple,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      onPressed: _showAddTagDialog,
+                    ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              if (widget.workspace.tags.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    l10n.tagPlaceholder,
+                    style: TextStyle(
+                      color: widget.textSecondary.withValues(alpha: 0.5),
+                      fontSize: 13,
+                    ),
+                  ),
+                )
+              else
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: widget.workspace.tags.map((tag) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: widget.purple.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: widget.purple.withValues(alpha: 0.35),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '#$tag',
+                            style: TextStyle(
+                              color: widget.purple,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          InkWell(
+                            onTap: () => _deleteTag(tag),
+                            borderRadius: BorderRadius.circular(10),
+                            child: Padding(
+                              padding: const EdgeInsets.all(2),
+                              child: Icon(
+                                Icons.close_rounded,
+                                size: 14,
+                                color: widget.purple,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // Resources Card
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: widget.cardBg,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: widget.cardBorder),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        l10n.resourcesTitle,
+                        style: TextStyle(
+                          color: widget.textPrimary,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '(${widget.workspace.resources.length}/20)',
+                        style: TextStyle(
+                          color: widget.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (widget.workspace.resources.length < 20)
+                    TextButton.icon(
+                      icon: const Icon(Icons.add_rounded, size: 16),
+                      label: Text(l10n.addResource),
+                      style: TextButton.styleFrom(
+                        foregroundColor: widget.purple,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      onPressed: () => _showResourceDialog(),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              if (widget.workspace.resources.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    l10n.noResourcesYet,
+                    style: TextStyle(
+                      color: widget.textSecondary.withValues(alpha: 0.5),
+                      fontSize: 13,
+                    ),
+                  ),
+                )
+              else
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: widget.workspace.resources.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemBuilder: (ctx, idx) {
+                    final res = widget.workspace.resources[idx];
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: widget.inputBg,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: widget.cardBorder),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.link_rounded,
+                              size: 18, color: widget.purple),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: InkWell(
+                              onTap: () => _launchSafeUrl(res.url),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    res.title,
+                                    style: TextStyle(
+                                      color: widget.textPrimary,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    res.url,
+                                    style: TextStyle(
+                                      color: widget.purple,
+                                      fontSize: 11,
+                                      decoration: TextDecoration.underline,
+                                      decorationColor: widget.purple,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon:
+                                const Icon(Icons.open_in_new_rounded, size: 16),
+                            color: widget.textSecondary,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            tooltip: res.url,
+                            onPressed: () => _launchSafeUrl(res.url),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(Icons.edit_outlined, size: 16),
+                            color: widget.textSecondary,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            tooltip: l10n.editResource,
+                            onPressed: () =>
+                                _showResourceDialog(existingResource: res),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline_rounded,
+                                size: 16),
+                            color: Theme.of(context).colorScheme.error,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            tooltip: l10n.delete,
+                            onPressed: () => _deleteResource(res.id),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
