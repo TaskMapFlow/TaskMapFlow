@@ -312,11 +312,14 @@ class FirebaseTeamRepository implements TeamRepository {
     required MemberRole newRole,
   }) async {
     try {
-      await _membersCol(workspaceId).doc(targetUid).update({
-        'role': newRole.name,
+      await _callFunction('updateMemberRole', {
+        'workspaceId': workspaceId,
+        'targetUid': targetUid,
+        'newRole': newRole.toFirestoreString(),
       });
       return const Success(null);
     } catch (e) {
+      if (e is Failure) return Err(e);
       return Err(_mapException(e));
     }
   }
@@ -327,15 +330,13 @@ class FirebaseTeamRepository implements TeamRepository {
     required String targetUid,
   }) async {
     try {
-      final batch = _firestore.batch();
-      batch.delete(_membersCol(workspaceId).doc(targetUid));
-      batch.update(_workspacesCol().doc(workspaceId), {
-        'memberIds': FieldValue.arrayRemove([targetUid]),
-        'updatedAt': Timestamp.fromDate(DateTime.now()),
+      await _callFunction('removeMember', {
+        'workspaceId': workspaceId,
+        'targetUid': targetUid,
       });
-      await batch.commit();
       return const Success(null);
     } catch (e) {
+      if (e is Failure) return Err(e);
       return Err(_mapException(e));
     }
   }

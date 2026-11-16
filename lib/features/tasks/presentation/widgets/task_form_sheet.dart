@@ -197,20 +197,36 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
     final controller = ref.read(taskControllerProvider.notifier);
     final title = _titleController.text.trim();
     final description = _descController.text.trim();
+    final currentRole = ref
+            .read(currentUserMemberRoleProvider(widget.workspaceId))
+            .valueOrNull ??
+        MemberRole.member;
+    final canManageFull = !_isEditing ||
+        currentRole == MemberRole.owner ||
+        currentRole == MemberRole.admin ||
+        widget.initialTask?.ownerId == uid;
 
     Result<dynamic> result;
     if (_isEditing) {
-      result = await controller.updateTask(
-        workspaceId: widget.workspaceId,
-        taskId: widget.initialTask!.id,
-        title: title,
-        description: description,
-        sprintId: _selectedSprintId,
-        status: _selectedStatus,
-        priority: _selectedPriority,
-        dueDate: _selectedDueDate,
-        assigneeId: _selectedAssigneeId,
-      );
+      if (!canManageFull) {
+        result = await controller.updateTaskStatus(
+          workspaceId: widget.workspaceId,
+          taskId: widget.initialTask!.id,
+          status: _selectedStatus,
+        );
+      } else {
+        result = await controller.updateTask(
+          workspaceId: widget.workspaceId,
+          taskId: widget.initialTask!.id,
+          title: title,
+          description: description,
+          sprintId: _selectedSprintId,
+          status: _selectedStatus,
+          priority: _selectedPriority,
+          dueDate: _selectedDueDate,
+          assigneeId: _selectedAssigneeId,
+        );
+      }
     } else {
       result = await controller.createTask(
         workspaceId: widget.workspaceId,
@@ -312,6 +328,10 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
     final currentRole = currentRoleAsync.valueOrNull ?? MemberRole.member;
     final canAssignAnyone =
         currentRole == MemberRole.owner || currentRole == MemberRole.admin;
+    final canManageFull = !_isEditing ||
+        currentRole == MemberRole.owner ||
+        currentRole == MemberRole.admin ||
+        widget.initialTask?.ownerId == currentUid;
 
     return Container(
       decoration: BoxDecoration(
@@ -358,7 +378,7 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
                     ),
                   ),
                   const Spacer(),
-                  if (_isEditing)
+                  if (_isEditing && canManageFull)
                     IconButton(
                       icon: const Icon(Icons.delete_outline_rounded),
                       color: Theme.of(context).colorScheme.error,
@@ -404,6 +424,7 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
               const SizedBox(height: 6),
               TextFormField(
                 controller: _titleController,
+                readOnly: !canManageFull,
                 maxLength: 150,
                 style: TextStyle(color: textPrimary, fontSize: 15),
                 validator: (val) {
@@ -450,6 +471,7 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
               const SizedBox(height: 6),
               TextFormField(
                 controller: _descController,
+                readOnly: !canManageFull,
                 maxLines: 3,
                 maxLength: 1000,
                 style: TextStyle(color: textPrimary, fontSize: 14),
@@ -531,22 +553,28 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
                     label: l10n.priorityLow,
                     isSelected: _selectedPriority == TaskPriority.low,
                     color: const Color(0xFF94A3B8),
-                    onTap: () =>
-                        setState(() => _selectedPriority = TaskPriority.low),
+                    onTap: canManageFull
+                        ? () =>
+                            setState(() => _selectedPriority = TaskPriority.low)
+                        : null,
                   ),
                   _PriorityChip(
                     label: l10n.priorityMedium,
                     isSelected: _selectedPriority == TaskPriority.medium,
                     color: const Color(0xFF818CF8),
-                    onTap: () =>
-                        setState(() => _selectedPriority = TaskPriority.medium),
+                    onTap: canManageFull
+                        ? () => setState(
+                            () => _selectedPriority = TaskPriority.medium)
+                        : null,
                   ),
                   _PriorityChip(
                     label: l10n.priorityHigh,
                     isSelected: _selectedPriority == TaskPriority.high,
                     color: const Color(0xFFF87171),
-                    onTap: () =>
-                        setState(() => _selectedPriority = TaskPriority.high),
+                    onTap: canManageFull
+                        ? () => setState(
+                            () => _selectedPriority = TaskPriority.high)
+                        : null,
                   ),
                 ],
               ),
@@ -592,10 +620,10 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: _pickDueDate,
+                      onPressed: canManageFull ? _pickDueDate : null,
                     ),
                   ),
-                  if (_selectedDueDate != null) ...[
+                  if (_selectedDueDate != null && canManageFull) ...[
                     const SizedBox(width: 8),
                     IconButton(
                       icon: const Icon(Icons.clear_rounded, size: 20),
@@ -649,9 +677,11 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
                             ),
                           ),
                       ],
-                      onChanged: (val) {
-                        setState(() => _selectedSprintId = val);
-                      },
+                      onChanged: canManageFull
+                          ? (val) {
+                              setState(() => _selectedSprintId = val);
+                            }
+                          : null,
                     ),
                   ),
                 ),
@@ -726,9 +756,11 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
                               ),
                             ),
                       ],
-                      onChanged: (val) {
-                        setState(() => _selectedAssigneeId = val);
-                      },
+                      onChanged: canManageFull
+                          ? (val) {
+                              setState(() => _selectedAssigneeId = val);
+                            }
+                          : null,
                     ),
                   ),
                 ),
@@ -773,16 +805,17 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
                             ),
                           ),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.close_rounded, size: 16),
-                          color: textSecondary,
-                          onPressed: () => _deleteSubtask(subtask),
-                        ),
+                        if (canManageFull)
+                          IconButton(
+                            icon: const Icon(Icons.close_rounded, size: 16),
+                            color: textSecondary,
+                            onPressed: () => _deleteSubtask(subtask),
+                          ),
                       ],
                     ),
                   ),
                 // Add subtask input field
-                if (_subtasks.length < 20)
+                if (canManageFull && _subtasks.length < 20)
                   Row(
                     children: [
                       Expanded(
@@ -913,13 +946,13 @@ class _PriorityChip extends StatelessWidget {
     required this.label,
     required this.isSelected,
     required this.color,
-    required this.onTap,
+    this.onTap,
   });
 
   final String label;
   final bool isSelected;
   final Color color;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {

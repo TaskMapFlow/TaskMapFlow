@@ -73,43 +73,129 @@ class FirebaseTaskRepository implements TaskRepository {
   }
 
   @override
-  Stream<Result<List<TaskModel>>> watchAssignedTasks(String userId) async* {
+  Stream<Result<List<TaskModel>>> watchAssignedTasks(String userId) {
     if (userId.isEmpty) {
-      yield const Success([]);
-      return;
+      return Stream.value(const Success([]));
     }
 
-    try {
-      await for (final snapshot in _firestore
-          .collectionGroup('tasks')
-          .where('assigneeId', isEqualTo: userId)
-          .snapshots()) {
-        try {
-          final tasks = snapshot.docs.map(TaskDto.fromFirestore).toList();
-          tasks.sort((a, b) {
-            if (a.status == TaskStatus.completed &&
-                b.status != TaskStatus.completed) {
-              return 1;
-            }
-            if (a.status != TaskStatus.completed &&
-                b.status == TaskStatus.completed) {
-              return -1;
-            }
-            if (a.dueDate != null && b.dueDate != null) {
-              return a.dueDate!.compareTo(b.dueDate!);
-            }
-            if (a.dueDate != null) return -1;
-            if (b.dueDate != null) return 1;
-            return b.createdAt.compareTo(a.createdAt);
-          });
-          yield Success(tasks);
-        } catch (e) {
-          yield Err(_mapException(e));
+    final controller = StreamController<Result<List<TaskModel>>>();
+    final taskSubs =
+        <String, StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>{};
+    final tasksByWorkspace = <String, List<TaskModel>>{};
+    StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? ownedSub;
+    StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? joinedSub;
+    var ownedWsIds = <String>{};
+    var joinedWsIds = <String>{};
+
+    void emitTasks() {
+      if (controller.isClosed) return;
+      final allTasks = tasksByWorkspace.values.expand((t) => t).toList();
+      allTasks.sort((a, b) {
+        if (a.status == TaskStatus.completed &&
+            b.status != TaskStatus.completed) {
+          return 1;
+        }
+        if (a.status != TaskStatus.completed &&
+            b.status == TaskStatus.completed) {
+          return -1;
+        }
+        if (a.dueDate != null && b.dueDate != null) {
+          return a.dueDate!.compareTo(b.dueDate!);
+        }
+        if (a.dueDate != null) return -1;
+        if (b.dueDate != null) return 1;
+        return b.createdAt.compareTo(a.createdAt);
+      });
+      controller.add(Success(allTasks));
+    }
+
+    void updateSubscriptions() {
+      final currentWsIds = {...ownedWsIds, ...joinedWsIds};
+
+      // Remove subscriptions for workspaces the user left
+      final toRemove =
+          taskSubs.keys.where((id) => !currentWsIds.contains(id)).toList();
+      for (final id in toRemove) {
+        taskSubs[id]?.cancel();
+        taskSubs.remove(id);
+        tasksByWorkspace.remove(id);
+      }
+
+      if (currentWsIds.isEmpty) {
+        emitTasks();
+        return;
+      }
+
+      // Add subscriptions for newly joined or owned workspaces
+      for (final wsId in currentWsIds) {
+        if (!taskSubs.containsKey(wsId)) {
+          taskSubs[wsId] = _tasksCol(wsId)
+              .where('assigneeId', isEqualTo: userId)
+              .snapshots()
+              .listen(
+            (snapshot) {
+              final tasks = snapshot.docs.map(TaskDto.fromFirestore).toList();
+              tasksByWorkspace[wsId] = tasks;
+              emitTasks();
+            },
+            onError: (Object error) {
+              // If permission denied (e.g. user removed from workspace), clean up that workspace
+              taskSubs[wsId]?.cancel();
+              taskSubs.remove(wsId);
+              tasksByWorkspace.remove(wsId);
+              emitTasks();
+            },
+          );
         }
       }
-    } catch (e) {
-      yield Err(_mapException(e));
     }
+
+    controller.onListen = () {
+      ownedSub = _firestore
+          .collection('workspaces')
+          .where('ownerId', isEqualTo: userId)
+          .snapshots()
+          .listen(
+        (snapshot) {
+          ownedWsIds = snapshot.docs.map((d) => d.id).toSet();
+          updateSubscriptions();
+        },
+        onError: (Object error) {
+          if (!controller.isClosed) {
+            controller.add(Err(_mapException(error)));
+          }
+        },
+      );
+
+      joinedSub = _firestore
+          .collection('workspaces')
+          .where('memberIds', arrayContains: userId)
+          .snapshots()
+          .listen(
+        (snapshot) {
+          joinedWsIds = snapshot.docs.map((d) => d.id).toSet();
+          updateSubscriptions();
+        },
+        onError: (Object error) {
+          if (!controller.isClosed) {
+            controller.add(Err(_mapException(error)));
+          }
+        },
+      );
+    };
+
+    controller.onCancel = () {
+      ownedSub?.cancel();
+      joinedSub?.cancel();
+      for (final sub in taskSubs.values) {
+        sub.cancel();
+      }
+      taskSubs.clear();
+      tasksByWorkspace.clear();
+      controller.close();
+    };
+
+    return controller.stream;
   }
 
   @override
