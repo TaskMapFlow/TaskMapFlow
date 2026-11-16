@@ -20,6 +20,28 @@ service cloud.firestore {
       return type in ['project', 'lesson', 'freeform'];
     }
 
+    function isValidTaskStatus(status) {
+      return status in ['todo', 'in_progress', 'completed'];
+    }
+
+    function isValidTaskPriority(priority) {
+      return priority in ['low', 'medium', 'high'];
+    }
+
+    function isValidTask(data, workspaceId, ownerId) {
+      return data.keys().hasOnly(['id', 'workspaceId', 'ownerId', 'title', 'description', 'status', 'priority', 'dueDate', 'createdAt', 'updatedAt'])
+        && data.id is string && data.id.size() > 0
+        && data.workspaceId == workspaceId
+        && data.ownerId == ownerId
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 150
+        && data.description is string && data.description.size() <= 1000
+        && isValidTaskStatus(data.status)
+        && isValidTaskPriority(data.priority)
+        && (data.dueDate == null || data.dueDate is timestamp)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
     function isValidWorkspace(data, ownerId) {
       return data.keys().hasOnly(['id', 'name', 'description', 'type', 'color', 'ownerId', 'createdAt', 'updatedAt'])
         && data.id is string && data.id.size() > 0
@@ -60,6 +82,31 @@ service cloud.firestore {
         && isValidWorkspace(request.resource.data, resource.data.ownerId);
         
       allow delete: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
+
+      // Tasks subcollection – owner-only access
+      match /tasks/{taskId} {
+        allow read: if isAuthenticated()
+          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+          && resource.data.ownerId == request.auth.uid;
+          
+        allow create: if isAuthenticated()
+          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+          && isValidTask(request.resource.data, workspaceId, request.auth.uid)
+          && request.resource.data.id == taskId;
+          
+        allow update: if isAuthenticated()
+          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+          && resource.data.ownerId == request.auth.uid
+          && request.resource.data.id == resource.data.id
+          && request.resource.data.workspaceId == workspaceId
+          && request.resource.data.ownerId == resource.data.ownerId
+          && request.resource.data.createdAt == resource.data.createdAt
+          && isValidTask(request.resource.data, workspaceId, resource.data.ownerId);
+          
+        allow delete: if isAuthenticated()
+          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+          && resource.data.ownerId == request.auth.uid;
+      }
     }
 
     // Map Nodes collection – owner-only access, linked to user's workspace

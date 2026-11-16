@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_map_flow/app/theme.dart';
+import 'package:task_map_flow/features/tasks/presentation/providers/task_providers.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/map_node.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/workspace.dart';
 import 'package:task_map_flow/features/workspaces/presentation/providers/workspace_providers.dart';
@@ -76,6 +77,7 @@ class _WorkspaceBoxWidgetState extends ConsumerState<WorkspaceBoxWidget> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accentColor = _parseHex(widget.workspace.color);
+    final stats = ref.watch(taskStatsProvider(widget.workspace.id));
 
     final bg = isDark
         ? const Color(0xFF161520).withValues(alpha: 0.95)
@@ -201,6 +203,40 @@ class _WorkspaceBoxWidgetState extends ConsumerState<WorkspaceBoxWidget> {
                                     height: 1.3,
                                   ),
                                 ),
+                              ),
+                            ],
+                            if (stats.total > 0) ...[
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Icon(Icons.check_circle_outline,
+                                      size: 11, color: accentColor),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${stats.completed}/${stats.total}',
+                                    style: TextStyle(
+                                      color: textSecondary,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(2),
+                                      child: LinearProgressIndicator(
+                                        value: stats.completed / stats.total,
+                                        minHeight: 3,
+                                        backgroundColor: isDark
+                                            ? const Color(0xFF262335)
+                                            : const Color(0xFFE8E6F2),
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                accentColor),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ],

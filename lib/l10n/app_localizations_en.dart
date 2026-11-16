@@ -326,4 +326,127 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get themeModeDark => 'Dark Theme';
+
+  @override
+  String get tasksTitle => 'Tasks';
+
+  @override
+  String get studyStepsTitle => 'Study Steps';
+
+  @override
+  String get addTask => 'Add Task';
+
+  @override
+  String get addStep => 'Add Step';
+
+  @override
+  String get taskTitle => 'Task Title';
+
+  @override
+  String get stepTitle => 'Step Title';
+
+  @override
+  String get taskTitlePlaceholder => 'Enter task title';
+
+  @override
+  String get stepTitlePlaceholder => 'Enter step title';
+
+  @override
+  String get taskDescription => 'Description (Optional)';
+
+  @override
+  String get taskDescriptionPlaceholder => 'Write details';
+
+  @override
+  String get taskStatus => 'Status';
+
+  @override
+  String get taskPriority => 'Priority';
+
+  @override
+  String get dueDate => 'Due Date';
+
+  @override
+  String get noDueDate => 'No Due Date';
+
+  @override
+  String get selectDate => 'Select Date';
+
+  @override
+  String get clearDate => 'Clear';
+
+  @override
+  String get statusTodo => 'To Do';
+
+  @override
+  String get statusInProgress => 'In Progress';
+
+  @override
+  String get statusCompleted => 'Completed';
+
+  @override
+  String get priorityLow => 'Low';
+
+  @override
+  String get priorityMedium => 'Medium';
+
+  @override
+  String get priorityHigh => 'High';
+
+  @override
+  String get filterAll => 'All';
+
+  @override
+  String get filterTodo => 'To Do';
+
+  @override
+  String get filterInProgress => 'In Progress';
+
+  @override
+  String get filterCompleted => 'Completed';
+
+  @override
+  String get overdue => 'Overdue';
+
+  @override
+  String get editTask => 'Edit Task';
+
+  @override
+  String get deleteTask => 'Delete Task';
+
+  @override
+  String get deleteTaskConfirmTitle =>
+      'Are you sure you want to delete this task?';
+
+  @override
+  String get deleteTaskConfirmBody =>
+      'This task will be permanently deleted. This action cannot be undone.';
+
+  @override
+  String get noTasksYet => 'No tasks yet';
+
+  @override
+  String get noTasksSubtitle => 'Add your first task for this area.';
+
+  @override
+  String get noStepsYet => 'No study steps yet';
+
+  @override
+  String get noStepsSubtitle => 'Add your first study step for this lesson.';
+
+  @override
+  String taskProgress(int completed, int total, int percent) {
+    return '$completed / $total completed ($percent%)';
+  }
+
+  @override
+  String get deleteAreaHasTasksError =>
+      'This area contains tasks. Please delete all tasks before deleting the area.';
+
+  @override
+  String get deleteAreaTaskCheckFailed =>
+      'Could not verify tasks. The area was not deleted for safety.';
+
+  @override
+  String get taskTitleRequired => 'Please enter a task title';
 }

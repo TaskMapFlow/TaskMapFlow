@@ -327,4 +327,127 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get themeModeDark => 'Koyu Tema';
+
+  @override
+  String get tasksTitle => 'Görevler';
+
+  @override
+  String get studyStepsTitle => 'Çalışma Adımları';
+
+  @override
+  String get addTask => 'Görev Ekle';
+
+  @override
+  String get addStep => 'Adım Ekle';
+
+  @override
+  String get taskTitle => 'Görev Başlığı';
+
+  @override
+  String get stepTitle => 'Adım Başlığı';
+
+  @override
+  String get taskTitlePlaceholder => 'Görev başlığını girin';
+
+  @override
+  String get stepTitlePlaceholder => 'Adım başlığını girin';
+
+  @override
+  String get taskDescription => 'Açıklama (İsteğe bağlı)';
+
+  @override
+  String get taskDescriptionPlaceholder => 'Ayrıntıları yazın';
+
+  @override
+  String get taskStatus => 'Durum';
+
+  @override
+  String get taskPriority => 'Öncelik';
+
+  @override
+  String get dueDate => 'Son Tarih';
+
+  @override
+  String get noDueDate => 'Tarih Yok';
+
+  @override
+  String get selectDate => 'Tarih Seç';
+
+  @override
+  String get clearDate => 'Temizle';
+
+  @override
+  String get statusTodo => 'Yapılacak';
+
+  @override
+  String get statusInProgress => 'Devam Ediyor';
+
+  @override
+  String get statusCompleted => 'Tamamlandı';
+
+  @override
+  String get priorityLow => 'Düşük';
+
+  @override
+  String get priorityMedium => 'Normal';
+
+  @override
+  String get priorityHigh => 'Yüksek';
+
+  @override
+  String get filterAll => 'Tümü';
+
+  @override
+  String get filterTodo => 'Yapılacak';
+
+  @override
+  String get filterInProgress => 'Devam Eden';
+
+  @override
+  String get filterCompleted => 'Tamamlanan';
+
+  @override
+  String get overdue => 'Gecikmiş';
+
+  @override
+  String get editTask => 'Görevi Düzenle';
+
+  @override
+  String get deleteTask => 'Görevi Sil';
+
+  @override
+  String get deleteTaskConfirmTitle =>
+      'Görevi Silmek İstediğinize Emin Misiniz?';
+
+  @override
+  String get deleteTaskConfirmBody =>
+      'Bu görev kalıcı olarak silinecektir. Bu işlem geri alınamaz.';
+
+  @override
+  String get noTasksYet => 'Henüz görev eklenmedi';
+
+  @override
+  String get noTasksSubtitle => 'Bu alan için ilk görevinizi ekleyin.';
+
+  @override
+  String get noStepsYet => 'Henüz çalışma adımı eklenmedi';
+
+  @override
+  String get noStepsSubtitle => 'Bu ders için ilk çalışma adımınızı ekleyin.';
+
+  @override
+  String taskProgress(int completed, int total, int percent) {
+    return '$completed / $total tamamlandı (%$percent)';
+  }
+
+  @override
+  String get deleteAreaHasTasksError =>
+      'Bu alanda görevler bulunuyor. Alanı silmeden önce lütfen tüm görevleri silin.';
+
+  @override
+  String get deleteAreaTaskCheckFailed =>
+      'Görev kontrolü yapılamadı. Güvenlik nedeniyle alan silinemedi.';
+
+  @override
+  String get taskTitleRequired => 'Lütfen görev başlığı girin';
 }

@@ -1,0 +1,180 @@
+import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:task_map_flow/core/errors/failure.dart';
+import 'package:task_map_flow/core/result/result.dart';
+import 'package:task_map_flow/features/tasks/data/models/task_dto.dart';
+import 'package:task_map_flow/features/tasks/domain/models/task_model.dart';
+import 'package:task_map_flow/features/tasks/domain/models/task_priority.dart';
+import 'package:task_map_flow/features/tasks/domain/models/task_status.dart';
+import 'package:task_map_flow/features/tasks/domain/repositories/task_repository.dart';
+
+class FirebaseTaskRepository implements TaskRepository {
+  FirebaseTaskRepository({FirebaseFirestore? firestore})
+      : _firestore = firestore ?? FirebaseFirestore.instance;
+
+  final FirebaseFirestore _firestore;
+
+  CollectionReference<Map<String, dynamic>> _tasksCol(String workspaceId) =>
+      _firestore.collection('workspaces').doc(workspaceId).collection('tasks');
+
+  @override
+  Stream<Result<List<TaskModel>>> watchTasks({
+    required String workspaceId,
+    required String ownerId,
+  }) async* {
+    if (workspaceId.isEmpty || ownerId.isEmpty) {
+      yield const Success([]);
+      return;
+    }
+
+    try {
+      await for (final snapshot in _tasksCol(workspaceId).snapshots()) {
+        try {
+          final tasks = snapshot.docs.map(TaskDto.fromFirestore).toList();
+          tasks.sort((a, b) {
+            if (a.status == TaskStatus.completed &&
+                b.status != TaskStatus.completed) {
+              return 1;
+            }
+            if (a.status != TaskStatus.completed &&
+                b.status == TaskStatus.completed) {
+              return -1;
+            }
+            if (a.dueDate != null && b.dueDate != null) {
+              return a.dueDate!.compareTo(b.dueDate!);
+            }
+            if (a.dueDate != null) return -1;
+            if (b.dueDate != null) return 1;
+            return b.createdAt.compareTo(a.createdAt);
+          });
+          yield Success(tasks);
+        } catch (e) {
+          yield Err(_mapException(e));
+        }
+      }
+    } catch (e) {
+      yield Err(_mapException(e));
+    }
+  }
+
+  @override
+  Future<Result<TaskModel>> createTask({
+    required String workspaceId,
+    required String ownerId,
+    required String title,
+    String? description,
+    TaskStatus status = TaskStatus.todo,
+    TaskPriority priority = TaskPriority.medium,
+    DateTime? dueDate,
+  }) async {
+    try {
+      final now = DateTime.now();
+      final docRef = _tasksCol(workspaceId).doc();
+
+      final task = TaskModel(
+        id: docRef.id,
+        workspaceId: workspaceId,
+        ownerId: ownerId,
+        title: title.trim(),
+        description: description?.trim() ?? '',
+        status: status,
+        priority: priority,
+        dueDate: dueDate != null
+            ? DateTime.utc(dueDate.year, dueDate.month, dueDate.day)
+            : null,
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      await docRef.set(TaskDto.toFirestore(task));
+      return Success(task);
+    } catch (e) {
+      return Err(_mapException(e));
+    }
+  }
+
+  @override
+  Future<Result<void>> updateTask({
+    required String workspaceId,
+    required String taskId,
+    required String title,
+    String? description,
+    required TaskStatus status,
+    required TaskPriority priority,
+    DateTime? dueDate,
+  }) async {
+    try {
+      final now = DateTime.now();
+      await _tasksCol(workspaceId).doc(taskId).update({
+        'title': title.trim(),
+        'description': description?.trim() ?? '',
+        'status': status.toFirestoreString(),
+        'priority': priority.toFirestoreString(),
+        'dueDate': dueDate != null
+            ? Timestamp.fromDate(
+                DateTime.utc(dueDate.year, dueDate.month, dueDate.day))
+            : null,
+        'updatedAt': Timestamp.fromDate(now),
+      });
+      return const Success(null);
+    } catch (e) {
+      return Err(_mapException(e));
+    }
+  }
+
+  @override
+  Future<Result<void>> updateTaskStatus({
+    required String workspaceId,
+    required String taskId,
+    required TaskStatus status,
+  }) async {
+    try {
+      final now = DateTime.now();
+      await _tasksCol(workspaceId).doc(taskId).update({
+        'status': status.toFirestoreString(),
+        'updatedAt': Timestamp.fromDate(now),
+      });
+      return const Success(null);
+    } catch (e) {
+      return Err(_mapException(e));
+    }
+  }
+
+  @override
+  Future<Result<void>> deleteTask({
+    required String workspaceId,
+    required String taskId,
+  }) async {
+    try {
+      await _tasksCol(workspaceId).doc(taskId).delete();
+      return const Success(null);
+    } catch (e) {
+      return Err(_mapException(e));
+    }
+  }
+
+  @override
+  Future<Result<bool>> hasTasks(String workspaceId) async {
+    try {
+      final snap = await _tasksCol(workspaceId).limit(1).get();
+      return Success(snap.docs.isNotEmpty);
+    } catch (e) {
+      return Err(_mapException(e));
+    }
+  }
+
+  Failure _mapException(Object error) {
+    if (error is FirebaseException) {
+      return switch (error.code) {
+        'permission-denied' =>
+          const PermissionFailure('Erişim reddedildi. Yetkiniz bulunmuyor.'),
+        'unavailable' || 'network-request-failed' => const NetworkFailure(
+            'Bağlantı hatası. İnternet bağlantınızı kontrol edin.'),
+        'not-found' => const NotFoundFailure('Kayıt bulunamadı.'),
+        _ =>
+          UnknownFailure(error.message ?? 'Veritabanı işlemi başarısız oldu.'),
+      };
+    }
+    return UnknownFailure(error.toString());
+  }
+}

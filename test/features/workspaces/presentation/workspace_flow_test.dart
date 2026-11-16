@@ -6,16 +6,19 @@ import 'package:task_map_flow/app/app.dart';
 import 'package:task_map_flow/features/auth/domain/models/auth_state.dart';
 import 'package:task_map_flow/features/auth/domain/models/auth_user.dart';
 import 'package:task_map_flow/features/auth/presentation/providers/auth_providers.dart';
+import 'package:task_map_flow/features/tasks/presentation/providers/task_providers.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/map_node.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/workspace.dart';
 import 'package:task_map_flow/features/workspaces/presentation/providers/workspace_providers.dart';
 import '../../../helpers/fake_auth_repository.dart';
+import '../../../helpers/fake_task_repository.dart';
 import '../../../helpers/fake_workspace_repository.dart';
 
 void main() {
   late SharedPreferences prefs;
   late FakeAuthRepository fakeAuth;
   late FakeWorkspaceRepository fakeWorkspace;
+  late FakeTaskRepository fakeTask;
 
   const testUser = AuthUser(
     id: 'user_123',
@@ -32,6 +35,7 @@ void main() {
       initialStatus: const AuthAuthenticated(testUser),
     );
     fakeWorkspace = FakeWorkspaceRepository();
+    fakeTask = FakeTaskRepository();
   });
 
   Widget buildTestApp() {
@@ -40,6 +44,7 @@ void main() {
         sharedPreferencesProvider.overrideWithValue(prefs),
         authRepositoryProvider.overrideWithValue(fakeAuth),
         workspaceRepositoryProvider.overrideWithValue(fakeWorkspace),
+        taskRepositoryProvider.overrideWithValue(fakeTask),
       ],
       child: const TaskMapFlowApp(
         firebaseReady: true,
@@ -201,6 +206,95 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(fakeWorkspace.deleteCallCount, 1);
+    });
+
+    testWidgets(
+        'task management: create task, toggle status, and guard area deletion',
+        (tester) async {
+      final now = DateTime.now();
+      fakeWorkspace = FakeWorkspaceRepository(
+        initialWorkspaces: [
+          Workspace(
+            id: 'ws_tasks',
+            name: 'Yazılım Mimarisi',
+            description: 'Ders alanı',
+            type: WorkspaceType.lesson,
+            color: '#818CF8',
+            ownerId: 'user_123',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        ],
+        initialNodes: [
+          MapNode(
+            id: 'node_tasks',
+            workspaceId: 'ws_tasks',
+            ownerId: 'user_123',
+            positionX: 400,
+            positionY: 400,
+            width: 180,
+            height: 110,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(buildTestApp());
+      await tester.pumpAndSettle();
+
+      // Navigate to Yönet tab
+      await tester.tap(find.text('Yönet'));
+      await tester.pumpAndSettle();
+
+      // Tap on workspace card
+      await tester.tap(find.text('Yazılım Mimarisi'));
+      await tester.pumpAndSettle();
+
+      // For lesson, should display 'Çalışma Adımları' and 'Adım Ekle'
+      expect(find.text('Çalışma Adımları'), findsOneWidget);
+      expect(find.text('Adım Ekle'), findsOneWidget);
+      expect(find.text('Henüz çalışma adımı eklenmedi'), findsOneWidget);
+
+      // Open Add Task Sheet
+      await tester.tap(find.byKey(const Key('addTaskButton')));
+      await tester.pumpAndSettle();
+
+      // Enter task title
+      await tester.enterText(
+          find.byType(TextFormField).first, 'Clean Architecture Oku');
+      await tester.pumpAndSettle();
+
+      // Submit
+      await tester.tap(find.widgetWithText(FilledButton, 'Adım Ekle'));
+      await tester.pumpAndSettle();
+
+      // Task card is now rendered in list
+      expect(find.text('Clean Architecture Oku'), findsOneWidget);
+      // Progress is visible: 0 / 1 tamamlandı (%0)
+      expect(find.text('0 / 1 tamamlandı (%0)'), findsOneWidget);
+
+      // Try to delete workspace while it has a task
+      final deleteBtn = find.byKey(const Key('deleteWorkspaceButton'));
+      await tester.ensureVisible(deleteBtn);
+      await tester.tap(deleteBtn);
+      await tester.pumpAndSettle();
+
+      // Should block deletion with error dialog
+      expect(
+        find.text(
+            'Bu alanda görevler bulunuyor. Alanı silmeden önce lütfen tüm görevleri silin.'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      // Workspace was NOT deleted
+      expect(fakeWorkspace.deleteCallCount, 0);
+
+      // Toggle task status
+      await tester.tap(find.byType(GestureDetector).first);
+      await tester.pumpAndSettle();
     });
   });
 }

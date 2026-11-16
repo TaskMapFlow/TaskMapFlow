@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:task_map_flow/app/theme.dart';
 import 'package:task_map_flow/core/extensions/context_extensions.dart';
+import 'package:task_map_flow/features/tasks/presentation/providers/task_providers.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/workspace.dart';
 
-class WorkspaceCard extends StatelessWidget {
+class WorkspaceCard extends ConsumerWidget {
   const WorkspaceCard({
     super.key,
     required this.workspace,
@@ -26,10 +28,11 @@ class WorkspaceCard extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final l10n = context.l10n;
     final accentColor = _parseHex(workspace.color);
+    final stats = ref.watch(taskStatsProvider(workspace.id));
 
     final bg = isDark ? const Color(0xFF161521) : Colors.white;
     final border = isDark ? const Color(0xFF262438) : const Color(0xFFE6E4F0);
@@ -143,12 +146,38 @@ class WorkspaceCard extends StatelessWidget {
                         ),
                       ],
                       const SizedBox(height: 6),
-                      Text(
-                        '${l10n.createdAtLabel}: $formattedDate',
-                        style: TextStyle(
-                          color: textSecondary.withValues(alpha: 0.7),
-                          fontSize: 11,
-                        ),
+                      Row(
+                        children: [
+                          Text(
+                            '${l10n.createdAtLabel}: $formattedDate',
+                            style: TextStyle(
+                              color: textSecondary.withValues(alpha: 0.7),
+                              fontSize: 11,
+                            ),
+                          ),
+                          if (stats.total > 0) ...[
+                            const SizedBox(width: 8),
+                            Text(
+                              '•',
+                              style: TextStyle(
+                                color: textSecondary.withValues(alpha: 0.5),
+                                fontSize: 11,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Icon(Icons.check_circle_outline,
+                                size: 12, color: accentColor),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${stats.completed}/${stats.total}',
+                              style: TextStyle(
+                                color: textPrimary,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ],
                   ),

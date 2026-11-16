@@ -5,6 +5,9 @@ import 'package:intl/intl.dart';
 import 'package:task_map_flow/app/theme.dart';
 import 'package:task_map_flow/core/extensions/context_extensions.dart';
 import 'package:task_map_flow/core/result/result.dart';
+import 'package:task_map_flow/features/tasks/presentation/providers/task_providers.dart';
+import 'package:task_map_flow/features/tasks/presentation/widgets/task_form_sheet.dart';
+import 'package:task_map_flow/features/tasks/presentation/widgets/task_item_card.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/workspace.dart';
 import 'package:task_map_flow/features/workspaces/presentation/providers/workspace_providers.dart';
 import 'package:task_map_flow/features/workspaces/presentation/screens/create_workspace_sheet.dart';
@@ -89,6 +92,47 @@ class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
 
   Future<void> _confirmDelete(String mapNodeId) async {
     final l10n = context.l10n;
+
+    // Check if tasks exist in workspace
+    final hasTasksResult =
+        await ref.read(taskRepositoryProvider).hasTasks(widget.workspaceId);
+
+    if (!mounted) return;
+
+    if (hasTasksResult case Err()) {
+      await showDialog<void>(
+        context: context,
+        builder: (dialogCtx) => AlertDialog(
+          title: Text(l10n.authErrorUnknown),
+          content: Text(l10n.deleteAreaTaskCheckFailed),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogCtx).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    if (hasTasksResult case Success(:final value) when value == true) {
+      await showDialog<void>(
+        context: context,
+        builder: (dialogCtx) => AlertDialog(
+          title: Text(l10n.deleteConfirmTitle),
+          content: Text(l10n.deleteAreaHasTasksError),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogCtx).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
@@ -430,6 +474,20 @@ class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
                     ],
                   ),
                 ),
+                const SizedBox(height: 28),
+
+                // Tasks Section
+                _TasksSection(
+                  workspace: workspace,
+                  accentColor: accentColor,
+                  isDark: isDark,
+                  cardBg: cardBg,
+                  cardBorder: cardBorder,
+                  textPrimary: textPrimary,
+                  textSecondary: textSecondary,
+                  purple: purple,
+                  inputBg: inputBg,
+                ),
                 const SizedBox(height: 32),
 
                 // Edit Mode Actions or Delete Action
@@ -507,6 +565,364 @@ class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _TasksSection extends ConsumerWidget {
+  const _TasksSection({
+    required this.workspace,
+    required this.accentColor,
+    required this.isDark,
+    required this.cardBg,
+    required this.cardBorder,
+    required this.textPrimary,
+    required this.textSecondary,
+    required this.purple,
+    required this.inputBg,
+  });
+
+  final Workspace workspace;
+  final Color accentColor;
+  final bool isDark;
+  final Color cardBg;
+  final Color cardBorder;
+  final Color textPrimary;
+  final Color textSecondary;
+  final Color purple;
+  final Color inputBg;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final isLesson = workspace.type == WorkspaceType.lesson;
+    final sectionTitle = isLesson ? l10n.studyStepsTitle : l10n.tasksTitle;
+    final addActionLabel = isLesson ? l10n.addStep : l10n.addTask;
+
+    final tasksAsync = ref.watch(tasksStreamProvider(workspace.id));
+    final stats = ref.watch(taskStatsProvider(workspace.id));
+    final activeFilter = ref.watch(taskFilterProvider(workspace.id));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Section Header: Title & "Görev / Adım Ekle" Button
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              sectionTitle,
+              style: TextStyle(
+                color: textPrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            FilledButton.icon(
+              key: const Key('addTaskButton'),
+              icon: const Icon(Icons.add_rounded, size: 16),
+              label: Text(
+                addActionLabel,
+                style:
+                    const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+              style: FilledButton.styleFrom(
+                backgroundColor: purple,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () => TaskFormSheet.show(
+                context: context,
+                workspaceId: workspace.id,
+                workspaceType: workspace.type,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Progress Bar & Stats (calculated from real data)
+        if (stats.total > 0) ...[
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: cardBg,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: cardBorder),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      l10n.taskProgress(
+                          stats.completed, stats.total, stats.percent),
+                      style: TextStyle(
+                        color: textPrimary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      '%${stats.percent}',
+                      style: TextStyle(
+                        color: accentColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: stats.total > 0 ? stats.completed / stats.total : 0,
+                    minHeight: 6,
+                    backgroundColor: isDark
+                        ? const Color(0xFF262335)
+                        : const Color(0xFFE8E6F2),
+                    valueColor: AlwaysStoppedAnimation<Color>(accentColor),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // Filter Chips
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _FilterTab(
+                  label: '${l10n.filterAll} (${stats.total})',
+                  isSelected: activeFilter == TaskFilter.all,
+                  onTap: () => ref
+                      .read(taskFilterProvider(workspace.id).notifier)
+                      .state = TaskFilter.all,
+                  purple: purple,
+                  textSecondary: textSecondary,
+                  isDark: isDark,
+                ),
+                const SizedBox(width: 8),
+                _FilterTab(
+                  label: '${l10n.filterTodo} (${stats.todo})',
+                  isSelected: activeFilter == TaskFilter.todo,
+                  onTap: () => ref
+                      .read(taskFilterProvider(workspace.id).notifier)
+                      .state = TaskFilter.todo,
+                  purple: purple,
+                  textSecondary: textSecondary,
+                  isDark: isDark,
+                ),
+                const SizedBox(width: 8),
+                _FilterTab(
+                  label: '${l10n.filterInProgress} (${stats.inProgress})',
+                  isSelected: activeFilter == TaskFilter.inProgress,
+                  onTap: () => ref
+                      .read(taskFilterProvider(workspace.id).notifier)
+                      .state = TaskFilter.inProgress,
+                  purple: purple,
+                  textSecondary: textSecondary,
+                  isDark: isDark,
+                ),
+                const SizedBox(width: 8),
+                _FilterTab(
+                  label: '${l10n.filterCompleted} (${stats.completed})',
+                  isSelected: activeFilter == TaskFilter.completed,
+                  onTap: () => ref
+                      .read(taskFilterProvider(workspace.id).notifier)
+                      .state = TaskFilter.completed,
+                  purple: purple,
+                  textSecondary: textSecondary,
+                  isDark: isDark,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+        ],
+
+        // Task Items List
+        tasksAsync.when(
+          loading: () => Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: CircularProgressIndicator(color: purple),
+            ),
+          ),
+          error: (err, _) => Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color:
+                    Theme.of(context).colorScheme.error.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  err.toString(),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.error,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                OutlinedButton(
+                  onPressed: () =>
+                      ref.invalidate(tasksStreamProvider(workspace.id)),
+                  child: Text(l10n.retry),
+                ),
+              ],
+            ),
+          ),
+          data: (tasks) {
+            final filtered = tasks.where(activeFilter.matches).toList();
+
+            if (tasks.isEmpty) {
+              return Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: cardBorder),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: accentColor.withValues(alpha: 0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isLesson
+                            ? Icons.fact_check_outlined
+                            : Icons.checklist_rounded,
+                        color: accentColor,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      isLesson ? l10n.noStepsYet : l10n.noTasksYet,
+                      style: TextStyle(
+                        color: textPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      isLesson ? l10n.noStepsSubtitle : l10n.noTasksSubtitle,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            if (filtered.isEmpty) {
+              return Container(
+                padding: const EdgeInsets.all(20),
+                alignment: Alignment.center,
+                child: Text(
+                  l10n.noDescription,
+                  style: TextStyle(color: textSecondary, fontSize: 13),
+                ),
+              );
+            }
+
+            return Column(
+              children: filtered.map((task) {
+                return TaskItemCard(
+                  key: ValueKey(task.id),
+                  task: task,
+                  onTap: () => TaskFormSheet.show(
+                    context: context,
+                    workspaceId: workspace.id,
+                    workspaceType: workspace.type,
+                    initialTask: task,
+                  ),
+                  onToggleStatus: (newStatus) {
+                    ref.read(taskControllerProvider.notifier).updateTaskStatus(
+                          workspaceId: workspace.id,
+                          taskId: task.id,
+                          status: newStatus,
+                        );
+                  },
+                );
+              }).toList(),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _FilterTab extends StatelessWidget {
+  const _FilterTab({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+    required this.purple,
+    required this.textSecondary,
+    required this.isDark,
+  });
+
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final Color purple;
+  final Color textSecondary;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? purple
+              : (isDark ? const Color(0xFF1E1C2B) : const Color(0xFFF1F0F7)),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected
+                ? purple
+                : (isDark ? const Color(0xFF2C293C) : const Color(0xFFDFDDE8)),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : textSecondary,
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          ),
+        ),
       ),
     );
   }

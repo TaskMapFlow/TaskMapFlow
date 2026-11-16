@@ -697,6 +697,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dark Theme'**
   String get themeModeDark;
+
+  /// Tasks section title
+  ///
+  /// In en, this message translates to:
+  /// **'Tasks'**
+  String get tasksTitle;
+
+  /// Lesson area study steps title
+  ///
+  /// In en, this message translates to:
+  /// **'Study Steps'**
+  String get studyStepsTitle;
+
+  /// Add task button
+  ///
+  /// In en, this message translates to:
+  /// **'Add Task'**
+  String get addTask;
+
+  /// Add step button for lessons
+  ///
+  /// In en, this message translates to:
+  /// **'Add Step'**
+  String get addStep;
+
+  /// Task title label
+  ///
+  /// In en, this message translates to:
+  /// **'Task Title'**
+  String get taskTitle;
+
+  /// Step title label
+  ///
+  /// In en, this message translates to:
+  /// **'Step Title'**
+  String get stepTitle;
+
+  /// Task title placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Enter task title'**
+  String get taskTitlePlaceholder;
+
+  /// Step title placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Enter step title'**
+  String get stepTitlePlaceholder;
+
+  /// Task description label
+  ///
+  /// In en, this message translates to:
+  /// **'Description (Optional)'**
+  String get taskDescription;
+
+  /// Task description placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Write details'**
+  String get taskDescriptionPlaceholder;
+
+  /// Task status label
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get taskStatus;
+
+  /// Task priority label
+  ///
+  /// In en, this message translates to:
+  /// **'Priority'**
+  String get taskPriority;
+
+  /// Due date label
+  ///
+  /// In en, this message translates to:
+  /// **'Due Date'**
+  String get dueDate;
+
+  /// Label when no due date is set
+  ///
+  /// In en, this message translates to:
+  /// **'No Due Date'**
+  String get noDueDate;
+
+  /// Select date button
+  ///
+  /// In en, this message translates to:
+  /// **'Select Date'**
+  String get selectDate;
+
+  /// Clear date button
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clearDate;
+
+  /// To do status label
+  ///
+  /// In en, this message translates to:
+  /// **'To Do'**
+  String get statusTodo;
+
+  /// In progress status label
+  ///
+  /// In en, this message translates to:
+  /// **'In Progress'**
+  String get statusInProgress;
+
+  /// Completed status label
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get statusCompleted;
+
+  /// Low priority label
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get priorityLow;
+
+  /// Medium priority label
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get priorityMedium;
+
+  /// High priority label
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get priorityHigh;
+
+  /// All tasks filter label
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get filterAll;
+
+  /// To do filter label
+  ///
+  /// In en, this message translates to:
+  /// **'To Do'**
+  String get filterTodo;
+
+  /// In progress filter label
+  ///
+  /// In en, this message translates to:
+  /// **'In Progress'**
+  String get filterInProgress;
+
+  /// Completed filter label
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get filterCompleted;
+
+  /// Overdue warning label
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get overdue;
+
+  /// Edit task button
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Task'**
+  String get editTask;
+
+  /// Delete task button
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Task'**
+  String get deleteTask;
+
+  /// Delete task dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this task?'**
+  String get deleteTaskConfirmTitle;
+
+  /// Delete task dialog body
+  ///
+  /// In en, this message translates to:
+  /// **'This task will be permanently deleted. This action cannot be undone.'**
+  String get deleteTaskConfirmBody;
+
+  /// Empty tasks state title
+  ///
+  /// In en, this message translates to:
+  /// **'No tasks yet'**
+  String get noTasksYet;
+
+  /// Empty tasks state subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first task for this area.'**
+  String get noTasksSubtitle;
+
+  /// Empty study steps state title
+  ///
+  /// In en, this message translates to:
+  /// **'No study steps yet'**
+  String get noStepsYet;
+
+  /// Empty study steps state subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first study step for this lesson.'**
+  String get noStepsSubtitle;
+
+  /// Task progress status
+  ///
+  /// In en, this message translates to:
+  /// **'{completed} / {total} completed ({percent}%)'**
+  String taskProgress(int completed, int total, int percent);
+
+  /// Error shown when trying to delete an area with tasks
+  ///
+  /// In en, this message translates to:
+  /// **'This area contains tasks. Please delete all tasks before deleting the area.'**
+  String get deleteAreaHasTasksError;
+
+  /// Error shown when task verification fails on area delete
+  ///
+  /// In en, this message translates to:
+  /// **'Could not verify tasks. The area was not deleted for safety.'**
+  String get deleteAreaTaskCheckFailed;
+
+  /// Error when task title is empty
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a task title'**
+  String get taskTitleRequired;
 }
 
 class _AppLocalizationsDelegate
