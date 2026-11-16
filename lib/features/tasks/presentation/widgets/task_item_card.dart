@@ -12,11 +12,15 @@ class TaskItemCard extends StatelessWidget {
     required this.task,
     this.onTap,
     this.onToggleStatus,
+    this.assigneeName,
+    this.isAssigneeNoLongerOnTeam = false,
   });
 
   final TaskModel task;
   final VoidCallback? onTap;
   final ValueChanged<TaskStatus>? onToggleStatus;
+  final String? assigneeName;
+  final bool isAssigneeNoLongerOnTeam;
 
   @override
   Widget build(BuildContext context) {
@@ -169,6 +173,47 @@ class TaskItemCard extends StatelessWidget {
 
                           // Priority Badge
                           _PriorityBadge(priority: task.priority),
+
+                          // Assignee Badge
+                          if (task.assigneeId != null)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 7, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: isAssigneeNoLongerOnTeam
+                                    ? const Color(0xFFF59E0B)
+                                        .withValues(alpha: 0.15)
+                                    : purple.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    isAssigneeNoLongerOnTeam
+                                        ? Icons.person_off_outlined
+                                        : Icons.person_outline_rounded,
+                                    size: 11,
+                                    color: isAssigneeNoLongerOnTeam
+                                        ? const Color(0xFFF59E0B)
+                                        : purple,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    isAssigneeNoLongerOnTeam
+                                        ? l10n.noLongerOnTeam
+                                        : (assigneeName ?? l10n.assignee),
+                                    style: TextStyle(
+                                      color: isAssigneeNoLongerOnTeam
+                                          ? const Color(0xFFF59E0B)
+                                          : purple,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
 
                           // Subtasks Badge
                           if (task.subtasks.isNotEmpty)

@@ -6,6 +6,8 @@ import 'package:task_map_flow/features/workspaces/domain/models/workspace.dart';
 abstract interface class WorkspaceRepository {
   Stream<Result<List<Workspace>>> watchWorkspaces(String ownerId);
 
+  Stream<Result<List<Workspace>>> watchJoinedWorkspaces(String userId);
+
   Stream<Result<List<MapNode>>> watchMapNodes(String ownerId);
 
   Future<Result<Workspace>> createWorkspaceWithMapNode({

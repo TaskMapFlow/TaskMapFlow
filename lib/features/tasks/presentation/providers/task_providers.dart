@@ -10,12 +10,15 @@ import 'package:task_map_flow/features/workspaces/presentation/providers/workspa
 
 enum TaskFilter {
   all,
+  assignedToMe,
   todo,
   inProgress,
   completed;
 
-  bool matches(TaskModel task) => switch (this) {
+  bool matches(TaskModel task, [String? currentUid]) => switch (this) {
         TaskFilter.all => true,
+        TaskFilter.assignedToMe =>
+          currentUid != null && task.assigneeId == currentUid,
         TaskFilter.todo => task.status == TaskStatus.todo,
         TaskFilter.inProgress => task.status == TaskStatus.inProgress,
         TaskFilter.completed => task.status == TaskStatus.completed,
@@ -52,6 +55,27 @@ final tasksStreamProvider = StreamProvider.autoDispose
 
   final repo = ref.watch(taskRepositoryProvider);
   final stream = repo.watchTasks(workspaceId: workspaceId, ownerId: uid);
+
+  await for (final result in stream) {
+    switch (result) {
+      case Success(:final value):
+        yield value;
+      case Err(:final failure):
+        throw failure.message;
+    }
+  }
+});
+
+final assignedTasksStreamProvider =
+    StreamProvider.autoDispose<List<TaskModel>>((ref) async* {
+  final uid = ref.watch(currentUserIdProvider);
+  if (uid == null || uid.isEmpty) {
+    yield const [];
+    return;
+  }
+
+  final repo = ref.watch(taskRepositoryProvider);
+  final stream = repo.watchAssignedTasks(uid);
 
   await for (final result in stream) {
     switch (result) {
@@ -133,6 +157,7 @@ class TaskController extends StateNotifier<AsyncValue<void>> {
     TaskStatus status = TaskStatus.todo,
     TaskPriority priority = TaskPriority.medium,
     DateTime? dueDate,
+    String? assigneeId,
   }) async {
     state = const AsyncLoading();
     final result = await _repository.createTask(
@@ -145,6 +170,7 @@ class TaskController extends StateNotifier<AsyncValue<void>> {
       status: status,
       priority: priority,
       dueDate: dueDate,
+      assigneeId: assigneeId,
     );
     if (result case Success()) {
       state = const AsyncData(null);
@@ -163,6 +189,8 @@ class TaskController extends StateNotifier<AsyncValue<void>> {
     required TaskStatus status,
     required TaskPriority priority,
     DateTime? dueDate,
+    List<SubtaskModel>? subtasks,
+    String? assigneeId,
   }) async {
     state = const AsyncLoading();
     final result = await _repository.updateTask(
@@ -174,6 +202,8 @@ class TaskController extends StateNotifier<AsyncValue<void>> {
       status: status,
       priority: priority,
       dueDate: dueDate,
+      subtasks: subtasks,
+      assigneeId: assigneeId,
     );
     if (result case Success()) {
       state = const AsyncData(null);

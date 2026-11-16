@@ -14,6 +14,7 @@ class TaskModel extends Equatable {
     this.priority = TaskPriority.medium,
     this.dueDate,
     this.sprintId,
+    this.assigneeId,
     this.subtasks = const [],
     required this.createdAt,
     required this.updatedAt,
@@ -28,6 +29,7 @@ class TaskModel extends Equatable {
   final TaskPriority priority;
   final DateTime? dueDate;
   final String? sprintId;
+  final String? assigneeId;
   final List<SubtaskModel> subtasks;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -54,6 +56,7 @@ class TaskModel extends Equatable {
     TaskPriority? priority,
     DateTime? Function()? dueDate,
     String? Function()? sprintId,
+    String? Function()? assigneeId,
     List<SubtaskModel>? subtasks,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -68,6 +71,7 @@ class TaskModel extends Equatable {
       priority: priority ?? this.priority,
       dueDate: dueDate != null ? dueDate() : this.dueDate,
       sprintId: sprintId != null ? sprintId() : this.sprintId,
+      assigneeId: assigneeId != null ? assigneeId() : this.assigneeId,
       subtasks: subtasks ?? this.subtasks,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -85,6 +89,7 @@ class TaskModel extends Equatable {
         priority,
         dueDate,
         sprintId,
+        assigneeId,
         subtasks,
         createdAt,
         updatedAt,

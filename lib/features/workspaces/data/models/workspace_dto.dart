@@ -22,6 +22,9 @@ class WorkspaceDto {
 
     final isArchived = data['isArchived'] as bool? ?? false;
     final archivedAt = (data['archivedAt'] as Timestamp?)?.toDate();
+    final isTeamEnabled = data['isTeamEnabled'] as bool? ?? false;
+    final memberIds = (data['memberIds'] as List<dynamic>?)?.cast<String>() ??
+        (data['ownerId'] != null ? [data['ownerId'] as String] : <String>[]);
 
     return Workspace(
       id: doc.id,
@@ -34,6 +37,8 @@ class WorkspaceDto {
       resources: resources,
       isArchived: isArchived,
       archivedAt: archivedAt,
+      isTeamEnabled: isTeamEnabled,
+      memberIds: memberIds,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
@@ -53,6 +58,10 @@ class WorkspaceDto {
       'archivedAt': workspace.archivedAt != null
           ? Timestamp.fromDate(workspace.archivedAt!)
           : null,
+      'isTeamEnabled': workspace.isTeamEnabled,
+      'memberIds': workspace.memberIds.isNotEmpty
+          ? workspace.memberIds
+          : [workspace.ownerId],
       'createdAt': Timestamp.fromDate(workspace.createdAt),
       'updatedAt': Timestamp.fromDate(workspace.updatedAt),
     };

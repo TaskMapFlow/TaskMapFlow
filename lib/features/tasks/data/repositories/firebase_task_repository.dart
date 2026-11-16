@@ -22,6 +22,7 @@ class FirebaseTaskRepository implements TaskRepository {
   Stream<Result<List<TaskModel>>> watchTasks({
     required String workspaceId,
     required String ownerId,
+    bool isTeam = false,
   }) async* {
     if (workspaceId.isEmpty || ownerId.isEmpty) {
       yield const Success([]);
@@ -29,8 +30,59 @@ class FirebaseTaskRepository implements TaskRepository {
     }
 
     try {
-      await for (final snapshot in _tasksCol(workspaceId)
-          .where('ownerId', isEqualTo: ownerId)
+      bool teamEnabled = isTeam;
+      if (!teamEnabled) {
+        try {
+          final wsSnap =
+              await _firestore.collection('workspaces').doc(workspaceId).get();
+          teamEnabled = wsSnap.data()?['isTeamEnabled'] == true;
+        } catch (_) {}
+      }
+
+      final query = teamEnabled
+          ? _tasksCol(workspaceId)
+          : _tasksCol(workspaceId).where('ownerId', isEqualTo: ownerId);
+
+      await for (final snapshot in query.snapshots()) {
+        try {
+          final tasks = snapshot.docs.map(TaskDto.fromFirestore).toList();
+          tasks.sort((a, b) {
+            if (a.status == TaskStatus.completed &&
+                b.status != TaskStatus.completed) {
+              return 1;
+            }
+            if (a.status != TaskStatus.completed &&
+                b.status == TaskStatus.completed) {
+              return -1;
+            }
+            if (a.dueDate != null && b.dueDate != null) {
+              return a.dueDate!.compareTo(b.dueDate!);
+            }
+            if (a.dueDate != null) return -1;
+            if (b.dueDate != null) return 1;
+            return b.createdAt.compareTo(a.createdAt);
+          });
+          yield Success(tasks);
+        } catch (e) {
+          yield Err(_mapException(e));
+        }
+      }
+    } catch (e) {
+      yield Err(_mapException(e));
+    }
+  }
+
+  @override
+  Stream<Result<List<TaskModel>>> watchAssignedTasks(String userId) async* {
+    if (userId.isEmpty) {
+      yield const Success([]);
+      return;
+    }
+
+    try {
+      await for (final snapshot in _firestore
+          .collectionGroup('tasks')
+          .where('assigneeId', isEqualTo: userId)
           .snapshots()) {
         try {
           final tasks = snapshot.docs.map(TaskDto.fromFirestore).toList();
@@ -71,6 +123,7 @@ class FirebaseTaskRepository implements TaskRepository {
     DateTime? dueDate,
     String? sprintId,
     List<SubtaskModel> subtasks = const [],
+    String? assigneeId,
   }) async {
     try {
       final now = DateTime.now();
@@ -89,6 +142,9 @@ class FirebaseTaskRepository implements TaskRepository {
             : null,
         sprintId: (sprintId != null && sprintId.isNotEmpty) ? sprintId : null,
         subtasks: subtasks,
+        assigneeId: (assigneeId != null && assigneeId.isNotEmpty)
+            ? assigneeId.trim()
+            : null,
         createdAt: now,
         updatedAt: now,
       );
@@ -111,6 +167,7 @@ class FirebaseTaskRepository implements TaskRepository {
     DateTime? dueDate,
     String? sprintId,
     List<SubtaskModel>? subtasks,
+    String? assigneeId,
   }) async {
     try {
       final now = DateTime.now();
@@ -125,6 +182,9 @@ class FirebaseTaskRepository implements TaskRepository {
             : null,
         'sprintId': (sprintId != null && sprintId.isNotEmpty) ? sprintId : null,
         'updatedAt': Timestamp.fromDate(now),
+        'assigneeId': (assigneeId != null && assigneeId.isNotEmpty)
+            ? assigneeId.trim()
+            : null,
       };
 
       if (subtasks != null) {

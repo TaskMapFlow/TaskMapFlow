@@ -30,6 +30,8 @@ class Workspace extends Equatable {
     this.resources = const [],
     this.isArchived = false,
     this.archivedAt,
+    this.isTeamEnabled = false,
+    this.memberIds = const [],
     required this.createdAt,
     required this.updatedAt,
   });
@@ -44,6 +46,8 @@ class Workspace extends Equatable {
   final List<ResourceLink> resources;
   final bool isArchived;
   final DateTime? archivedAt;
+  final bool isTeamEnabled;
+  final List<String> memberIds;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -58,6 +62,8 @@ class Workspace extends Equatable {
     List<ResourceLink>? resources,
     bool? isArchived,
     DateTime? archivedAt,
+    bool? isTeamEnabled,
+    List<String>? memberIds,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -72,6 +78,8 @@ class Workspace extends Equatable {
       resources: resources ?? this.resources,
       isArchived: isArchived ?? this.isArchived,
       archivedAt: archivedAt ?? this.archivedAt,
+      isTeamEnabled: isTeamEnabled ?? this.isTeamEnabled,
+      memberIds: memberIds ?? this.memberIds,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -89,6 +97,8 @@ class Workspace extends Equatable {
         resources,
         isArchived,
         archivedAt,
+        isTeamEnabled,
+        memberIds,
         createdAt,
         updatedAt,
       ];

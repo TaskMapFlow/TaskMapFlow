@@ -17,6 +17,9 @@ import 'package:task_map_flow/features/tasks/presentation/widgets/sprint_form_sh
 import 'package:task_map_flow/features/tasks/presentation/widgets/task_form_sheet.dart';
 import 'package:task_map_flow/features/tasks/presentation/widgets/task_item_card.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/map_node.dart';
+import 'package:task_map_flow/features/team/domain/models/member_role.dart';
+import 'package:task_map_flow/features/team/presentation/providers/team_providers.dart';
+import 'package:task_map_flow/features/team/presentation/widgets/workspace_team_section.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/resource_link.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/workspace.dart';
 import 'package:task_map_flow/features/workspaces/presentation/providers/workspace_providers.dart';
@@ -27,6 +30,7 @@ enum _WorkspaceDetailTab {
   work,
   notes,
   info,
+  team,
 }
 
 class WorkspaceDetailScreen extends ConsumerStatefulWidget {
@@ -758,6 +762,19 @@ class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
                               () => _selectedTab = _WorkspaceDetailTab.info),
                         ),
                       ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: _TabButton(
+                          title: l10n.teamSectionTitle,
+                          icon: Icons.groups_rounded,
+                          isSelected: _selectedTab == _WorkspaceDetailTab.team,
+                          purple: purple,
+                          textPrimary: textPrimary,
+                          textSecondary: textSecondary,
+                          onTap: () => setState(
+                              () => _selectedTab = _WorkspaceDetailTab.team),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -788,6 +805,17 @@ class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
                       isReadOnly: workspace.isArchived,
                     ),
                   _WorkspaceDetailTab.info => _InfoSection(
+                      workspace: workspace,
+                      isDark: isDark,
+                      cardBg: cardBg,
+                      cardBorder: cardBorder,
+                      textPrimary: textPrimary,
+                      textSecondary: textSecondary,
+                      purple: purple,
+                      inputBg: inputBg,
+                      isReadOnly: workspace.isArchived,
+                    ),
+                  _WorkspaceDetailTab.team => WorkspaceTeamSection(
                       workspace: workspace,
                       isDark: isDark,
                       cardBg: cardBg,
@@ -1265,6 +1293,19 @@ class _TasksView extends ConsumerWidget {
                   textSecondary: textSecondary,
                   isDark: isDark,
                 ),
+                if (workspace.isTeamEnabled) ...[
+                  const SizedBox(width: 8),
+                  _FilterTab(
+                    label: l10n.filterAssignedToMe,
+                    isSelected: activeFilter == TaskFilter.assignedToMe,
+                    onTap: () => ref
+                        .read(taskFilterProvider(workspace.id).notifier)
+                        .state = TaskFilter.assignedToMe,
+                    purple: purple,
+                    textSecondary: textSecondary,
+                    isDark: isDark,
+                  ),
+                ],
               ],
             ),
           ),
@@ -1286,7 +1327,20 @@ class _TasksView extends ConsumerWidget {
             ),
           ),
           data: (tasks) {
-            final filtered = tasks.where(activeFilter.matches).toList();
+            final uid = ref.watch(currentUserIdProvider) ?? '';
+            final filtered =
+                tasks.where((t) => activeFilter.matches(t, uid)).toList();
+
+            final members = ref
+                    .watch(workspaceMembersStreamProvider(workspace.id))
+                    .valueOrNull ??
+                [];
+            final callerRole = ref
+                    .watch(currentUserMemberRoleProvider(workspace.id))
+                    .valueOrNull ??
+                (workspace.ownerId == uid
+                    ? MemberRole.owner
+                    : MemberRole.member);
 
             if (tasks.isEmpty) {
               return Container(
@@ -1340,17 +1394,32 @@ class _TasksView extends ConsumerWidget {
 
             return Column(
               children: filtered.map((task) {
+                final member = task.assigneeId != null
+                    ? members
+                        .where((m) => m.userId == task.assigneeId)
+                        .firstOrNull
+                    : null;
+                final isNoLonger = task.assigneeId != null &&
+                    member == null &&
+                    workspace.isTeamEnabled;
+                final canEditTask = !isReadOnly &&
+                    (callerRole == MemberRole.owner ||
+                        callerRole == MemberRole.admin ||
+                        task.ownerId == uid);
+
                 return TaskItemCard(
                   key: ValueKey(task.id),
                   task: task,
-                  onTap: isReadOnly
-                      ? null
-                      : () => TaskFormSheet.show(
+                  assigneeName: member?.displayName,
+                  isAssigneeNoLongerOnTeam: isNoLonger,
+                  onTap: canEditTask
+                      ? () => TaskFormSheet.show(
                             context: context,
                             workspaceId: workspace.id,
                             workspaceType: workspace.type,
                             initialTask: task,
-                          ),
+                          )
+                      : null,
                   onToggleStatus: isReadOnly
                       ? null
                       : (newStatus) {
@@ -1494,21 +1563,48 @@ class _BacklogView extends ConsumerWidget {
               );
             }
 
+            final uid = ref.watch(currentUserIdProvider) ?? '';
+            final members = ref
+                    .watch(workspaceMembersStreamProvider(workspace.id))
+                    .valueOrNull ??
+                [];
+            final callerRole = ref
+                    .watch(currentUserMemberRoleProvider(workspace.id))
+                    .valueOrNull ??
+                (workspace.ownerId == uid
+                    ? MemberRole.owner
+                    : MemberRole.member);
+
             return Column(
               children: backlogTasks.map((task) {
+                final member = task.assigneeId != null
+                    ? members
+                        .where((m) => m.userId == task.assigneeId)
+                        .firstOrNull
+                    : null;
+                final isNoLonger = task.assigneeId != null &&
+                    member == null &&
+                    workspace.isTeamEnabled;
+                final canEditTask = !isReadOnly &&
+                    (callerRole == MemberRole.owner ||
+                        callerRole == MemberRole.admin ||
+                        task.ownerId == uid);
+
                 return Stack(
                   children: [
                     TaskItemCard(
                       key: ValueKey(task.id),
                       task: task,
-                      onTap: isReadOnly
-                          ? null
-                          : () => TaskFormSheet.show(
+                      assigneeName: member?.displayName,
+                      isAssigneeNoLongerOnTeam: isNoLonger,
+                      onTap: canEditTask
+                          ? () => TaskFormSheet.show(
                                 context: context,
                                 workspaceId: workspace.id,
                                 workspaceType: workspace.type,
                                 initialTask: task,
-                              ),
+                              )
+                          : null,
                       onToggleStatus: isReadOnly
                           ? null
                           : (newStatus) {

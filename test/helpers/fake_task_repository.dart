@@ -39,15 +39,20 @@ class FakeTaskRepository implements TaskRepository {
   Stream<Result<List<TaskModel>>> watchTasks({
     required String workspaceId,
     required String ownerId,
+    bool isTeam = false,
   }) async* {
     final list = _tasksByWorkspace[workspaceId] ?? [];
-    yield Success(list.where((t) => t.ownerId == ownerId).toList());
-    yield* _getController(workspaceId).stream.map((result) {
-      if (result case Success(:final value)) {
-        return Success(value.where((t) => t.ownerId == ownerId).toList());
-      }
-      return result;
-    });
+    yield Success(list);
+    yield* _getController(workspaceId).stream;
+  }
+
+  @override
+  Stream<Result<List<TaskModel>>> watchAssignedTasks(String userId) async* {
+    final all = <TaskModel>[];
+    for (final tasks in _tasksByWorkspace.values) {
+      all.addAll(tasks.where((t) => t.assigneeId == userId));
+    }
+    yield Success(all);
   }
 
   @override
@@ -61,6 +66,7 @@ class FakeTaskRepository implements TaskRepository {
     DateTime? dueDate,
     String? sprintId,
     List<SubtaskModel> subtasks = const [],
+    String? assigneeId,
   }) async {
     final now = DateTime.now();
     final task = TaskModel(
@@ -74,6 +80,7 @@ class FakeTaskRepository implements TaskRepository {
       dueDate: dueDate,
       sprintId: sprintId,
       subtasks: subtasks,
+      assigneeId: assigneeId,
       createdAt: now,
       updatedAt: now,
     );
@@ -94,6 +101,7 @@ class FakeTaskRepository implements TaskRepository {
     DateTime? dueDate,
     String? sprintId,
     List<SubtaskModel>? subtasks,
+    String? assigneeId,
   }) async {
     final list = _tasksByWorkspace[workspaceId];
     if (list != null) {
@@ -107,6 +115,7 @@ class FakeTaskRepository implements TaskRepository {
           dueDate: () => dueDate,
           sprintId: () => sprintId,
           subtasks: subtasks ?? list[index].subtasks,
+          assigneeId: () => assigneeId,
           updatedAt: DateTime.now(),
         );
         _emit(workspaceId);

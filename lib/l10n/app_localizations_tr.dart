@@ -791,4 +791,117 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get themeLight => 'Açık';
+
+  @override
+  String get teamSectionTitle => 'Ekip';
+
+  @override
+  String get enableTeamTitle => 'Ekip Çalışmasını Etkinleştir';
+
+  @override
+  String get enableTeamDescription =>
+      'Ekip çalışmasını etkinleştirdiğinizde, bu alandaki mevcut ve yeni görevler, notlar ve içerikler alana katılan üyeler tarafından görüntülenebilir hale gelecektir. Onaylıyor musunuz?';
+
+  @override
+  String get enableTeamButton => 'Ekip Çalışmasını Başlat';
+
+  @override
+  String get teamEnabledSuccess => 'Ekip çalışması etkinleştirildi.';
+
+  @override
+  String get membersTitle => 'Ekip Üyeleri';
+
+  @override
+  String get memberRoleOwner => 'Sahip';
+
+  @override
+  String get memberRoleAdmin => 'Yönetici';
+
+  @override
+  String get memberRoleMember => 'Üye';
+
+  @override
+  String get makeAdmin => 'Yönetici Yap';
+
+  @override
+  String get removeAdmin => 'Yöneticiliği Kaldır';
+
+  @override
+  String get removeMember => 'Üyeyi Çıkar';
+
+  @override
+  String get removeMemberConfirm =>
+      'Bu üyeyi ekipten çıkarmak istediğinize emin misiniz?';
+
+  @override
+  String get leaveTeam => 'Ekipten Ayrıl';
+
+  @override
+  String get leaveTeamConfirm =>
+      'Bu alandan ayrılmak istediğinize emin misiniz? Oluşturduğunuz içerikler korunacaktır.';
+
+  @override
+  String get noLongerOnTeam => 'Artık ekipte değil';
+
+  @override
+  String get inviteMember => 'Üye Davet Et';
+
+  @override
+  String get inviteCodeTitle => 'Davet Kodu';
+
+  @override
+  String get inviteCodeDescription =>
+      'Bu kod tek kullanımlıktır ve 7 gün geçerlidir. Katılacak kişiye iletin:';
+
+  @override
+  String get copyCode => 'Kodu Kopyala';
+
+  @override
+  String get codeCopied => 'Davet kodu kopyalandı.';
+
+  @override
+  String get joinWithCode => 'Davet Koduyla Katıl';
+
+  @override
+  String get enterInviteCode => 'Davet Kodunu Girin';
+
+  @override
+  String get inviteCodePlaceholder => '8 karakterli davet kodu';
+
+  @override
+  String get joinButton => 'Katıl';
+
+  @override
+  String get joinSuccess => 'Çalışma alanına başarıyla katıldınız!';
+
+  @override
+  String get joinedWorkspaces => 'Katıldığım Alanlar';
+
+  @override
+  String get myWorkspaces => 'Alanlarım';
+
+  @override
+  String get assignedToMe => 'Bana Atananlar';
+
+  @override
+  String get assignee => 'Sorumlu';
+
+  @override
+  String get unassigned => 'Atanmamış';
+
+  @override
+  String get assignToMe => 'Kendime Ata';
+
+  @override
+  String get filterAssignedToMe => 'Bana Atananlar';
+
+  @override
+  String get noAssignedTasks => 'Size atanmış görev bulunmuyor.';
+
+  @override
+  String get noJoinedWorkspaces => 'Henüz katıldığınız bir ekip alanı yok.';
+
+  @override
+  String get guestJoinWarning =>
+      'Misafir kullanıcılar ekip davetlerini kabul edemez. Lütfen önce profil ekranından bir hesap bağlayın veya kayıt olun.';
 }

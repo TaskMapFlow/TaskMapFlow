@@ -46,6 +46,33 @@ class FirebaseWorkspaceRepository implements WorkspaceRepository {
   }
 
   @override
+  Stream<Result<List<Workspace>>> watchJoinedWorkspaces(String userId) async* {
+    if (userId.isEmpty) {
+      yield const Success([]);
+      return;
+    }
+
+    try {
+      await for (final snapshot in _workspacesCol
+          .where('memberIds', arrayContains: userId)
+          .snapshots()) {
+        try {
+          final workspaces = snapshot.docs
+              .map(WorkspaceDto.fromFirestore)
+              .where((w) => w.ownerId != userId)
+              .toList();
+          workspaces.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          yield Success(workspaces);
+        } catch (e) {
+          yield Err(_mapException(e));
+        }
+      }
+    } catch (e) {
+      yield Err(_mapException(e));
+    }
+  }
+
+  @override
   Stream<Result<List<MapNode>>> watchMapNodes(String ownerId) async* {
     if (ownerId.isEmpty) {
       yield const Success([]);

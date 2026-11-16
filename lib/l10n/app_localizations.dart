@@ -1573,6 +1573,222 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Light'**
   String get themeLight;
+
+  /// Team section title
+  ///
+  /// In en, this message translates to:
+  /// **'Team'**
+  String get teamSectionTitle;
+
+  /// Enable teamwork dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Teamwork'**
+  String get enableTeamTitle;
+
+  /// Enable teamwork confirmation description
+  ///
+  /// In en, this message translates to:
+  /// **'When you enable teamwork, existing and new tasks, notes, and content in this workspace will become visible to joined members. Do you confirm?'**
+  String get enableTeamDescription;
+
+  /// Enable teamwork button label
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Teamwork'**
+  String get enableTeamButton;
+
+  /// Teamwork enabled notification
+  ///
+  /// In en, this message translates to:
+  /// **'Teamwork enabled.'**
+  String get teamEnabledSuccess;
+
+  /// Team members title
+  ///
+  /// In en, this message translates to:
+  /// **'Team Members'**
+  String get membersTitle;
+
+  /// Team role: Owner
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get memberRoleOwner;
+
+  /// Team role: Admin
+  ///
+  /// In en, this message translates to:
+  /// **'Admin'**
+  String get memberRoleAdmin;
+
+  /// Team role: Member
+  ///
+  /// In en, this message translates to:
+  /// **'Member'**
+  String get memberRoleMember;
+
+  /// Make admin button
+  ///
+  /// In en, this message translates to:
+  /// **'Make Admin'**
+  String get makeAdmin;
+
+  /// Remove admin button
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Admin'**
+  String get removeAdmin;
+
+  /// Remove member button
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Member'**
+  String get removeMember;
+
+  /// Remove member confirmation question
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to remove this member from the team?'**
+  String get removeMemberConfirm;
+
+  /// Leave team button
+  ///
+  /// In en, this message translates to:
+  /// **'Leave Team'**
+  String get leaveTeam;
+
+  /// Leave team confirmation question
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to leave this workspace? Your contributions will be preserved.'**
+  String get leaveTeamConfirm;
+
+  /// Badge for removed/left team member
+  ///
+  /// In en, this message translates to:
+  /// **'No longer on team'**
+  String get noLongerOnTeam;
+
+  /// Invite member button
+  ///
+  /// In en, this message translates to:
+  /// **'Invite Member'**
+  String get inviteMember;
+
+  /// Invite code title
+  ///
+  /// In en, this message translates to:
+  /// **'Invite Code'**
+  String get inviteCodeTitle;
+
+  /// Invite code description
+  ///
+  /// In en, this message translates to:
+  /// **'This code is single-use and valid for 7 days. Share it with the invitee:'**
+  String get inviteCodeDescription;
+
+  /// Copy code button
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Code'**
+  String get copyCode;
+
+  /// Invite code copied notification
+  ///
+  /// In en, this message translates to:
+  /// **'Invite code copied.'**
+  String get codeCopied;
+
+  /// Join with code button
+  ///
+  /// In en, this message translates to:
+  /// **'Join with Invite Code'**
+  String get joinWithCode;
+
+  /// Enter invite code title
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Invite Code'**
+  String get enterInviteCode;
+
+  /// Invite code placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'8-character invite code'**
+  String get inviteCodePlaceholder;
+
+  /// Join button
+  ///
+  /// In en, this message translates to:
+  /// **'Join'**
+  String get joinButton;
+
+  /// Joined workspace notification
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully joined workspace!'**
+  String get joinSuccess;
+
+  /// Joined workspaces tab / header
+  ///
+  /// In en, this message translates to:
+  /// **'Joined Areas'**
+  String get joinedWorkspaces;
+
+  /// My workspaces tab / header
+  ///
+  /// In en, this message translates to:
+  /// **'My Areas'**
+  String get myWorkspaces;
+
+  /// Assigned to me tab / header
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned to Me'**
+  String get assignedToMe;
+
+  /// Task assignee label
+  ///
+  /// In en, this message translates to:
+  /// **'Assignee'**
+  String get assignee;
+
+  /// Unassigned task label
+  ///
+  /// In en, this message translates to:
+  /// **'Unassigned'**
+  String get unassigned;
+
+  /// Assign to me option
+  ///
+  /// In en, this message translates to:
+  /// **'Assign to Me'**
+  String get assignToMe;
+
+  /// Assigned to me filter option
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned to Me'**
+  String get filterAssignedToMe;
+
+  /// No assigned tasks placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'No tasks assigned to you.'**
+  String get noAssignedTasks;
+
+  /// No joined workspaces placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t joined any team workspaces yet.'**
+  String get noJoinedWorkspaces;
+
+  /// Guest join warning
+  ///
+  /// In en, this message translates to:
+  /// **'Guest users cannot accept team invites. Please link an account or sign up first.'**
+  String get guestJoinWarning;
 }
 
 class _AppLocalizationsDelegate

@@ -41,6 +41,26 @@ final workspacesStreamProvider =
   }
 });
 
+final joinedWorkspacesStreamProvider =
+    StreamProvider.autoDispose<List<Workspace>>((ref) async* {
+  final uid = ref.watch(currentUserIdProvider);
+  if (uid == null || uid.isEmpty) {
+    yield const [];
+    return;
+  }
+
+  final stream =
+      ref.watch(workspaceRepositoryProvider).watchJoinedWorkspaces(uid);
+  await for (final result in stream) {
+    switch (result) {
+      case Success(:final value):
+        yield value;
+      case Err(:final failure):
+        throw failure.message;
+    }
+  }
+});
+
 final mapNodesStreamProvider =
     StreamProvider.autoDispose<List<MapNode>>((ref) async* {
   final uid = ref.watch(currentUserIdProvider);

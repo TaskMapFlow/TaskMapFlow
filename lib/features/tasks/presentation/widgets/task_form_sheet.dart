@@ -10,6 +10,8 @@ import 'package:task_map_flow/features/tasks/domain/models/task_priority.dart';
 import 'package:task_map_flow/features/tasks/domain/models/task_status.dart';
 import 'package:task_map_flow/features/tasks/presentation/providers/sprint_providers.dart';
 import 'package:task_map_flow/features/tasks/presentation/providers/task_providers.dart';
+import 'package:task_map_flow/features/team/domain/models/member_role.dart';
+import 'package:task_map_flow/features/team/presentation/providers/team_providers.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/workspace.dart';
 import 'package:task_map_flow/features/workspaces/presentation/providers/workspace_providers.dart';
 
@@ -56,6 +58,7 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
   late TaskPriority _selectedPriority;
   DateTime? _selectedDueDate;
   String? _selectedSprintId;
+  String? _selectedAssigneeId;
   List<SubtaskModel> _subtasks = [];
   bool _isLoading = false;
   String? _errorMessage;
@@ -74,6 +77,7 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
     _selectedPriority = task?.priority ?? TaskPriority.medium;
     _selectedDueDate = task?.dueDate;
     _selectedSprintId = task?.sprintId;
+    _selectedAssigneeId = task?.assigneeId;
     _subtasks = List.of(task?.subtasks ?? const []);
   }
 
@@ -205,6 +209,7 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
         status: _selectedStatus,
         priority: _selectedPriority,
         dueDate: _selectedDueDate,
+        assigneeId: _selectedAssigneeId,
       );
     } else {
       result = await controller.createTask(
@@ -217,6 +222,7 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
         status: _selectedStatus,
         priority: _selectedPriority,
         dueDate: _selectedDueDate,
+        assigneeId: _selectedAssigneeId,
       );
     }
 
@@ -296,6 +302,16 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
 
     final sprintsAsync = ref.watch(sprintsStreamProvider(widget.workspaceId));
     final sprints = sprintsAsync.valueOrNull ?? [];
+
+    final membersAsync =
+        ref.watch(workspaceMembersStreamProvider(widget.workspaceId));
+    final members = membersAsync.valueOrNull ?? [];
+    final currentUid = ref.watch(currentUserIdProvider) ?? '';
+    final currentRoleAsync =
+        ref.watch(currentUserMemberRoleProvider(widget.workspaceId));
+    final currentRole = currentRoleAsync.valueOrNull ?? MemberRole.member;
+    final canAssignAnyone =
+        currentRole == MemberRole.owner || currentRole == MemberRole.admin;
 
     return Container(
       decoration: BoxDecoration(
@@ -635,6 +651,83 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
                       ],
                       onChanged: (val) {
                         setState(() => _selectedSprintId = val);
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+              ],
+
+              // Assignee Selector (Team workspaces)
+              if (members.isNotEmpty) ...[
+                Text(
+                  l10n.assignee,
+                  style: TextStyle(
+                    color: textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    color: inputBg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: inputBorder),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String?>(
+                      value: _selectedAssigneeId,
+                      isExpanded: true,
+                      dropdownColor: bg,
+                      style: TextStyle(color: textPrimary, fontSize: 14),
+                      items: [
+                        DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text(
+                            l10n.unassigned,
+                            style: TextStyle(color: textSecondary),
+                          ),
+                        ),
+                        for (final m in members)
+                          if (canAssignAnyone ||
+                              m.userId == currentUid ||
+                              m.userId == _selectedAssigneeId)
+                            DropdownMenuItem<String?>(
+                              value: m.userId,
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 11,
+                                    backgroundColor:
+                                        purple.withValues(alpha: 0.18),
+                                    child: Text(
+                                      m.initials,
+                                      style: TextStyle(
+                                        color: purple,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Flexible(
+                                    child: Text(
+                                      m.userId == currentUid
+                                          ? '${m.displayName} (${l10n.assignToMe})'
+                                          : m.displayName,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(color: textPrimary),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                      ],
+                      onChanged: (val) {
+                        setState(() => _selectedAssigneeId = val);
                       },
                     ),
                   ),

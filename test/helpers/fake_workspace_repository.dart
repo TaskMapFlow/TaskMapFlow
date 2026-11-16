@@ -33,6 +33,15 @@ class FakeWorkspaceRepository implements WorkspaceRepository {
   }
 
   @override
+  Stream<Result<List<Workspace>>> watchJoinedWorkspaces(String userId) {
+    return Stream.value(
+      Success(_workspaces
+          .where((w) => w.memberIds.contains(userId) && w.ownerId != userId)
+          .toList()),
+    );
+  }
+
+  @override
   Stream<Result<List<MapNode>>> watchMapNodes(String ownerId) {
     scheduleMicrotask(() {
       _nodesStreamController.add(Success(List.unmodifiable(_nodes)));

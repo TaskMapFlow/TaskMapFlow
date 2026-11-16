@@ -36,6 +36,10 @@ service cloud.firestore {
       return type in ['related', 'blocks'];
     }
 
+    function isValidMemberRole(role) {
+      return role in ['owner', 'admin', 'member'];
+    }
+
     function isValidSubtaskItem(item) {
       return item is map
         && item.keys().hasOnly(['id', 'title', 'isCompleted'])
@@ -72,12 +76,11 @@ service cloud.firestore {
     function isValidTaskSprint(data, workspaceId, ownerId) {
       return data.sprintId == null
         || (data.sprintId is string
-            && exists(/databases/$(database)/documents/workspaces/$(workspaceId)/sprints/$(data.sprintId))
-            && get(/databases/$(database)/documents/workspaces/$(workspaceId)/sprints/$(data.sprintId)).data.ownerId == ownerId);
+            && exists(/databases/$(database)/documents/workspaces/$(workspaceId)/sprints/$(data.sprintId)));
     }
 
     function isValidTask(data, workspaceId, ownerId) {
-      return data.keys().hasOnly(['id', 'workspaceId', 'ownerId', 'title', 'description', 'status', 'priority', 'dueDate', 'sprintId', 'subtasks', 'createdAt', 'updatedAt'])
+      return data.keys().hasOnly(['id', 'workspaceId', 'ownerId', 'title', 'description', 'status', 'priority', 'dueDate', 'sprintId', 'subtasks', 'assigneeId', 'createdAt', 'updatedAt'])
         && data.id is string && data.id.size() > 0
         && data.workspaceId == workspaceId
         && data.ownerId == ownerId
@@ -87,6 +90,7 @@ service cloud.firestore {
         && isValidTaskPriority(data.priority)
         && (data.dueDate == null || data.dueDate is timestamp)
         && (data.subtasks == null || isValidSubtasksList(data.subtasks))
+        && (!('assigneeId' in data) || data.assigneeId == null || (data.assigneeId is string && data.assigneeId.size() > 0))
         && isValidTaskSprint(data, workspaceId, ownerId)
         && data.createdAt is timestamp
         && data.updatedAt is timestamp;
@@ -202,7 +206,7 @@ service cloud.firestore {
     }
 
     function isValidWorkspace(data, ownerId) {
-      return data.keys().hasOnly(['id', 'name', 'description', 'type', 'color', 'ownerId', 'tags', 'resources', 'isArchived', 'archivedAt', 'createdAt', 'updatedAt'])
+      return data.keys().hasOnly(['id', 'name', 'description', 'type', 'color', 'ownerId', 'tags', 'resources', 'isArchived', 'archivedAt', 'isTeamEnabled', 'memberIds', 'createdAt', 'updatedAt'])
         && data.id is string && data.id.size() > 0
         && data.name is string && data.name.size() > 0 && data.name.size() <= 100
         && data.description is string && data.description.size() <= 500
@@ -213,6 +217,8 @@ service cloud.firestore {
         && (!('resources' in data) || isValidResourcesList(data.resources))
         && (!('isArchived' in data) || data.isArchived is bool)
         && (!('archivedAt' in data) || data.archivedAt == null || data.archivedAt is timestamp)
+        && (!('isTeamEnabled' in data) || data.isTeamEnabled is bool)
+        && (!('memberIds' in data) || data.memberIds is list)
         && data.createdAt is timestamp
         && data.updatedAt is timestamp;
     }
@@ -242,76 +248,181 @@ service cloud.firestore {
         && data.updatedAt is timestamp;
     }
 
-    // Workspaces collection – owner-only access
+    function isWorkspaceMember(workspaceId) {
+      return isAuthenticated() && (
+        exists(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid))
+        || (exists(/databases/$(database)/documents/workspaces/$(workspaceId))
+            && 'memberIds' in get(/databases/$(database)/documents/workspaces/$(workspaceId)).data
+            && request.auth.uid in get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.memberIds)
+      );
+    }
+
+    function getMemberRole(workspaceId) {
+      return exists(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid))
+        ? get(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid)).data.role
+        : (get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid ? 'owner' : 'none');
+    }
+
+    function isWorkspaceAdminOrOwner(workspaceId) {
+      return isAuthenticated() && (
+        get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+        || getMemberRole(workspaceId) in ['owner', 'admin']
+      );
+    }
+
+    // Workspaces collection
     match /workspaces/{workspaceId} {
-      allow read: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
+      allow read: if isAuthenticated() && (
+        resource.data.ownerId == request.auth.uid
+        || ('memberIds' in resource.data && request.auth.uid in resource.data.memberIds)
+      );
       
       allow create: if isAuthenticated() 
         && isValidWorkspace(request.resource.data, request.auth.uid)
         && request.resource.data.id == workspaceId;
         
       allow update: if isAuthenticated()
-        && resource.data.ownerId == request.auth.uid
-        && request.resource.data.ownerId == resource.data.ownerId
-        && request.resource.data.id == workspaceId
-        && isValidWorkspace(request.resource.data, resource.data.ownerId)
         && (
-          (!('isArchived' in resource.data) || resource.data.isArchived == false)
+          // Owner full update
+          (
+            resource.data.ownerId == request.auth.uid
+            && request.resource.data.ownerId == resource.data.ownerId
+            && request.resource.data.id == workspaceId
+            && isValidWorkspace(request.resource.data, resource.data.ownerId)
+            && (
+              (!('isArchived' in resource.data) || resource.data.isArchived == false)
+              || (
+                resource.data.isArchived == true
+                && request.resource.data.isArchived == false
+                && request.resource.data.name == resource.data.name
+                && request.resource.data.type == resource.data.type
+                && request.resource.data.color == resource.data.color
+              )
+            )
+          )
+          // Admin info update (description, tags, resources)
           || (
-            resource.data.isArchived == true
-            && request.resource.data.isArchived == false
+            isWorkspaceAdminOrOwner(workspaceId)
+            && isWorkspaceActive(workspaceId)
+            && request.resource.data.id == resource.data.id
+            && request.resource.data.ownerId == resource.data.ownerId
             && request.resource.data.name == resource.data.name
             && request.resource.data.type == resource.data.type
             && request.resource.data.color == resource.data.color
+            && isValidWorkspace(request.resource.data, resource.data.ownerId)
           )
         );
         
       allow delete: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
 
-      // Tasks subcollection – owner-only access
-      match /tasks/{taskId} {
-        allow read: if isAuthenticated()
+      // Members subcollection
+      match /members/{memberId} {
+        allow read: if isAuthenticated() && (
+          get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+          || isWorkspaceMember(workspaceId)
+        );
+
+        // Initial member creation by workspace owner or member join
+        allow create: if isAuthenticated() && isWorkspaceActive(workspaceId) && (
+          // Owner creating self or enabling team
+          (get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+           && memberId == request.auth.uid
+           && request.resource.data.role == 'owner')
+        );
+
+        // Role update: owner only
+        allow update: if isAuthenticated() && isWorkspaceActive(workspaceId)
           && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
-          && resource.data.ownerId == request.auth.uid;
-          
-        allow create: if isAuthenticated()
-          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
-          && isWorkspaceActive(workspaceId)
-          && isValidTask(request.resource.data, workspaceId, request.auth.uid)
-          && request.resource.data.id == taskId;
-          
-        allow update: if isAuthenticated()
-          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
-          && isWorkspaceActive(workspaceId)
-          && resource.data.ownerId == request.auth.uid
-          && request.resource.data.id == resource.data.id
-          && request.resource.data.workspaceId == workspaceId
-          && request.resource.data.ownerId == resource.data.ownerId
-          && request.resource.data.createdAt == resource.data.createdAt
-          && isValidTask(request.resource.data, workspaceId, resource.data.ownerId);
-          
-        allow delete: if isAuthenticated()
-          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
-          && isWorkspaceActive(workspaceId)
-          && resource.data.ownerId == request.auth.uid;
+          && request.resource.data.role in ['admin', 'member']
+          && memberId != request.auth.uid;
+
+        // Removal: owner can remove anyone except self, admin can remove member, user can leave
+        allow delete: if isAuthenticated() && (
+          (get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid && memberId != request.auth.uid)
+          || (isWorkspaceAdminOrOwner(workspaceId) && resource.data.role == 'member')
+          || (request.auth.uid == memberId && resource.data.role != 'owner')
+        );
       }
 
-      // Sprints subcollection – owner-only access
-      match /sprints/{sprintId} {
-        allow read: if isAuthenticated()
-          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
-          && resource.data.ownerId == request.auth.uid;
+      // Invites subcollection (managed by owner/admin)
+      match /invites/{inviteId} {
+        allow read: if isAuthenticated() && isWorkspaceAdminOrOwner(workspaceId);
+        allow create, update: if isAuthenticated() && isWorkspaceActive(workspaceId) && isWorkspaceAdminOrOwner(workspaceId);
+        allow delete: if isAuthenticated() && isWorkspaceAdminOrOwner(workspaceId);
+      }
+
+      // Tasks subcollection
+      match /tasks/{taskId} {
+        allow read: if isAuthenticated() && (
+          get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+          || isWorkspaceMember(workspaceId)
+        );
           
         allow create: if isAuthenticated()
-          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
           && isWorkspaceActive(workspaceId)
+          && (
+            get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+            || isWorkspaceMember(workspaceId)
+          )
+          && isValidTask(request.resource.data, workspaceId, request.auth.uid)
+          && request.resource.data.id == taskId
+          && (
+            isWorkspaceAdminOrOwner(workspaceId)
+            || request.resource.data.assigneeId == null
+            || request.resource.data.assigneeId == request.auth.uid
+          );
+          
+        allow update: if isAuthenticated()
+          && isWorkspaceActive(workspaceId)
+          && (
+            // Workspace owner, admin, or task creator full update
+            (
+              (isWorkspaceAdminOrOwner(workspaceId) || resource.data.ownerId == request.auth.uid)
+              && request.resource.data.id == resource.data.id
+              && request.resource.data.workspaceId == workspaceId
+              && request.resource.data.ownerId == resource.data.ownerId
+              && request.resource.data.createdAt == resource.data.createdAt
+              && isValidTask(request.resource.data, workspaceId, resource.data.ownerId)
+              && (
+                isWorkspaceAdminOrOwner(workspaceId)
+                || request.resource.data.assigneeId == null
+                || request.resource.data.assigneeId == request.auth.uid
+              )
+            )
+            // Task Assignee status and subtasks only update
+            || (
+              ('assigneeId' in resource.data && resource.data.assigneeId == request.auth.uid)
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'subtasks', 'updatedAt'])
+              && isValidTaskStatus(request.resource.data.status)
+              && (request.resource.data.subtasks == null || isValidSubtasksList(request.resource.data.subtasks))
+              && request.resource.data.updatedAt is timestamp
+            )
+          );
+          
+        allow delete: if isAuthenticated()
+          && isWorkspaceActive(workspaceId)
+          && (
+            isWorkspaceAdminOrOwner(workspaceId)
+            || resource.data.ownerId == request.auth.uid
+          );
+      }
+
+      // Sprints subcollection – owner/admin access
+      match /sprints/{sprintId} {
+        allow read: if isAuthenticated() && (
+          get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+          || isWorkspaceMember(workspaceId)
+        );
+          
+        allow create: if isAuthenticated()
+          && isWorkspaceActive(workspaceId)
+          && isWorkspaceAdminOrOwner(workspaceId)
           && isValidSprint(request.resource.data, workspaceId, request.auth.uid)
           && request.resource.data.id == sprintId;
           
         allow update: if isAuthenticated()
-          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
           && isWorkspaceActive(workspaceId)
-          && resource.data.ownerId == request.auth.uid
+          && isWorkspaceAdminOrOwner(workspaceId)
           && request.resource.data.id == resource.data.id
           && request.resource.data.workspaceId == workspaceId
           && request.resource.data.ownerId == resource.data.ownerId
@@ -319,27 +430,32 @@ service cloud.firestore {
           && isValidSprint(request.resource.data, workspaceId, resource.data.ownerId);
           
         allow delete: if isAuthenticated()
-          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
           && isWorkspaceActive(workspaceId)
-          && resource.data.ownerId == request.auth.uid;
+          && isWorkspaceAdminOrOwner(workspaceId);
       }
 
-      // Notes subcollection – owner-only access
+      // Notes subcollection
       match /notes/{noteId} {
-        allow read: if isAuthenticated()
-          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
-          && resource.data.ownerId == request.auth.uid;
+        allow read: if isAuthenticated() && (
+          get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+          || isWorkspaceMember(workspaceId)
+        );
           
         allow create: if isAuthenticated()
-          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
           && isWorkspaceActive(workspaceId)
+          && (
+            get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+            || isWorkspaceMember(workspaceId)
+          )
           && isValidNote(request.resource.data, workspaceId, request.auth.uid)
           && request.resource.data.id == noteId;
           
         allow update: if isAuthenticated()
-          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
           && isWorkspaceActive(workspaceId)
-          && resource.data.ownerId == request.auth.uid
+          && (
+            resource.data.ownerId == request.auth.uid
+            || isWorkspaceAdminOrOwner(workspaceId)
+          )
           && request.resource.data.id == resource.data.id
           && request.resource.data.workspaceId == workspaceId
           && request.resource.data.ownerId == resource.data.ownerId
@@ -347,10 +463,26 @@ service cloud.firestore {
           && isValidNote(request.resource.data, workspaceId, resource.data.ownerId);
           
         allow delete: if isAuthenticated()
-          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
           && isWorkspaceActive(workspaceId)
-          && resource.data.ownerId == request.auth.uid;
+          && (
+            resource.data.ownerId == request.auth.uid
+            || isWorkspaceAdminOrOwner(workspaceId)
+          );
       }
+    }
+
+    // Collection Group queries for tasks
+    match /{path=**}/tasks/{taskId} {
+      allow read: if isAuthenticated() && (
+        resource.data.ownerId == request.auth.uid
+        || ('assigneeId' in resource.data && resource.data.assigneeId == request.auth.uid)
+      );
+    }
+
+    // Top-level invites collection (read-only for authenticated, mutations via Cloud Functions)
+    match /invites/{code} {
+      allow read: if isAuthenticated();
+      allow write: if false;
     }
 
     // Map Nodes collection – owner-only access, linked to user's workspace

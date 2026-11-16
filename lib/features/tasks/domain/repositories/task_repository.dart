@@ -8,7 +8,10 @@ abstract class TaskRepository {
   Stream<Result<List<TaskModel>>> watchTasks({
     required String workspaceId,
     required String ownerId,
+    bool isTeam = false,
   });
+
+  Stream<Result<List<TaskModel>>> watchAssignedTasks(String userId);
 
   Future<Result<TaskModel>> createTask({
     required String workspaceId,
@@ -20,6 +23,7 @@ abstract class TaskRepository {
     DateTime? dueDate,
     String? sprintId,
     List<SubtaskModel> subtasks = const [],
+    String? assigneeId,
   });
 
   Future<Result<void>> updateTask({
@@ -32,6 +36,7 @@ abstract class TaskRepository {
     DateTime? dueDate,
     String? sprintId,
     List<SubtaskModel>? subtasks,
+    String? assigneeId,
   });
 
   Future<Result<void>> updateTaskStatus({

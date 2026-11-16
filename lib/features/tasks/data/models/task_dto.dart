@@ -33,6 +33,7 @@ class TaskDto {
       priority: TaskPriority.fromString(data['priority'] as String? ?? ''),
       dueDate: dueDate,
       sprintId: data['sprintId'] as String?,
+      assigneeId: data['assigneeId'] as String?,
       subtasks: subtasks,
       createdAt: createdAt,
       updatedAt: updatedAt,
@@ -56,6 +57,7 @@ class TaskDto {
             ))
           : null,
       'sprintId': task.sprintId,
+      'assigneeId': task.assigneeId,
       'subtasks': task.subtasks.map((s) => s.toMap()).toList(),
       'createdAt': Timestamp.fromDate(task.createdAt),
       'updatedAt': Timestamp.fromDate(task.updatedAt),

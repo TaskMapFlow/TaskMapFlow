@@ -788,4 +788,118 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get themeLight => 'Light';
+
+  @override
+  String get teamSectionTitle => 'Team';
+
+  @override
+  String get enableTeamTitle => 'Enable Teamwork';
+
+  @override
+  String get enableTeamDescription =>
+      'When you enable teamwork, existing and new tasks, notes, and content in this workspace will become visible to joined members. Do you confirm?';
+
+  @override
+  String get enableTeamButton => 'Enable Teamwork';
+
+  @override
+  String get teamEnabledSuccess => 'Teamwork enabled.';
+
+  @override
+  String get membersTitle => 'Team Members';
+
+  @override
+  String get memberRoleOwner => 'Owner';
+
+  @override
+  String get memberRoleAdmin => 'Admin';
+
+  @override
+  String get memberRoleMember => 'Member';
+
+  @override
+  String get makeAdmin => 'Make Admin';
+
+  @override
+  String get removeAdmin => 'Remove Admin';
+
+  @override
+  String get removeMember => 'Remove Member';
+
+  @override
+  String get removeMemberConfirm =>
+      'Are you sure you want to remove this member from the team?';
+
+  @override
+  String get leaveTeam => 'Leave Team';
+
+  @override
+  String get leaveTeamConfirm =>
+      'Are you sure you want to leave this workspace? Your contributions will be preserved.';
+
+  @override
+  String get noLongerOnTeam => 'No longer on team';
+
+  @override
+  String get inviteMember => 'Invite Member';
+
+  @override
+  String get inviteCodeTitle => 'Invite Code';
+
+  @override
+  String get inviteCodeDescription =>
+      'This code is single-use and valid for 7 days. Share it with the invitee:';
+
+  @override
+  String get copyCode => 'Copy Code';
+
+  @override
+  String get codeCopied => 'Invite code copied.';
+
+  @override
+  String get joinWithCode => 'Join with Invite Code';
+
+  @override
+  String get enterInviteCode => 'Enter Invite Code';
+
+  @override
+  String get inviteCodePlaceholder => '8-character invite code';
+
+  @override
+  String get joinButton => 'Join';
+
+  @override
+  String get joinSuccess => 'Successfully joined workspace!';
+
+  @override
+  String get joinedWorkspaces => 'Joined Areas';
+
+  @override
+  String get myWorkspaces => 'My Areas';
+
+  @override
+  String get assignedToMe => 'Assigned to Me';
+
+  @override
+  String get assignee => 'Assignee';
+
+  @override
+  String get unassigned => 'Unassigned';
+
+  @override
+  String get assignToMe => 'Assign to Me';
+
+  @override
+  String get filterAssignedToMe => 'Assigned to Me';
+
+  @override
+  String get noAssignedTasks => 'No tasks assigned to you.';
+
+  @override
+  String get noJoinedWorkspaces =>
+      'You haven\'t joined any team workspaces yet.';
+
+  @override
+  String get guestJoinWarning =>
+      'Guest users cannot accept team invites. Please link an account or sign up first.';
 }

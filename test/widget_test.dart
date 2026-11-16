@@ -8,9 +8,13 @@ import 'package:task_map_flow/features/auth/domain/models/auth_state.dart';
 import 'package:task_map_flow/features/auth/domain/models/auth_user.dart';
 import 'package:task_map_flow/features/auth/presentation/providers/auth_providers.dart';
 import 'package:task_map_flow/features/profile/presentation/providers/profile_providers.dart';
+import 'package:task_map_flow/features/tasks/presentation/providers/task_providers.dart';
+import 'package:task_map_flow/features/team/presentation/providers/team_providers.dart';
 import 'package:task_map_flow/features/workspaces/presentation/providers/workspace_providers.dart';
 import 'helpers/fake_auth_repository.dart';
 import 'helpers/fake_profile_repository.dart';
+import 'helpers/fake_task_repository.dart';
+import 'helpers/fake_team_repository.dart';
 import 'helpers/fake_workspace_repository.dart';
 
 void main() {
@@ -91,6 +95,8 @@ void main() {
             sharedPreferencesProvider.overrideWithValue(prefs),
             authRepositoryProvider.overrideWithValue(fakeAuth),
             workspaceRepositoryProvider.overrideWithValue(fakeWorkspace),
+            taskRepositoryProvider.overrideWithValue(FakeTaskRepository()),
+            teamRepositoryProvider.overrideWithValue(FakeTeamRepository()),
             profileRepositoryProvider
                 .overrideWithValue(FakeProfileRepository()),
           ],
@@ -144,6 +150,8 @@ void main() {
             sharedPreferencesProvider.overrideWithValue(prefs),
             authRepositoryProvider.overrideWithValue(fakeAuth),
             workspaceRepositoryProvider.overrideWithValue(fakeWorkspace),
+            taskRepositoryProvider.overrideWithValue(FakeTaskRepository()),
+            teamRepositoryProvider.overrideWithValue(FakeTeamRepository()),
             profileRepositoryProvider
                 .overrideWithValue(FakeProfileRepository()),
           ],
