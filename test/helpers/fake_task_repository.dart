@@ -40,8 +40,13 @@ class FakeTaskRepository implements TaskRepository {
     required String ownerId,
   }) async* {
     final list = _tasksByWorkspace[workspaceId] ?? [];
-    yield Success(list);
-    yield* _getController(workspaceId).stream;
+    yield Success(list.where((t) => t.ownerId == ownerId).toList());
+    yield* _getController(workspaceId).stream.map((result) {
+      if (result case Success(:final value)) {
+        return Success(value.where((t) => t.ownerId == ownerId).toList());
+      }
+      return result;
+    });
   }
 
   @override
@@ -135,9 +140,12 @@ class FakeTaskRepository implements TaskRepository {
   }
 
   @override
-  Future<Result<bool>> hasTasks(String workspaceId) async {
+  Future<Result<bool>> hasTasks({
+    required String workspaceId,
+    required String ownerId,
+  }) async {
     final list = _tasksByWorkspace[workspaceId];
-    return Success(list != null && list.isNotEmpty);
+    return Success(list != null && list.any((t) => t.ownerId == ownerId));
   }
 
   void dispose() {

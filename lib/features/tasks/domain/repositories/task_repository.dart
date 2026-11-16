@@ -40,5 +40,8 @@ abstract class TaskRepository {
     required String taskId,
   });
 
-  Future<Result<bool>> hasTasks(String workspaceId);
+  Future<Result<bool>> hasTasks({
+    required String workspaceId,
+    required String ownerId,
+  });
 }

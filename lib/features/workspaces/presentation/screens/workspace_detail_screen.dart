@@ -92,10 +92,13 @@ class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
 
   Future<void> _confirmDelete(String mapNodeId) async {
     final l10n = context.l10n;
+    final uid = ref.read(currentUserIdProvider) ?? '';
 
     // Check if tasks exist in workspace
-    final hasTasksResult =
-        await ref.read(taskRepositoryProvider).hasTasks(widget.workspaceId);
+    final hasTasksResult = await ref.read(taskRepositoryProvider).hasTasks(
+          workspaceId: widget.workspaceId,
+          ownerId: uid,
+        );
 
     if (!mounted) return;
 

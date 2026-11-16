@@ -28,7 +28,9 @@ class FirebaseTaskRepository implements TaskRepository {
     }
 
     try {
-      await for (final snapshot in _tasksCol(workspaceId).snapshots()) {
+      await for (final snapshot in _tasksCol(workspaceId)
+          .where('ownerId', isEqualTo: ownerId)
+          .snapshots()) {
         try {
           final tasks = snapshot.docs.map(TaskDto.fromFirestore).toList();
           tasks.sort((a, b) {
@@ -154,9 +156,18 @@ class FirebaseTaskRepository implements TaskRepository {
   }
 
   @override
-  Future<Result<bool>> hasTasks(String workspaceId) async {
+  Future<Result<bool>> hasTasks({
+    required String workspaceId,
+    required String ownerId,
+  }) async {
+    if (workspaceId.isEmpty || ownerId.isEmpty) {
+      return const Success(false);
+    }
     try {
-      final snap = await _tasksCol(workspaceId).limit(1).get();
+      final snap = await _tasksCol(workspaceId)
+          .where('ownerId', isEqualTo: ownerId)
+          .limit(1)
+          .get();
       return Success(snap.docs.isNotEmpty);
     } catch (e) {
       return Err(_mapException(e));
