@@ -953,4 +953,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get allClearSubtitle => 'No overdue or due today tasks pending.';
+
+  @override
+  String partialSummaryNotice(int count, int total) {
+    return 'Summary reflects your $count most recent active areas ($total total).';
+  }
+
+  @override
+  String partialFailedAreasWarning(int count) {
+    return 'Could not load tasks for $count area(s).';
+  }
 }

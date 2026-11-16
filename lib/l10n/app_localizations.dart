@@ -1885,6 +1885,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No overdue or due today tasks pending.'**
   String get allClearSubtitle;
+
+  /// Notice when summary shows limited workspaces
+  ///
+  /// In en, this message translates to:
+  /// **'Summary reflects your {count} most recent active areas ({total} total).'**
+  String partialSummaryNotice(int count, int total);
+
+  /// Warning when some areas could not load tasks
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load tasks for {count} area(s).'**
+  String partialFailedAreasWarning(int count);
 }
 
 class _AppLocalizationsDelegate

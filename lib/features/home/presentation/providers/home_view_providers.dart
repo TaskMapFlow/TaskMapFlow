@@ -118,8 +118,11 @@ class DailyWorkSummary {
     this.upcomingTasks = const [],
     this.inProgressTasks = const [],
     this.activeWorkspaces = const [],
+    this.failedWorkspaces = const [],
     this.isLoading = false,
     this.errorMessage,
+    this.isPartial = false,
+    this.totalActiveWorkspacesCount = 0,
   });
 
   final List<TaskWithWorkspace> todayTasks;
@@ -127,11 +130,15 @@ class DailyWorkSummary {
   final List<TaskWithWorkspace> upcomingTasks;
   final List<TaskWithWorkspace> inProgressTasks;
   final List<WorkspaceProgress> activeWorkspaces;
+  final List<Workspace> failedWorkspaces;
   final bool isLoading;
   final String? errorMessage;
+  final bool isPartial;
+  final int totalActiveWorkspacesCount;
 
   bool get isEmpty =>
       activeWorkspaces.isEmpty &&
+      failedWorkspaces.isEmpty &&
       todayTasks.isEmpty &&
       overdueTasks.isEmpty &&
       upcomingTasks.isEmpty &&
@@ -160,6 +167,8 @@ final dailyWorkSummaryProvider = Provider.autoDispose<DailyWorkSummary>((ref) {
     return const DailyWorkSummary(isLoading: true);
   }
   if (workspacesAsync.hasError && !workspacesAsync.hasValue) {
+    debugPrint(
+        '[DailyWorkSummary] workspacesStreamProvider error: ${workspacesAsync.error}');
     return DailyWorkSummary(
       isLoading: false,
       errorMessage: workspacesAsync.error.toString(),
@@ -167,14 +176,17 @@ final dailyWorkSummaryProvider = Provider.autoDispose<DailyWorkSummary>((ref) {
   }
 
   final allWorkspaces = workspacesAsync.value ?? [];
-  final activeWorkspaces = allWorkspaces.where((w) => !w.isArchived).toList();
+  // Strictly owned active workspaces only, matching personal access rules
+  final ownedActiveWorkspaces =
+      allWorkspaces.where((w) => !w.isArchived && w.ownerId == uid).toList();
 
-  if (activeWorkspaces.isEmpty) {
+  if (ownedActiveWorkspaces.isEmpty) {
     return const DailyWorkSummary(isLoading: false);
   }
 
   // To prevent unbounded loading with dozens of workspaces, limit to the most recent 25 active spaces
-  final targetWorkspaces = activeWorkspaces.take(25).toList();
+  final isPartial = ownedActiveWorkspaces.length > 25;
+  final targetWorkspaces = ownedActiveWorkspaces.take(25).toList();
 
   final taskAsyncList = [
     for (final ws in targetWorkspaces) ref.watch(tasksStreamProvider(ws.id))
@@ -186,15 +198,23 @@ final dailyWorkSummaryProvider = Provider.autoDispose<DailyWorkSummary>((ref) {
     return const DailyWorkSummary(isLoading: true);
   }
 
-  final firstError =
-      taskAsyncList.where((a) => a.hasError && !a.hasValue).firstOrNull;
-  if (firstError != null) {
+  // If ALL target workspaces failed with error and none succeeded
+  final allFailed = taskAsyncList.isNotEmpty &&
+      taskAsyncList.every((a) => a.hasError && !a.hasValue);
+  if (allFailed) {
+    final firstErr = taskAsyncList.first.error;
+    debugPrint(
+        '[DailyWorkSummary] All ${targetWorkspaces.length} workspaces failed to load tasks: $firstErr');
     return DailyWorkSummary(
       isLoading: false,
-      errorMessage: firstError.error.toString(),
+      errorMessage: firstErr.toString(),
+      failedWorkspaces: targetWorkspaces,
+      isPartial: isPartial,
+      totalActiveWorkspacesCount: ownedActiveWorkspaces.length,
     );
   }
 
+  final failedWorkspaces = <Workspace>[];
   final todayTasks = <TaskWithWorkspace>[];
   final overdueTasks = <TaskWithWorkspace>[];
   final upcomingTasks = <TaskWithWorkspace>[];
@@ -203,7 +223,16 @@ final dailyWorkSummaryProvider = Provider.autoDispose<DailyWorkSummary>((ref) {
 
   for (int i = 0; i < targetWorkspaces.length; i++) {
     final ws = targetWorkspaces[i];
-    final tasks = taskAsyncList[i].valueOrNull ?? [];
+    final asyncTasks = taskAsyncList[i];
+
+    if (asyncTasks.hasError && !asyncTasks.hasValue) {
+      debugPrint(
+          '[DailyWorkSummary] Failed to load tasks for workspace=${ws.id}: ${asyncTasks.error}');
+      failedWorkspaces.add(ws);
+      continue;
+    }
+
+    final tasks = asyncTasks.valueOrNull ?? [];
 
     final total = tasks.length;
     final completed =
@@ -254,6 +283,9 @@ final dailyWorkSummaryProvider = Provider.autoDispose<DailyWorkSummary>((ref) {
     upcomingTasks: upcomingTasks,
     inProgressTasks: inProgressTasks,
     activeWorkspaces: progressList,
+    failedWorkspaces: failedWorkspaces,
     isLoading: false,
+    isPartial: isPartial,
+    totalActiveWorkspacesCount: ownedActiveWorkspaces.length,
   );
 });

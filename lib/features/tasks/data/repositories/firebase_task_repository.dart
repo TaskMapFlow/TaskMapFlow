@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:task_map_flow/core/errors/failure.dart';
 import 'package:task_map_flow/core/result/result.dart';
 import 'package:task_map_flow/features/tasks/data/models/task_dto.dart';
@@ -30,16 +31,7 @@ class FirebaseTaskRepository implements TaskRepository {
     }
 
     try {
-      bool teamEnabled = isTeam;
-      if (!teamEnabled) {
-        try {
-          final wsSnap =
-              await _firestore.collection('workspaces').doc(workspaceId).get();
-          teamEnabled = wsSnap.data()?['isTeamEnabled'] == true;
-        } catch (_) {}
-      }
-
-      final query = teamEnabled
+      final query = isTeam
           ? _tasksCol(workspaceId)
           : _tasksCol(workspaceId).where('ownerId', isEqualTo: ownerId);
 
@@ -64,10 +56,14 @@ class FirebaseTaskRepository implements TaskRepository {
           });
           yield Success(tasks);
         } catch (e) {
+          debugPrint(
+              '[FirebaseTaskRepository] snapshot processing error for workspace=$workspaceId: $e');
           yield Err(_mapException(e));
         }
       }
     } catch (e) {
+      debugPrint(
+          '[FirebaseTaskRepository] watchTasks error for workspace=$workspaceId: $e');
       yield Err(_mapException(e));
     }
   }

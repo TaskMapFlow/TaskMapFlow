@@ -8,6 +8,7 @@ import 'package:task_map_flow/features/auth/domain/models/auth_state.dart';
 import 'package:task_map_flow/features/auth/domain/models/auth_user.dart';
 import 'package:task_map_flow/features/auth/presentation/providers/auth_providers.dart';
 import 'package:task_map_flow/features/notes/presentation/providers/note_providers.dart';
+import 'package:task_map_flow/features/tasks/domain/models/task_model.dart';
 import 'package:task_map_flow/features/tasks/domain/models/task_priority.dart';
 import 'package:task_map_flow/features/tasks/domain/models/task_status.dart';
 import 'package:task_map_flow/features/tasks/presentation/providers/sprint_providers.dart';
@@ -207,5 +208,82 @@ void main() {
 
     expect(find.text('Flutter Client'), findsOneWidget);
     expect(find.text('Math 101'), findsOneWidget);
+  });
+
+  testWidgets('DailyWorkSummary handles partial failures gracefully',
+      (tester) async {
+    // Seed 2 workspaces: one with valid tasks, one where tasks throw error
+    final ws1Res = await fakeWorkspace.createWorkspaceWithMapNode(
+      name: 'Stable Area',
+      type: WorkspaceType.project,
+      color: '#8A2BE2',
+      ownerId: testUser.id,
+      initialX: 1000,
+      initialY: 1000,
+      width: 200,
+      height: 120,
+    );
+    final ws1 = (ws1Res as Success<Workspace>).value;
+
+    await fakeWorkspace.createWorkspaceWithMapNode(
+      name: 'Failing Area',
+      type: WorkspaceType.lesson,
+      color: '#3B82F6',
+      ownerId: testUser.id,
+      initialX: 1300,
+      initialY: 1000,
+      width: 200,
+      height: 120,
+    );
+
+    await fakeTask.createTask(
+      workspaceId: ws1.id,
+      ownerId: testUser.id,
+      title: 'Stable Task',
+      status: TaskStatus.inProgress,
+      priority: TaskPriority.high,
+    );
+
+    // Override tasksStreamProvider so that 'Failing Area' throws permission-denied error
+    final failingOverrideApp = ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        authRepositoryProvider.overrideWithValue(fakeAuth),
+        workspaceRepositoryProvider.overrideWithValue(fakeWorkspace),
+        taskRepositoryProvider.overrideWithValue(fakeTask),
+        sprintRepositoryProvider.overrideWithValue(fakeSprint),
+        noteRepositoryProvider.overrideWithValue(fakeNote),
+        teamRepositoryProvider.overrideWithValue(fakeTeam),
+        tasksStreamProvider.overrideWith((ref, workspaceId) {
+          if (workspaceId != ws1.id) {
+            return Stream.error('Erişim reddedildi. Yetkiniz bulunmuyor.');
+          }
+          return ref
+              .watch(taskRepositoryProvider)
+              .watchTasks(workspaceId: workspaceId, ownerId: testUser.id)
+              .map((r) =>
+                  r.isSuccess ? (r as Success<List<TaskModel>>).value : []);
+        }),
+      ],
+      child: const TaskMapFlowApp(
+        firebaseReady: true,
+        locale: Locale('tr'),
+      ),
+    );
+
+    await tester.pumpWidget(failingOverrideApp);
+    await tester.pumpAndSettle();
+
+    // Switch to Overview
+    await tester.tap(find.text('Genel Bakış'));
+    await tester.pumpAndSettle();
+
+    // Should NOT show a full screen error! Should show the accessible workspace tasks
+    expect(find.text('Günlük Çalışma Özeti'), findsOneWidget);
+    expect(find.text('Stable Task'), findsOneWidget);
+
+    // Should show the partial failed warning banner with retry button
+    expect(find.text('1 alanın görevleri yüklenemedi.'), findsOneWidget);
+    expect(find.text('Yeniden dene'), findsOneWidget);
   });
 }

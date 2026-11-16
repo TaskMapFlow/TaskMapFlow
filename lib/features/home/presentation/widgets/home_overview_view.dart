@@ -84,6 +84,9 @@ class _HomeOverviewViewState extends ConsumerState<HomeOverviewView> {
               OutlinedButton(
                 onPressed: () {
                   ref.invalidate(workspacesStreamProvider);
+                  for (final ws in summary.failedWorkspaces) {
+                    ref.invalidate(tasksStreamProvider(ws.id));
+                  }
                 },
                 child: Text(l10n.retry),
               ),
@@ -105,6 +108,9 @@ class _HomeOverviewViewState extends ConsumerState<HomeOverviewView> {
       color: purple,
       onRefresh: () async {
         ref.invalidate(workspacesStreamProvider);
+        for (final ws in summary.failedWorkspaces) {
+          ref.invalidate(tasksStreamProvider(ws.id));
+        }
       },
       child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
@@ -143,6 +149,95 @@ class _HomeOverviewViewState extends ConsumerState<HomeOverviewView> {
             ],
           ),
           const SizedBox(height: 16),
+
+          // Warning for workspaces that failed to load
+          if (summary.failedWorkspaces.isNotEmpty) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color:
+                    Theme.of(context).colorScheme.error.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .error
+                      .withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      l10n.partialFailedAreasWarning(
+                          summary.failedWorkspaces.length),
+                      style: TextStyle(
+                        color: textPrimary,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  TextButton.icon(
+                    style: TextButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                      foregroundColor: purple,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                    ),
+                    icon: const Icon(Icons.refresh_rounded, size: 14),
+                    label:
+                        Text(l10n.retry, style: const TextStyle(fontSize: 12)),
+                    onPressed: () {
+                      for (final ws in summary.failedWorkspaces) {
+                        ref.invalidate(tasksStreamProvider(ws.id));
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+          ],
+
+          // Notice if summary is capped at 25 active workspaces
+          if (summary.isPartial) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: purple.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: purple.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline_rounded, size: 16, color: purple),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      l10n.partialSummaryNotice(
+                        summary.activeWorkspaces.length,
+                        summary.totalActiveWorkspacesCount,
+                      ),
+                      style: TextStyle(
+                        color: textSecondary,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+          ],
 
           // 1. Overdue Tasks Section (Gecikmiş)
           if (summary.overdueTasks.isNotEmpty) ...[

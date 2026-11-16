@@ -638,5 +638,20 @@
   "allClearTitle": "Her şey yolunda!",
   "@allClearTitle": {"description": "Tüm görevler tamam veya beklemede yok başlığı"},
   "allClearSubtitle": "Bugün veya geciken bekleyen görev bulunmuyor.",
-  "@allClearSubtitle": {"description": "Bekleyen acil görev yok açıklaması"}
+  "@allClearSubtitle": {"description": "Bekleyen acil görev yok açıklaması"},
+  "partialSummaryNotice": "Özet en son {count} aktif alanınızı gösterir (toplam {total} alan).",
+  "@partialSummaryNotice": {
+    "description": "Özet sınırlı sayıda alanı kapsadığında uyarı",
+    "placeholders": {
+      "count": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "partialFailedAreasWarning": "{count} alanın görevleri yüklenemedi.",
+  "@partialFailedAreasWarning": {
+    "description": "Bazı alanların görevleri yüklenemediğinde uyarı",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  }
 }

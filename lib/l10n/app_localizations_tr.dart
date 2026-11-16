@@ -956,4 +956,14 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get allClearSubtitle =>
       'Bugün veya geciken bekleyen görev bulunmuyor.';
+
+  @override
+  String partialSummaryNotice(int count, int total) {
+    return 'Özet en son $count aktif alanınızı gösterir (toplam $total alan).';
+  }
+
+  @override
+  String partialFailedAreasWarning(int count) {
+    return '$count alanın görevleri yüklenemedi.';
+  }
 }

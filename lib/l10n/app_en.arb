@@ -638,5 +638,20 @@
   "allClearTitle": "All clear!",
   "@allClearTitle": {"description": "All clear title"},
   "allClearSubtitle": "No overdue or due today tasks pending.",
-  "@allClearSubtitle": {"description": "No urgent tasks pending subtitle"}
+  "@allClearSubtitle": {"description": "No urgent tasks pending subtitle"},
+  "partialSummaryNotice": "Summary reflects your {count} most recent active areas ({total} total).",
+  "@partialSummaryNotice": {
+    "description": "Notice when summary shows limited workspaces",
+    "placeholders": {
+      "count": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "partialFailedAreasWarning": "Could not load tasks for {count} area(s).",
+  "@partialFailedAreasWarning": {
+    "description": "Warning when some areas could not load tasks",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  }
 }
