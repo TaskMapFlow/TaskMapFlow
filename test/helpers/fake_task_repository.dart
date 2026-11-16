@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:task_map_flow/core/result/result.dart';
+import 'package:task_map_flow/features/tasks/domain/models/subtask_model.dart';
 import 'package:task_map_flow/features/tasks/domain/models/task_model.dart';
 import 'package:task_map_flow/features/tasks/domain/models/task_priority.dart';
 import 'package:task_map_flow/features/tasks/domain/models/task_status.dart';
@@ -58,6 +59,8 @@ class FakeTaskRepository implements TaskRepository {
     TaskStatus status = TaskStatus.todo,
     TaskPriority priority = TaskPriority.medium,
     DateTime? dueDate,
+    String? sprintId,
+    List<SubtaskModel> subtasks = const [],
   }) async {
     final now = DateTime.now();
     final task = TaskModel(
@@ -69,6 +72,8 @@ class FakeTaskRepository implements TaskRepository {
       status: status,
       priority: priority,
       dueDate: dueDate,
+      sprintId: sprintId,
+      subtasks: subtasks,
       createdAt: now,
       updatedAt: now,
     );
@@ -87,6 +92,8 @@ class FakeTaskRepository implements TaskRepository {
     required TaskStatus status,
     required TaskPriority priority,
     DateTime? dueDate,
+    String? sprintId,
+    List<SubtaskModel>? subtasks,
   }) async {
     final list = _tasksByWorkspace[workspaceId];
     if (list != null) {
@@ -98,6 +105,8 @@ class FakeTaskRepository implements TaskRepository {
           status: status,
           priority: priority,
           dueDate: () => dueDate,
+          sprintId: () => sprintId,
+          subtasks: subtasks ?? list[index].subtasks,
           updatedAt: DateTime.now(),
         );
         _emit(workspaceId);
@@ -122,6 +131,122 @@ class FakeTaskRepository implements TaskRepository {
         );
         _emit(workspaceId);
       }
+    }
+    return const Success(null);
+  }
+
+  @override
+  Future<Result<void>> toggleSubtask({
+    required String workspaceId,
+    required String taskId,
+    required String subtaskId,
+    required bool isCompleted,
+  }) async {
+    final list = _tasksByWorkspace[workspaceId];
+    if (list != null) {
+      final index = list.indexWhere((t) => t.id == taskId);
+      if (index != -1) {
+        final current = list[index];
+        final updatedSubtasks = current.subtasks.map((s) {
+          if (s.id == subtaskId) return s.copyWith(isCompleted: isCompleted);
+          return s;
+        }).toList();
+        list[index] = current.copyWith(
+          subtasks: updatedSubtasks,
+          updatedAt: DateTime.now(),
+        );
+        _emit(workspaceId);
+      }
+    }
+    return const Success(null);
+  }
+
+  @override
+  Future<Result<void>> addSubtask({
+    required String workspaceId,
+    required String taskId,
+    required String title,
+  }) async {
+    final list = _tasksByWorkspace[workspaceId];
+    if (list != null) {
+      final index = list.indexWhere((t) => t.id == taskId);
+      if (index != -1) {
+        final current = list[index];
+        final newSubtask = SubtaskModel(
+          id: 'subtask_${DateTime.now().microsecondsSinceEpoch}',
+          title: title.trim(),
+          isCompleted: false,
+        );
+        list[index] = current.copyWith(
+          subtasks: [...current.subtasks, newSubtask],
+          updatedAt: DateTime.now(),
+        );
+        _emit(workspaceId);
+      }
+    }
+    return const Success(null);
+  }
+
+  @override
+  Future<Result<void>> deleteSubtask({
+    required String workspaceId,
+    required String taskId,
+    required String subtaskId,
+  }) async {
+    final list = _tasksByWorkspace[workspaceId];
+    if (list != null) {
+      final index = list.indexWhere((t) => t.id == taskId);
+      if (index != -1) {
+        final current = list[index];
+        list[index] = current.copyWith(
+          subtasks: current.subtasks.where((s) => s.id != subtaskId).toList(),
+          updatedAt: DateTime.now(),
+        );
+        _emit(workspaceId);
+      }
+    }
+    return const Success(null);
+  }
+
+  @override
+  Future<Result<void>> assignTaskToSprint({
+    required String workspaceId,
+    required String taskId,
+    required String? sprintId,
+  }) async {
+    final list = _tasksByWorkspace[workspaceId];
+    if (list != null) {
+      final index = list.indexWhere((t) => t.id == taskId);
+      if (index != -1) {
+        list[index] = list[index].copyWith(
+          sprintId: () => sprintId,
+          updatedAt: DateTime.now(),
+        );
+        _emit(workspaceId);
+      }
+    }
+    return const Success(null);
+  }
+
+  @override
+  Future<Result<void>> moveTasksToBacklog({
+    required String workspaceId,
+    List<String>? taskIds,
+    String? sprintId,
+  }) async {
+    final list = _tasksByWorkspace[workspaceId];
+    if (list != null) {
+      for (var i = 0; i < list.length; i++) {
+        final shouldMove = (taskIds != null && taskIds.contains(list[i].id)) ||
+            (sprintId != null && list[i].sprintId == sprintId);
+        if (shouldMove) {
+          list[i] = list[i].copyWith(
+            sprintId: () => null,
+            updatedAt: DateTime.now(),
+          );
+        }
+      }
+      _emit(workspaceId);
     }
     return const Success(null);
   }

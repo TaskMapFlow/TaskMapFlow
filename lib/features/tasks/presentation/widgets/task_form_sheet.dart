@@ -4,9 +4,11 @@ import 'package:intl/intl.dart';
 import 'package:task_map_flow/app/theme.dart';
 import 'package:task_map_flow/core/extensions/context_extensions.dart';
 import 'package:task_map_flow/core/result/result.dart';
+import 'package:task_map_flow/features/tasks/domain/models/subtask_model.dart';
 import 'package:task_map_flow/features/tasks/domain/models/task_model.dart';
 import 'package:task_map_flow/features/tasks/domain/models/task_priority.dart';
 import 'package:task_map_flow/features/tasks/domain/models/task_status.dart';
+import 'package:task_map_flow/features/tasks/presentation/providers/sprint_providers.dart';
 import 'package:task_map_flow/features/tasks/presentation/providers/task_providers.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/workspace.dart';
 import 'package:task_map_flow/features/workspaces/presentation/providers/workspace_providers.dart';
@@ -49,9 +51,12 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _titleController;
   late TextEditingController _descController;
+  late TextEditingController _subtaskInputController;
   late TaskStatus _selectedStatus;
   late TaskPriority _selectedPriority;
   DateTime? _selectedDueDate;
+  String? _selectedSprintId;
+  List<SubtaskModel> _subtasks = [];
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -64,15 +69,19 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
     final task = widget.initialTask;
     _titleController = TextEditingController(text: task?.title ?? '');
     _descController = TextEditingController(text: task?.description ?? '');
+    _subtaskInputController = TextEditingController();
     _selectedStatus = task?.status ?? TaskStatus.todo;
     _selectedPriority = task?.priority ?? TaskPriority.medium;
     _selectedDueDate = task?.dueDate;
+    _selectedSprintId = task?.sprintId;
+    _subtasks = List.of(task?.subtasks ?? const []);
   }
 
   @override
   void dispose() {
     _titleController.dispose();
     _descController.dispose();
+    _subtaskInputController.dispose();
     super.dispose();
   }
 
@@ -91,6 +100,78 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
         _selectedDueDate = DateTime.utc(picked.year, picked.month, picked.day);
       });
     }
+  }
+
+  Future<void> _addSubtask() async {
+    final title = _subtaskInputController.text.trim();
+    if (title.isEmpty) return;
+    if (_subtasks.length >= 20) {
+      setState(() {
+        _errorMessage = context.l10n.subtaskLimitReached;
+      });
+      return;
+    }
+
+    _subtaskInputController.clear();
+
+    if (_isEditing) {
+      final res = await ref.read(taskControllerProvider.notifier).addSubtask(
+            workspaceId: widget.workspaceId,
+            taskId: widget.initialTask!.id,
+            title: title,
+          );
+      if (res case Success()) {
+        setState(() {
+          _subtasks.add(
+            SubtaskModel(
+              id: DateTime.now().millisecondsSinceEpoch.toString(),
+              title: title,
+              isCompleted: false,
+            ),
+          );
+        });
+      }
+    } else {
+      setState(() {
+        _subtasks.add(
+          SubtaskModel(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            title: title,
+            isCompleted: false,
+          ),
+        );
+      });
+    }
+  }
+
+  Future<void> _toggleSubtask(SubtaskModel subtask, bool isCompleted) async {
+    if (_isEditing) {
+      await ref.read(taskControllerProvider.notifier).toggleSubtask(
+            workspaceId: widget.workspaceId,
+            taskId: widget.initialTask!.id,
+            subtaskId: subtask.id,
+            isCompleted: isCompleted,
+          );
+    }
+    setState(() {
+      final index = _subtasks.indexWhere((s) => s.id == subtask.id);
+      if (index != -1) {
+        _subtasks[index] = subtask.copyWith(isCompleted: isCompleted);
+      }
+    });
+  }
+
+  Future<void> _deleteSubtask(SubtaskModel subtask) async {
+    if (_isEditing) {
+      await ref.read(taskControllerProvider.notifier).deleteSubtask(
+            workspaceId: widget.workspaceId,
+            taskId: widget.initialTask!.id,
+            subtaskId: subtask.id,
+          );
+    }
+    setState(() {
+      _subtasks.removeWhere((s) => s.id == subtask.id);
+    });
   }
 
   Future<void> _submit() async {
@@ -120,6 +201,7 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
         taskId: widget.initialTask!.id,
         title: title,
         description: description,
+        sprintId: _selectedSprintId,
         status: _selectedStatus,
         priority: _selectedPriority,
         dueDate: _selectedDueDate,
@@ -130,6 +212,8 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
         ownerId: uid,
         title: title,
         description: description,
+        sprintId: _selectedSprintId,
+        subtasks: _subtasks,
         status: _selectedStatus,
         priority: _selectedPriority,
         dueDate: _selectedDueDate,
@@ -210,6 +294,9 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
     final titlePlaceholder =
         _isLesson ? l10n.stepTitlePlaceholder : l10n.taskTitlePlaceholder;
 
+    final sprintsAsync = ref.watch(sprintsStreamProvider(widget.workspaceId));
+    final sprints = sprintsAsync.valueOrNull ?? [];
+
     return Container(
       decoration: BoxDecoration(
         color: bg,
@@ -260,13 +347,13 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
                       icon: const Icon(Icons.delete_outline_rounded),
                       color: Theme.of(context).colorScheme.error,
                       tooltip: l10n.deleteTask,
-                      onPressed: _isLoading ? null : _confirmDelete,
+                      onPressed: _confirmDelete,
                     ),
                 ],
               ),
               const SizedBox(height: 16),
 
-              // Error banner if any
+              // Error Message
               if (_errorMessage != null) ...[
                 Container(
                   padding:
@@ -277,12 +364,6 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
                         .error
                         .withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .error
-                          .withValues(alpha: 0.3),
-                    ),
                   ),
                   child: Text(
                     _errorMessage!,
@@ -292,10 +373,10 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
               ],
 
-              // Task Title Input
+              // Task Title
               Text(
                 titleLabel,
                 style: TextStyle(
@@ -308,12 +389,18 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
               TextFormField(
                 controller: _titleController,
                 maxLength: 150,
-                style: TextStyle(color: textPrimary, fontSize: 14),
+                style: TextStyle(color: textPrimary, fontSize: 15),
+                validator: (val) {
+                  if (val == null || val.trim().isEmpty) {
+                    return l10n.taskTitleRequired;
+                  }
+                  return null;
+                },
                 decoration: InputDecoration(
                   hintText: titlePlaceholder,
                   hintStyle: TextStyle(
                       color: textSecondary.withValues(alpha: 0.6),
-                      fontSize: 13),
+                      fontSize: 14),
                   filled: true,
                   fillColor: inputBg,
                   counterText: '',
@@ -332,16 +419,10 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
                     borderSide: BorderSide(color: purple, width: 1.5),
                   ),
                 ),
-                validator: (val) {
-                  if (val == null || val.trim().isEmpty) {
-                    return l10n.taskTitleRequired;
-                  }
-                  return null;
-                },
               ),
               const SizedBox(height: 14),
 
-              // Description Input
+              // Task Description
               Text(
                 l10n.taskDescription,
                 style: TextStyle(
@@ -509,7 +590,146 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
                   ],
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 14),
+
+              // Sprint Selector
+              if (sprints.isNotEmpty) ...[
+                Text(
+                  'Sprint / Backlog',
+                  style: TextStyle(
+                    color: textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    color: inputBg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: inputBorder),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String?>(
+                      value: _selectedSprintId,
+                      isExpanded: true,
+                      dropdownColor: bg,
+                      style: TextStyle(color: textPrimary, fontSize: 14),
+                      items: [
+                        DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text(
+                            l10n.viewBacklog,
+                            style: TextStyle(color: textPrimary),
+                          ),
+                        ),
+                        for (final sp in sprints)
+                          DropdownMenuItem<String?>(
+                            value: sp.id,
+                            child: Text(
+                              '${sp.name} (${sp.status.toFirestoreString()})',
+                              style: TextStyle(color: textPrimary),
+                            ),
+                          ),
+                      ],
+                      onChanged: (val) {
+                        setState(() => _selectedSprintId = val);
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+              ],
+
+              // Subtasks Section
+              if (_isEditing) ...[
+                Text(
+                  '${l10n.subtasksTitle} (${_subtasks.length}/20)',
+                  style: TextStyle(
+                    color: textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                // List of subtasks
+                for (final subtask in _subtasks)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Row(
+                      children: [
+                        Checkbox(
+                          value: subtask.isCompleted,
+                          activeColor: purple,
+                          onChanged: (val) {
+                            if (val != null) _toggleSubtask(subtask, val);
+                          },
+                        ),
+                        Expanded(
+                          child: Text(
+                            subtask.title,
+                            style: TextStyle(
+                              color: subtask.isCompleted
+                                  ? textSecondary
+                                  : textPrimary,
+                              fontSize: 13,
+                              decoration: subtask.isCompleted
+                                  ? TextDecoration.lineThrough
+                                  : null,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close_rounded, size: 16),
+                          color: textSecondary,
+                          onPressed: () => _deleteSubtask(subtask),
+                        ),
+                      ],
+                    ),
+                  ),
+                // Add subtask input field
+                if (_subtasks.length < 20)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _subtaskInputController,
+                          maxLength: 100,
+                          style: TextStyle(color: textPrimary, fontSize: 13),
+                          decoration: InputDecoration(
+                            hintText: l10n.addSubtask,
+                            hintStyle: TextStyle(
+                              color: textSecondary.withValues(alpha: 0.6),
+                              fontSize: 12,
+                            ),
+                            counterText: '',
+                            filled: true,
+                            fillColor: inputBg,
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(color: inputBorder),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(color: inputBorder),
+                            ),
+                          ),
+                          onSubmitted: (_) => _addSubtask(),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.add_circle_outline_rounded),
+                        color: purple,
+                        onPressed: _addSubtask,
+                      ),
+                    ],
+                  ),
+                const SizedBox(height: 14),
+              ],
 
               // Submit Button
               FilledButton(
@@ -562,27 +782,35 @@ class _StatusChip extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final purple =
         isDark ? AppColors.darkPrimaryPurple : AppColors.lightPrimaryPurple;
-    final textSecondary =
-        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final border = isDark ? const Color(0xFF2E2B3E) : const Color(0xFFDFDDE8);
 
-    return ChoiceChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (_) => onTap(),
-      labelStyle: TextStyle(
-        color: isSelected ? Colors.white : textSecondary,
-        fontSize: 12,
-        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+    return InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color:
+              isSelected ? purple.withValues(alpha: 0.15) : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected ? purple : border,
+            width: isSelected ? 1.5 : 1.0,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected
+                ? purple
+                : (isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.lightTextSecondary),
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+          ),
+        ),
       ),
-      selectedColor: purple,
-      backgroundColor:
-          isDark ? const Color(0xFF1E1C2B) : const Color(0xFFF1F0F7),
-      side: BorderSide(
-        color: isSelected
-            ? purple
-            : (isDark ? const Color(0xFF2C293C) : const Color(0xFFDFDDE8)),
-      ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
     );
   }
 }
@@ -603,27 +831,49 @@ class _PriorityChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textSecondary =
-        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final border = isDark ? const Color(0xFF2E2B3E) : const Color(0xFFDFDDE8);
 
-    return ChoiceChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (_) => onTap(),
-      labelStyle: TextStyle(
-        color: isSelected ? Colors.white : textSecondary,
-        fontSize: 12,
-        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+    return InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color:
+              isSelected ? color.withValues(alpha: 0.15) : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected ? color : border,
+            width: isSelected ? 1.5 : 1.0,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected
+                    ? color
+                    : (isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.lightTextSecondary),
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
-      selectedColor: color,
-      backgroundColor:
-          isDark ? const Color(0xFF1E1C2B) : const Color(0xFFF1F0F7),
-      side: BorderSide(
-        color: isSelected
-            ? color
-            : (isDark ? const Color(0xFF2C293C) : const Color(0xFFDFDDE8)),
-      ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
     );
   }
 }

@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_map_flow/app/theme.dart';
+import 'package:task_map_flow/core/extensions/context_extensions.dart';
+import 'package:task_map_flow/core/result/result.dart';
 import 'package:task_map_flow/features/tasks/presentation/providers/task_providers.dart';
+import 'package:task_map_flow/features/workspaces/domain/models/map_connection.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/map_node.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/workspace.dart';
+import 'package:task_map_flow/features/workspaces/presentation/providers/map_connection_providers.dart';
 import 'package:task_map_flow/features/workspaces/presentation/providers/workspace_providers.dart';
 
 class WorkspaceBoxWidget extends ConsumerStatefulWidget {
@@ -73,11 +77,186 @@ class _WorkspaceBoxWidgetState extends ConsumerState<WorkspaceBoxWidget> {
         );
   }
 
+  Future<void> _handleConnect(
+    BuildContext context,
+    String sourceId,
+    String targetId,
+  ) async {
+    final l10n = context.l10n;
+    final uid = ref.read(currentUserIdProvider) ?? '';
+    final allWs = ref.read(workspacesStreamProvider).valueOrNull ?? [];
+    final sourceWs = allWs.firstWhere((w) => w.id == sourceId);
+    final targetWs = allWs.firstWhere((w) => w.id == targetId);
+
+    var selectedType = ConnectionType.related;
+
+    final shouldCreate = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (dCtx, setDState) {
+            return AlertDialog(
+              title: Text(l10n.connectAreas),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${sourceWs.name} ➔ ${targetWs.name}',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 16),
+                  InkWell(
+                    onTap: () =>
+                        setDState(() => selectedType = ConnectionType.related),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Row(
+                        children: [
+                          Icon(
+                            selectedType == ConnectionType.related
+                                ? Icons.radio_button_checked
+                                : Icons.radio_button_off,
+                            color: selectedType == ConnectionType.related
+                                ? AppColors.darkPrimaryPurple
+                                : null,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(l10n.connectionRelated,
+                                    style: const TextStyle(fontSize: 14)),
+                                Text(
+                                  l10n.connectionRelatedDesc,
+                                  style: const TextStyle(fontSize: 11),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  InkWell(
+                    onTap: () =>
+                        setDState(() => selectedType = ConnectionType.blocks),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Row(
+                        children: [
+                          Icon(
+                            selectedType == ConnectionType.blocks
+                                ? Icons.radio_button_checked
+                                : Icons.radio_button_off,
+                            color: selectedType == ConnectionType.blocks
+                                ? const Color(0xFFF59E0B)
+                                : null,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(l10n.connectionBlocks,
+                                    style: const TextStyle(fontSize: 14)),
+                                Text(
+                                  l10n.connectionBlocksDesc,
+                                  style: const TextStyle(fontSize: 11),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: Text(l10n.cancel),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  child: Text(l10n.connectAreas),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    // Reset connecting mode
+    ref.read(isConnectingModeProvider.notifier).state = false;
+    ref.read(connectingSourceWorkspaceIdProvider.notifier).state = null;
+
+    if (shouldCreate == true && context.mounted) {
+      final result = await ref
+          .read(mapConnectionControllerProvider.notifier)
+          .createConnection(
+            ownerId: uid,
+            sourceWorkspaceId: sourceId,
+            targetWorkspaceId: targetId,
+            type: selectedType,
+          );
+
+      if (context.mounted) {
+        if (result case Err(:final failure)) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(failure.message),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accentColor = _parseHex(widget.workspace.color);
     final stats = ref.watch(taskStatsProvider(widget.workspace.id));
+
+    final isConnectingMode = ref.watch(isConnectingModeProvider);
+    final connectingSourceId = ref.watch(connectingSourceWorkspaceIdProvider);
+    final isSelectedAsSource = connectingSourceId == widget.workspace.id;
+
+    // Check for blocking dependencies: target == this workspace, type == blocks
+    final connections =
+        ref.watch(mapConnectionsStreamProvider).valueOrNull ?? [];
+    final incomingBlocks = connections
+        .where((c) =>
+            c.targetWorkspaceId == widget.workspace.id &&
+            c.type == ConnectionType.blocks)
+        .toList();
+
+    String? blockingWorkspaceName;
+    for (final conn in incomingBlocks) {
+      final sourceStats = ref.watch(taskStatsProvider(conn.sourceWorkspaceId));
+      // Completed criterion: has >= 1 task and all completed
+      final isSourceCompleted =
+          sourceStats.total > 0 && sourceStats.completed == sourceStats.total;
+      if (!isSourceCompleted) {
+        final allWs = ref.watch(workspacesStreamProvider).valueOrNull ?? [];
+        for (final w in allWs) {
+          if (w.id == conn.sourceWorkspaceId) {
+            blockingWorkspaceName = w.name;
+            break;
+          }
+        }
+        if (blockingWorkspaceName != null) break;
+      }
+    }
 
     final bg = isDark
         ? const Color(0xFF161520).withValues(alpha: 0.95)
@@ -99,13 +278,29 @@ class _WorkspaceBoxWidgetState extends ConsumerState<WorkspaceBoxWidget> {
       width: _width,
       height: _height,
       child: GestureDetector(
-        onTap: widget.isEditMode ? null : widget.onTap,
-        onPanStart: widget.isEditMode
+        onTap: () {
+          if (isConnectingMode) {
+            if (connectingSourceId == null) {
+              ref.read(connectingSourceWorkspaceIdProvider.notifier).state =
+                  widget.workspace.id;
+            } else if (connectingSourceId == widget.workspace.id) {
+              ref.read(connectingSourceWorkspaceIdProvider.notifier).state =
+                  null;
+            } else {
+              _handleConnect(context, connectingSourceId, widget.workspace.id);
+            }
+            return;
+          }
+          if (!widget.isEditMode) {
+            widget.onTap();
+          }
+        },
+        onPanStart: (widget.isEditMode && !isConnectingMode)
             ? (details) {
                 setState(() => _isDragging = true);
               }
             : null,
-        onPanUpdate: widget.isEditMode
+        onPanUpdate: (widget.isEditMode && !isConnectingMode)
             ? (details) {
                 setState(() {
                   _posX += details.delta.dx;
@@ -115,7 +310,7 @@ class _WorkspaceBoxWidgetState extends ConsumerState<WorkspaceBoxWidget> {
                 });
               }
             : null,
-        onPanEnd: widget.isEditMode
+        onPanEnd: (widget.isEditMode && !isConnectingMode)
             ? (details) {
                 setState(() => _isDragging = false);
                 _saveLayout();
@@ -129,19 +324,27 @@ class _WorkspaceBoxWidgetState extends ConsumerState<WorkspaceBoxWidget> {
                 color: bg,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: widget.isEditMode
-                      ? accentColor
-                      : (isDark
-                          ? const Color(0xFF2C293C)
-                          : const Color(0xFFE2E0EE)),
-                  width: widget.isEditMode ? 2.0 : 1.2,
+                  color: isSelectedAsSource
+                      ? AppColors.darkPrimaryPurple
+                      : (widget.isEditMode
+                          ? accentColor
+                          : (isDark
+                              ? const Color(0xFF2C293C)
+                              : const Color(0xFFE2E0EE))),
+                  width: isSelectedAsSource
+                      ? 3.0
+                      : (widget.isEditMode ? 2.0 : 1.2),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: accentColor.withValues(
-                        alpha: widget.isEditMode ? 0.25 : 0.08),
-                    blurRadius: widget.isEditMode ? 14 : 8,
-                    spreadRadius: widget.isEditMode ? 2 : 0,
+                    color: isSelectedAsSource
+                        ? AppColors.darkPrimaryPurple.withValues(alpha: 0.4)
+                        : accentColor.withValues(
+                            alpha: widget.isEditMode ? 0.25 : 0.08),
+                    blurRadius:
+                        isSelectedAsSource ? 16 : (widget.isEditMode ? 14 : 8),
+                    spreadRadius:
+                        isSelectedAsSource ? 3 : (widget.isEditMode ? 2 : 0),
                     offset: const Offset(0, 4),
                   ),
                 ],
@@ -247,8 +450,58 @@ class _WorkspaceBoxWidgetState extends ConsumerState<WorkspaceBoxWidget> {
                 ),
               ),
             ),
+
+            // Dependency Warning Badge (if blocked by incomplete workspace)
+            if (blockingWorkspaceName != null)
+              Positioned(
+                top: -10,
+                left: 10,
+                right: 10,
+                child: Center(
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF59E0B),
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.25),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.warning_amber_rounded,
+                          size: 12,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            l10n.blockedByDependencyWarning(
+                                blockingWorkspaceName),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
             // Resize handle in edit mode (bottom-right)
-            if (widget.isEditMode)
+            if (widget.isEditMode && !isConnectingMode)
               Positioned(
                 right: -8,
                 bottom: -8,

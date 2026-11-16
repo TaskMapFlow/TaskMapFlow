@@ -449,4 +449,147 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get taskTitleRequired => 'Please enter a task title';
+
+  @override
+  String get viewTasks => 'Tasks';
+
+  @override
+  String get viewBacklog => 'Backlog';
+
+  @override
+  String get viewSprints => 'Sprints';
+
+  @override
+  String get createSprint => 'Create Sprint';
+
+  @override
+  String get editSprint => 'Edit Sprint';
+
+  @override
+  String get sprintName => 'Sprint Name';
+
+  @override
+  String get sprintGoal => 'Sprint Goal (optional)';
+
+  @override
+  String get startDate => 'Start Date';
+
+  @override
+  String get endDate => 'End Date';
+
+  @override
+  String get sprintStatusPlanned => 'Planned';
+
+  @override
+  String get sprintStatusActive => 'Active';
+
+  @override
+  String get sprintStatusCompleted => 'Completed';
+
+  @override
+  String get startSprint => 'Start Sprint';
+
+  @override
+  String get completeSprint => 'Complete Sprint';
+
+  @override
+  String get deleteSprint => 'Delete Sprint';
+
+  @override
+  String get assignToSprint => 'Assign to Sprint';
+
+  @override
+  String get moveToBacklog => 'Move to Backlog';
+
+  @override
+  String get noSprintsYet => 'No sprints yet';
+
+  @override
+  String get noSprintsSubtitle =>
+      'Create a sprint to group your tasks into time periods.';
+
+  @override
+  String get noBacklogTasks => 'No tasks in Backlog';
+
+  @override
+  String get noBacklogTasksSubtitle =>
+      'All tasks not assigned to a sprint will appear here.';
+
+  @override
+  String get dateOrderError => 'End date cannot be earlier than start date.';
+
+  @override
+  String get completeSprintConfirmTitle => 'Complete Sprint';
+
+  @override
+  String completeSprintPrompt(int count) {
+    return 'There are $count incomplete tasks. What would you like to do with them?';
+  }
+
+  @override
+  String get moveIncompleteToBacklog => 'Move to Backlog';
+
+  @override
+  String get keepInSprint => 'Keep in Sprint';
+
+  @override
+  String deleteSprintWithTasksConfirm(int count) {
+    return 'This sprint contains $count tasks. What would you like to do?';
+  }
+
+  @override
+  String get moveTasksToBacklogAndDelete => 'Move to Backlog & Delete';
+
+  @override
+  String get sprintActiveBadge => 'Active Sprint';
+
+  @override
+  String get subtasksTitle => 'Subtasks';
+
+  @override
+  String get addSubtask => 'Add subtask...';
+
+  @override
+  String get subtaskLimitReached => 'Maximum of 20 subtasks allowed.';
+
+  @override
+  String get connectAreas => 'Connect Areas';
+
+  @override
+  String get connectingModeHint => 'Select target area to connect';
+
+  @override
+  String get connectionType => 'Connection Type';
+
+  @override
+  String get connectionRelated => 'Related';
+
+  @override
+  String get connectionRelatedDesc => 'Both areas are connected to each other.';
+
+  @override
+  String get connectionBlocks => 'Blocks';
+
+  @override
+  String get connectionBlocksDesc =>
+      'The target area cannot start until this area is completed.';
+
+  @override
+  String get deleteConnection => 'Delete Connection';
+
+  @override
+  String get deleteConnectionConfirm =>
+      'Are you sure you want to delete this connection?';
+
+  @override
+  String blockedByDependencyWarning(String name) {
+    return 'Waiting for $name to complete';
+  }
+
+  @override
+  String get duplicateConnectionError =>
+      'A connection already exists between these two areas.';
+
+  @override
+  String get selfConnectionError => 'An area cannot be connected to itself.';
 }

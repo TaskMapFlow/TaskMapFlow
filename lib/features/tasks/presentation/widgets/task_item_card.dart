@@ -167,6 +167,38 @@ class TaskItemCard extends StatelessWidget {
                           // Priority Badge
                           _PriorityBadge(priority: task.priority),
 
+                          // Subtasks Badge
+                          if (task.subtasks.isNotEmpty)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 7, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF242232)
+                                    : const Color(0xFFEEEEF5),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.checklist_rounded,
+                                    size: 11,
+                                    color: textSecondary,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${task.completedSubtaskCount}/${task.subtasks.length}',
+                                    style: TextStyle(
+                                      color: textSecondary,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
                           // Due Date Badge
                           if (task.dueDate != null)
                             Container(

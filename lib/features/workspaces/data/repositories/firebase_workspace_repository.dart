@@ -172,6 +172,24 @@ class FirebaseWorkspaceRepository implements WorkspaceRepository {
       if (mapNodeId.isNotEmpty) {
         batch.delete(_mapNodesCol.doc(mapNodeId));
       }
+
+      // Clean up connections involving this workspace
+      final sourceMatches = await _firestore
+          .collection('map_connections')
+          .where('sourceWorkspaceId', isEqualTo: workspaceId)
+          .get();
+      for (final doc in sourceMatches.docs) {
+        batch.delete(doc.reference);
+      }
+
+      final targetMatches = await _firestore
+          .collection('map_connections')
+          .where('targetWorkspaceId', isEqualTo: workspaceId)
+          .get();
+      for (final doc in targetMatches.docs) {
+        batch.delete(doc.reference);
+      }
+
       await batch.commit();
       return const Success(null);
     } catch (e) {

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:task_map_flow/features/tasks/domain/models/subtask_model.dart';
 import 'package:task_map_flow/features/tasks/domain/models/task_priority.dart';
 import 'package:task_map_flow/features/tasks/domain/models/task_status.dart';
 
@@ -12,6 +13,8 @@ class TaskModel extends Equatable {
     this.status = TaskStatus.todo,
     this.priority = TaskPriority.medium,
     this.dueDate,
+    this.sprintId,
+    this.subtasks = const [],
     required this.createdAt,
     required this.updatedAt,
   });
@@ -24,8 +27,14 @@ class TaskModel extends Equatable {
   final TaskStatus status;
   final TaskPriority priority;
   final DateTime? dueDate;
+  final String? sprintId;
+  final List<SubtaskModel> subtasks;
   final DateTime createdAt;
   final DateTime updatedAt;
+
+  bool get isBacklog => sprintId == null || sprintId!.isEmpty;
+
+  int get completedSubtaskCount => subtasks.where((s) => s.isCompleted).length;
 
   bool get isOverdue {
     if (status == TaskStatus.completed || dueDate == null) return false;
@@ -44,6 +53,8 @@ class TaskModel extends Equatable {
     TaskStatus? status,
     TaskPriority? priority,
     DateTime? Function()? dueDate,
+    String? Function()? sprintId,
+    List<SubtaskModel>? subtasks,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -56,6 +67,8 @@ class TaskModel extends Equatable {
       status: status ?? this.status,
       priority: priority ?? this.priority,
       dueDate: dueDate != null ? dueDate() : this.dueDate,
+      sprintId: sprintId != null ? sprintId() : this.sprintId,
+      subtasks: subtasks ?? this.subtasks,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -71,6 +84,8 @@ class TaskModel extends Equatable {
         status,
         priority,
         dueDate,
+        sprintId,
+        subtasks,
         createdAt,
         updatedAt,
       ];

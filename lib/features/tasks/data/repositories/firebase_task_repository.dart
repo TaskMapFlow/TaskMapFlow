@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:task_map_flow/core/errors/failure.dart';
 import 'package:task_map_flow/core/result/result.dart';
 import 'package:task_map_flow/features/tasks/data/models/task_dto.dart';
+import 'package:task_map_flow/features/tasks/domain/models/subtask_model.dart';
 import 'package:task_map_flow/features/tasks/domain/models/task_model.dart';
 import 'package:task_map_flow/features/tasks/domain/models/task_priority.dart';
 import 'package:task_map_flow/features/tasks/domain/models/task_status.dart';
@@ -68,6 +69,8 @@ class FirebaseTaskRepository implements TaskRepository {
     TaskStatus status = TaskStatus.todo,
     TaskPriority priority = TaskPriority.medium,
     DateTime? dueDate,
+    String? sprintId,
+    List<SubtaskModel> subtasks = const [],
   }) async {
     try {
       final now = DateTime.now();
@@ -84,6 +87,8 @@ class FirebaseTaskRepository implements TaskRepository {
         dueDate: dueDate != null
             ? DateTime.utc(dueDate.year, dueDate.month, dueDate.day)
             : null,
+        sprintId: (sprintId != null && sprintId.isNotEmpty) ? sprintId : null,
+        subtasks: subtasks,
         createdAt: now,
         updatedAt: now,
       );
@@ -104,10 +109,12 @@ class FirebaseTaskRepository implements TaskRepository {
     required TaskStatus status,
     required TaskPriority priority,
     DateTime? dueDate,
+    String? sprintId,
+    List<SubtaskModel>? subtasks,
   }) async {
     try {
       final now = DateTime.now();
-      await _tasksCol(workspaceId).doc(taskId).update({
+      final data = <String, dynamic>{
         'title': title.trim(),
         'description': description?.trim() ?? '',
         'status': status.toFirestoreString(),
@@ -116,8 +123,15 @@ class FirebaseTaskRepository implements TaskRepository {
             ? Timestamp.fromDate(
                 DateTime.utc(dueDate.year, dueDate.month, dueDate.day))
             : null,
+        'sprintId': (sprintId != null && sprintId.isNotEmpty) ? sprintId : null,
         'updatedAt': Timestamp.fromDate(now),
-      });
+      };
+
+      if (subtasks != null) {
+        data['subtasks'] = subtasks.map((s) => s.toMap()).toList();
+      }
+
+      await _tasksCol(workspaceId).doc(taskId).update(data);
       return const Success(null);
     } catch (e) {
       return Err(_mapException(e));
@@ -136,6 +150,155 @@ class FirebaseTaskRepository implements TaskRepository {
         'status': status.toFirestoreString(),
         'updatedAt': Timestamp.fromDate(now),
       });
+      return const Success(null);
+    } catch (e) {
+      return Err(_mapException(e));
+    }
+  }
+
+  @override
+  Future<Result<void>> toggleSubtask({
+    required String workspaceId,
+    required String taskId,
+    required String subtaskId,
+    required bool isCompleted,
+  }) async {
+    try {
+      final docRef = _tasksCol(workspaceId).doc(taskId);
+      final snapshot = await docRef.get();
+      if (!snapshot.exists) {
+        return const Err(NotFoundFailure('Görev bulunamadı.'));
+      }
+      final task = TaskDto.fromFirestore(snapshot);
+      final updatedSubtasks = task.subtasks.map((s) {
+        if (s.id == subtaskId) {
+          return s.copyWith(isCompleted: isCompleted);
+        }
+        return s;
+      }).toList();
+
+      await docRef.update({
+        'subtasks': updatedSubtasks.map((s) => s.toMap()).toList(),
+        'updatedAt': Timestamp.fromDate(DateTime.now()),
+      });
+      return const Success(null);
+    } catch (e) {
+      return Err(_mapException(e));
+    }
+  }
+
+  @override
+  Future<Result<void>> addSubtask({
+    required String workspaceId,
+    required String taskId,
+    required String title,
+  }) async {
+    try {
+      final docRef = _tasksCol(workspaceId).doc(taskId);
+      final snapshot = await docRef.get();
+      if (!snapshot.exists) {
+        return const Err(NotFoundFailure('Görev bulunamadı.'));
+      }
+      final task = TaskDto.fromFirestore(snapshot);
+      if (task.subtasks.length >= 20) {
+        return const Err(
+            ValidationFailure('En fazla 20 alt görev eklenebilir.'));
+      }
+
+      final newSubtask = SubtaskModel(
+        id: 'sub_${DateTime.now().microsecondsSinceEpoch}',
+        title: title.trim(),
+        isCompleted: false,
+      );
+
+      final updatedSubtasks = [...task.subtasks, newSubtask];
+      await docRef.update({
+        'subtasks': updatedSubtasks.map((s) => s.toMap()).toList(),
+        'updatedAt': Timestamp.fromDate(DateTime.now()),
+      });
+      return const Success(null);
+    } catch (e) {
+      return Err(_mapException(e));
+    }
+  }
+
+  @override
+  Future<Result<void>> deleteSubtask({
+    required String workspaceId,
+    required String taskId,
+    required String subtaskId,
+  }) async {
+    try {
+      final docRef = _tasksCol(workspaceId).doc(taskId);
+      final snapshot = await docRef.get();
+      if (!snapshot.exists) {
+        return const Err(NotFoundFailure('Görev bulunamadı.'));
+      }
+      final task = TaskDto.fromFirestore(snapshot);
+      final updatedSubtasks =
+          task.subtasks.where((s) => s.id != subtaskId).toList();
+
+      await docRef.update({
+        'subtasks': updatedSubtasks.map((s) => s.toMap()).toList(),
+        'updatedAt': Timestamp.fromDate(DateTime.now()),
+      });
+      return const Success(null);
+    } catch (e) {
+      return Err(_mapException(e));
+    }
+  }
+
+  @override
+  Future<Result<void>> assignTaskToSprint({
+    required String workspaceId,
+    required String taskId,
+    required String? sprintId,
+  }) async {
+    try {
+      final now = DateTime.now();
+      await _tasksCol(workspaceId).doc(taskId).update({
+        'sprintId': (sprintId != null && sprintId.isNotEmpty) ? sprintId : null,
+        'updatedAt': Timestamp.fromDate(now),
+      });
+      return const Success(null);
+    } catch (e) {
+      return Err(_mapException(e));
+    }
+  }
+
+  @override
+  Future<Result<void>> moveTasksToBacklog({
+    required String workspaceId,
+    List<String>? taskIds,
+    String? sprintId,
+  }) async {
+    try {
+      final batch = _firestore.batch();
+      final now = DateTime.now();
+
+      if (taskIds != null && taskIds.isNotEmpty) {
+        for (final id in taskIds) {
+          final docRef = _tasksCol(workspaceId).doc(id);
+          batch.update(docRef, {
+            'sprintId': null,
+            'updatedAt': Timestamp.fromDate(now),
+          });
+        }
+      } else if (sprintId != null && sprintId.isNotEmpty) {
+        final matches = await _tasksCol(workspaceId)
+            .where('sprintId', isEqualTo: sprintId)
+            .get();
+        for (final doc in matches.docs) {
+          batch.update(doc.reference, {
+            'sprintId': null,
+            'updatedAt': Timestamp.fromDate(now),
+          });
+        }
+      } else {
+        return const Success(null);
+      }
+
+      await batch.commit();
       return const Success(null);
     } catch (e) {
       return Err(_mapException(e));

@@ -931,6 +931,270 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please enter a task title'**
   String get taskTitleRequired;
+
+  /// Tasks view tab
+  ///
+  /// In en, this message translates to:
+  /// **'Tasks'**
+  String get viewTasks;
+
+  /// Backlog view tab
+  ///
+  /// In en, this message translates to:
+  /// **'Backlog'**
+  String get viewBacklog;
+
+  /// Sprints view tab
+  ///
+  /// In en, this message translates to:
+  /// **'Sprints'**
+  String get viewSprints;
+
+  /// Create sprint button
+  ///
+  /// In en, this message translates to:
+  /// **'Create Sprint'**
+  String get createSprint;
+
+  /// Edit sprint button
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Sprint'**
+  String get editSprint;
+
+  /// Sprint name field
+  ///
+  /// In en, this message translates to:
+  /// **'Sprint Name'**
+  String get sprintName;
+
+  /// Sprint goal field
+  ///
+  /// In en, this message translates to:
+  /// **'Sprint Goal (optional)'**
+  String get sprintGoal;
+
+  /// Start date field
+  ///
+  /// In en, this message translates to:
+  /// **'Start Date'**
+  String get startDate;
+
+  /// End date field
+  ///
+  /// In en, this message translates to:
+  /// **'End Date'**
+  String get endDate;
+
+  /// Planned sprint status
+  ///
+  /// In en, this message translates to:
+  /// **'Planned'**
+  String get sprintStatusPlanned;
+
+  /// Active sprint status
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get sprintStatusActive;
+
+  /// Completed sprint status
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get sprintStatusCompleted;
+
+  /// Start sprint button
+  ///
+  /// In en, this message translates to:
+  /// **'Start Sprint'**
+  String get startSprint;
+
+  /// Complete sprint button
+  ///
+  /// In en, this message translates to:
+  /// **'Complete Sprint'**
+  String get completeSprint;
+
+  /// Delete sprint button
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Sprint'**
+  String get deleteSprint;
+
+  /// Assign task to sprint option
+  ///
+  /// In en, this message translates to:
+  /// **'Assign to Sprint'**
+  String get assignToSprint;
+
+  /// Move task to backlog option
+  ///
+  /// In en, this message translates to:
+  /// **'Move to Backlog'**
+  String get moveToBacklog;
+
+  /// Empty sprints state title
+  ///
+  /// In en, this message translates to:
+  /// **'No sprints yet'**
+  String get noSprintsYet;
+
+  /// Empty sprints state subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Create a sprint to group your tasks into time periods.'**
+  String get noSprintsSubtitle;
+
+  /// Empty backlog state title
+  ///
+  /// In en, this message translates to:
+  /// **'No tasks in Backlog'**
+  String get noBacklogTasks;
+
+  /// Empty backlog state subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'All tasks not assigned to a sprint will appear here.'**
+  String get noBacklogTasksSubtitle;
+
+  /// Date ordering error
+  ///
+  /// In en, this message translates to:
+  /// **'End date cannot be earlier than start date.'**
+  String get dateOrderError;
+
+  /// Complete sprint dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Complete Sprint'**
+  String get completeSprintConfirmTitle;
+
+  /// Incomplete tasks prompt on sprint complete
+  ///
+  /// In en, this message translates to:
+  /// **'There are {count} incomplete tasks. What would you like to do with them?'**
+  String completeSprintPrompt(int count);
+
+  /// Move incomplete tasks to backlog button
+  ///
+  /// In en, this message translates to:
+  /// **'Move to Backlog'**
+  String get moveIncompleteToBacklog;
+
+  /// Keep incomplete tasks in sprint button
+  ///
+  /// In en, this message translates to:
+  /// **'Keep in Sprint'**
+  String get keepInSprint;
+
+  /// Delete sprint with tasks question
+  ///
+  /// In en, this message translates to:
+  /// **'This sprint contains {count} tasks. What would you like to do?'**
+  String deleteSprintWithTasksConfirm(int count);
+
+  /// Move tasks to backlog and delete sprint button
+  ///
+  /// In en, this message translates to:
+  /// **'Move to Backlog & Delete'**
+  String get moveTasksToBacklogAndDelete;
+
+  /// Active sprint badge
+  ///
+  /// In en, this message translates to:
+  /// **'Active Sprint'**
+  String get sprintActiveBadge;
+
+  /// Subtasks title
+  ///
+  /// In en, this message translates to:
+  /// **'Subtasks'**
+  String get subtasksTitle;
+
+  /// Add subtask placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Add subtask...'**
+  String get addSubtask;
+
+  /// Subtask limit warning
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum of 20 subtasks allowed.'**
+  String get subtaskLimitReached;
+
+  /// Connect areas map button
+  ///
+  /// In en, this message translates to:
+  /// **'Connect Areas'**
+  String get connectAreas;
+
+  /// Connecting mode hint
+  ///
+  /// In en, this message translates to:
+  /// **'Select target area to connect'**
+  String get connectingModeHint;
+
+  /// Connection type title
+  ///
+  /// In en, this message translates to:
+  /// **'Connection Type'**
+  String get connectionType;
+
+  /// Related connection type
+  ///
+  /// In en, this message translates to:
+  /// **'Related'**
+  String get connectionRelated;
+
+  /// Related connection description
+  ///
+  /// In en, this message translates to:
+  /// **'Both areas are connected to each other.'**
+  String get connectionRelatedDesc;
+
+  /// Blocks connection type
+  ///
+  /// In en, this message translates to:
+  /// **'Blocks'**
+  String get connectionBlocks;
+
+  /// Blocks connection description
+  ///
+  /// In en, this message translates to:
+  /// **'The target area cannot start until this area is completed.'**
+  String get connectionBlocksDesc;
+
+  /// Delete connection button
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Connection'**
+  String get deleteConnection;
+
+  /// Delete connection confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this connection?'**
+  String get deleteConnectionConfirm;
+
+  /// Blocked by dependency warning badge
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for {name} to complete'**
+  String blockedByDependencyWarning(String name);
+
+  /// Duplicate connection error
+  ///
+  /// In en, this message translates to:
+  /// **'A connection already exists between these two areas.'**
+  String get duplicateConnectionError;
+
+  /// Self connection error
+  ///
+  /// In en, this message translates to:
+  /// **'An area cannot be connected to itself.'**
+  String get selfConnectionError;
 }
 
 class _AppLocalizationsDelegate

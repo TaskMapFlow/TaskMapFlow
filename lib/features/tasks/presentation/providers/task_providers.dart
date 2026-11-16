@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_map_flow/core/result/result.dart';
 import 'package:task_map_flow/features/tasks/data/repositories/firebase_task_repository.dart';
+import 'package:task_map_flow/features/tasks/domain/models/subtask_model.dart';
 import 'package:task_map_flow/features/tasks/domain/models/task_model.dart';
 import 'package:task_map_flow/features/tasks/domain/models/task_priority.dart';
 import 'package:task_map_flow/features/tasks/domain/models/task_status.dart';
@@ -20,6 +21,17 @@ enum TaskFilter {
         TaskFilter.completed => task.status == TaskStatus.completed,
       };
 }
+
+enum WorkspaceViewMode {
+  tasks,
+  backlog,
+  sprints,
+}
+
+final workspaceViewModeProvider =
+    StateProvider.autoDispose.family<WorkspaceViewMode, String>(
+  (ref, workspaceId) => WorkspaceViewMode.tasks,
+);
 
 final taskRepositoryProvider = Provider<TaskRepository>((ref) {
   return FirebaseTaskRepository();
@@ -116,6 +128,8 @@ class TaskController extends StateNotifier<AsyncValue<void>> {
     required String ownerId,
     required String title,
     String? description,
+    String? sprintId,
+    List<SubtaskModel> subtasks = const [],
     TaskStatus status = TaskStatus.todo,
     TaskPriority priority = TaskPriority.medium,
     DateTime? dueDate,
@@ -126,6 +140,8 @@ class TaskController extends StateNotifier<AsyncValue<void>> {
       ownerId: ownerId,
       title: title,
       description: description,
+      sprintId: sprintId,
+      subtasks: subtasks,
       status: status,
       priority: priority,
       dueDate: dueDate,
@@ -143,6 +159,7 @@ class TaskController extends StateNotifier<AsyncValue<void>> {
     required String taskId,
     required String title,
     String? description,
+    String? sprintId,
     required TaskStatus status,
     required TaskPriority priority,
     DateTime? dueDate,
@@ -153,6 +170,7 @@ class TaskController extends StateNotifier<AsyncValue<void>> {
       taskId: taskId,
       title: title,
       description: description,
+      sprintId: sprintId,
       status: status,
       priority: priority,
       dueDate: dueDate,
@@ -193,5 +211,67 @@ class TaskController extends StateNotifier<AsyncValue<void>> {
       state = AsyncError(failure.message, StackTrace.current);
     }
     return result;
+  }
+
+  Future<Result<void>> assignTaskToSprint({
+    required String workspaceId,
+    required String taskId,
+    required String? sprintId,
+  }) async {
+    return _repository.assignTaskToSprint(
+      workspaceId: workspaceId,
+      taskId: taskId,
+      sprintId: sprintId,
+    );
+  }
+
+  Future<Result<void>> moveTasksToBacklog({
+    required String workspaceId,
+    List<String>? taskIds,
+    String? sprintId,
+  }) async {
+    return _repository.moveTasksToBacklog(
+      workspaceId: workspaceId,
+      taskIds: taskIds,
+      sprintId: sprintId,
+    );
+  }
+
+  Future<Result<void>> addSubtask({
+    required String workspaceId,
+    required String taskId,
+    required String title,
+  }) async {
+    return _repository.addSubtask(
+      workspaceId: workspaceId,
+      taskId: taskId,
+      title: title,
+    );
+  }
+
+  Future<Result<void>> toggleSubtask({
+    required String workspaceId,
+    required String taskId,
+    required String subtaskId,
+    required bool isCompleted,
+  }) async {
+    return _repository.toggleSubtask(
+      workspaceId: workspaceId,
+      taskId: taskId,
+      subtaskId: subtaskId,
+      isCompleted: isCompleted,
+    );
+  }
+
+  Future<Result<void>> deleteSubtask({
+    required String workspaceId,
+    required String taskId,
+    required String subtaskId,
+  }) async {
+    return _repository.deleteSubtask(
+      workspaceId: workspaceId,
+      taskId: taskId,
+      subtaskId: subtaskId,
+    );
   }
 }

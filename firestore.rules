@@ -28,8 +28,16 @@ service cloud.firestore {
       return priority in ['low', 'medium', 'high'];
     }
 
+    function isValidSprintStatus(status) {
+      return status in ['planned', 'active', 'completed'];
+    }
+
+    function isValidConnectionType(type) {
+      return type in ['related', 'blocks'];
+    }
+
     function isValidTask(data, workspaceId, ownerId) {
-      return data.keys().hasOnly(['id', 'workspaceId', 'ownerId', 'title', 'description', 'status', 'priority', 'dueDate', 'createdAt', 'updatedAt'])
+      return data.keys().hasOnly(['id', 'workspaceId', 'ownerId', 'title', 'description', 'status', 'priority', 'dueDate', 'sprintId', 'subtasks', 'createdAt', 'updatedAt'])
         && data.id is string && data.id.size() > 0
         && data.workspaceId == workspaceId
         && data.ownerId == ownerId
@@ -38,6 +46,23 @@ service cloud.firestore {
         && isValidTaskStatus(data.status)
         && isValidTaskPriority(data.priority)
         && (data.dueDate == null || data.dueDate is timestamp)
+        && (data.sprintId == null || data.sprintId is string)
+        && (data.subtasks == null || (data.subtasks is list && data.subtasks.size() <= 20))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidSprint(data, workspaceId, ownerId) {
+      return data.keys().hasOnly(['id', 'workspaceId', 'ownerId', 'name', 'goal', 'startDate', 'endDate', 'status', 'createdAt', 'updatedAt'])
+        && data.id is string && data.id.size() > 0
+        && data.workspaceId == workspaceId
+        && data.ownerId == ownerId
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 100
+        && data.goal is string && data.goal.size() <= 500
+        && isValidSprintStatus(data.status)
+        && data.startDate is timestamp
+        && data.endDate is timestamp
+        && data.endDate >= data.startDate
         && data.createdAt is timestamp
         && data.updatedAt is timestamp;
     }
@@ -63,6 +88,18 @@ service cloud.firestore {
         && data.positionY is number
         && data.width is number && data.width >= 60 && data.width <= 1000
         && data.height is number && data.height >= 40 && data.height <= 800
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidMapConnection(data, ownerId) {
+      return data.keys().hasOnly(['id', 'ownerId', 'sourceWorkspaceId', 'targetWorkspaceId', 'type', 'createdAt', 'updatedAt'])
+        && data.id is string && data.id.size() > 0
+        && data.ownerId == ownerId
+        && data.sourceWorkspaceId is string && data.sourceWorkspaceId.size() > 0
+        && data.targetWorkspaceId is string && data.targetWorkspaceId.size() > 0
+        && data.sourceWorkspaceId != data.targetWorkspaceId
+        && isValidConnectionType(data.type)
         && data.createdAt is timestamp
         && data.updatedAt is timestamp;
     }
@@ -107,6 +144,31 @@ service cloud.firestore {
           && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
           && resource.data.ownerId == request.auth.uid;
       }
+
+      // Sprints subcollection – owner-only access
+      match /sprints/{sprintId} {
+        allow read: if isAuthenticated()
+          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+          && resource.data.ownerId == request.auth.uid;
+          
+        allow create: if isAuthenticated()
+          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+          && isValidSprint(request.resource.data, workspaceId, request.auth.uid)
+          && request.resource.data.id == sprintId;
+          
+        allow update: if isAuthenticated()
+          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+          && resource.data.ownerId == request.auth.uid
+          && request.resource.data.id == resource.data.id
+          && request.resource.data.workspaceId == workspaceId
+          && request.resource.data.ownerId == resource.data.ownerId
+          && request.resource.data.createdAt == resource.data.createdAt
+          && isValidSprint(request.resource.data, workspaceId, resource.data.ownerId);
+          
+        allow delete: if isAuthenticated()
+          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+          && resource.data.ownerId == request.auth.uid;
+      }
     }
 
     // Map Nodes collection – owner-only access, linked to user's workspace
@@ -124,6 +186,28 @@ service cloud.firestore {
         && request.resource.data.workspaceId == resource.data.workspaceId
         && request.resource.data.id == nodeId
         && isValidMapNode(request.resource.data, resource.data.ownerId);
+        
+      allow delete: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
+    }
+
+    // Map Connections collection – owner-only access, links two user workspaces
+    match /map_connections/{connId} {
+      allow read: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
+      
+      allow create: if isAuthenticated()
+        && isValidMapConnection(request.resource.data, request.auth.uid)
+        && request.resource.data.id == connId
+        && get(/databases/$(database)/documents/workspaces/$(request.resource.data.sourceWorkspaceId)).data.ownerId == request.auth.uid
+        && get(/databases/$(database)/documents/workspaces/$(request.resource.data.targetWorkspaceId)).data.ownerId == request.auth.uid;
+        
+      allow update: if isAuthenticated()
+        && resource.data.ownerId == request.auth.uid
+        && request.resource.data.ownerId == resource.data.ownerId
+        && request.resource.data.sourceWorkspaceId == resource.data.sourceWorkspaceId
+        && request.resource.data.targetWorkspaceId == resource.data.targetWorkspaceId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.id == connId
+        && isValidMapConnection(request.resource.data, resource.data.ownerId);
         
       allow delete: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
     }

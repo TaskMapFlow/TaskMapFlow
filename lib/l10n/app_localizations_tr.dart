@@ -450,4 +450,147 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get taskTitleRequired => 'Lütfen görev başlığı girin';
+
+  @override
+  String get viewTasks => 'Görevler';
+
+  @override
+  String get viewBacklog => 'Backlog';
+
+  @override
+  String get viewSprints => 'Sprintler';
+
+  @override
+  String get createSprint => 'Sprint Oluştur';
+
+  @override
+  String get editSprint => 'Sprinti Düzenle';
+
+  @override
+  String get sprintName => 'Sprint Adı';
+
+  @override
+  String get sprintGoal => 'Sprint Hedefi (isteğe bağlı)';
+
+  @override
+  String get startDate => 'Başlangıç Tarihi';
+
+  @override
+  String get endDate => 'Bitiş Tarihi';
+
+  @override
+  String get sprintStatusPlanned => 'Planlandı';
+
+  @override
+  String get sprintStatusActive => 'Aktif';
+
+  @override
+  String get sprintStatusCompleted => 'Tamamlandı';
+
+  @override
+  String get startSprint => 'Sprinti Başlat';
+
+  @override
+  String get completeSprint => 'Sprinti Bitir';
+
+  @override
+  String get deleteSprint => 'Sprinti Sil';
+
+  @override
+  String get assignToSprint => 'Sprinte Ata';
+
+  @override
+  String get moveToBacklog => 'Backlog\'a Al';
+
+  @override
+  String get noSprintsYet => 'Henüz sprint oluşturulmadı';
+
+  @override
+  String get noSprintsSubtitle =>
+      'Görevlerinizi zaman dilimlerine ayırmak için bir sprint oluşturun.';
+
+  @override
+  String get noBacklogTasks => 'Backlog\'da görev bulunmuyor';
+
+  @override
+  String get noBacklogTasksSubtitle =>
+      'Herhangi bir sprinte atanmamış tüm görevler burada listelenir.';
+
+  @override
+  String get dateOrderError => 'Bitiş tarihi başlangıç tarihinden önce olamaz.';
+
+  @override
+  String get completeSprintConfirmTitle => 'Sprinti Bitir';
+
+  @override
+  String completeSprintPrompt(int count) {
+    return 'Tamamlanmamış $count görev var. Bu görevler ne yapılsın?';
+  }
+
+  @override
+  String get moveIncompleteToBacklog => 'Backlog\'a Taşı';
+
+  @override
+  String get keepInSprint => 'Sprintte Bırak';
+
+  @override
+  String deleteSprintWithTasksConfirm(int count) {
+    return 'Bu sprintte $count görev bulunuyor. Görevler ne yapılsın?';
+  }
+
+  @override
+  String get moveTasksToBacklogAndDelete => 'Görevleri Backlog\'a Al ve Sil';
+
+  @override
+  String get sprintActiveBadge => 'Aktif Sprint';
+
+  @override
+  String get subtasksTitle => 'Alt Görevler';
+
+  @override
+  String get addSubtask => 'Alt görev ekle...';
+
+  @override
+  String get subtaskLimitReached => 'En fazla 20 alt görev eklenebilir.';
+
+  @override
+  String get connectAreas => 'Bağlantı Kur';
+
+  @override
+  String get connectingModeHint => 'Bağlamak istediğiniz hedef alanı seçin';
+
+  @override
+  String get connectionType => 'Bağlantı Türü';
+
+  @override
+  String get connectionRelated => 'İlişkili';
+
+  @override
+  String get connectionRelatedDesc => 'İki alan birbirleriyle bağlantılıdır.';
+
+  @override
+  String get connectionBlocks => 'Tamamlanmasını bekliyor';
+
+  @override
+  String get connectionBlocksDesc =>
+      'Bu alan tamamlanmadan hedef alan başlayamaz.';
+
+  @override
+  String get deleteConnection => 'Bağlantıyı Sil';
+
+  @override
+  String get deleteConnectionConfirm =>
+      'Bu bağlantıyı silmek istediğinize emin misiniz?';
+
+  @override
+  String blockedByDependencyWarning(String name) {
+    return '$name tamamlanması bekleniyor';
+  }
+
+  @override
+  String get duplicateConnectionError =>
+      'Bu iki alan arasında zaten bir bağlantı mevcut.';
+
+  @override
+  String get selfConnectionError => 'Bir alan kendisine bağlanamaz.';
 }

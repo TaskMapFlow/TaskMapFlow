@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:task_map_flow/features/tasks/domain/models/subtask_model.dart';
 import 'package:task_map_flow/features/tasks/domain/models/task_model.dart';
 import 'package:task_map_flow/features/tasks/domain/models/task_priority.dart';
 import 'package:task_map_flow/features/tasks/domain/models/task_status.dart';
@@ -16,6 +17,12 @@ class TaskDto {
         ? DateTime.utc(dueDateTime.year, dueDateTime.month, dueDateTime.day)
         : null;
 
+    final rawSubtasks = data['subtasks'] as List<dynamic>? ?? [];
+    final subtasks = rawSubtasks
+        .whereType<Map<String, dynamic>>()
+        .map(SubtaskModel.fromMap)
+        .toList();
+
     return TaskModel(
       id: doc.id,
       workspaceId: data['workspaceId'] as String? ?? '',
@@ -25,6 +32,8 @@ class TaskDto {
       status: TaskStatus.fromString(data['status'] as String? ?? ''),
       priority: TaskPriority.fromString(data['priority'] as String? ?? ''),
       dueDate: dueDate,
+      sprintId: data['sprintId'] as String?,
+      subtasks: subtasks,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
@@ -46,6 +55,8 @@ class TaskDto {
               task.dueDate!.day,
             ))
           : null,
+      'sprintId': task.sprintId,
+      'subtasks': task.subtasks.map((s) => s.toMap()).toList(),
       'createdAt': Timestamp.fromDate(task.createdAt),
       'updatedAt': Timestamp.fromDate(task.updatedAt),
     };
