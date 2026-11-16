@@ -8,6 +8,8 @@ import 'package:task_map_flow/core/result/result.dart';
 import 'package:task_map_flow/features/notes/presentation/providers/note_providers.dart';
 import 'package:task_map_flow/features/notes/presentation/widgets/note_card.dart';
 import 'package:task_map_flow/features/notes/presentation/widgets/note_form_sheet.dart';
+import 'package:task_map_flow/features/study_plan/presentation/providers/study_plan_providers.dart';
+import 'package:task_map_flow/features/study_plan/presentation/widgets/study_plan_section.dart';
 import 'package:task_map_flow/features/tasks/domain/models/sprint_model.dart';
 import 'package:task_map_flow/features/tasks/domain/models/task_model.dart';
 import 'package:task_map_flow/features/tasks/domain/models/task_status.dart';
@@ -28,6 +30,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 enum _WorkspaceDetailTab {
   work,
+  studyPlan,
   notes,
   info,
   team,
@@ -204,7 +207,7 @@ class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
     final l10n = context.l10n;
     final uid = ref.read(currentUserIdProvider) ?? '';
 
-    // Check if tasks, sprints, or notes exist in workspace
+    // Check if tasks, sprints, notes, topics, or study sessions exist in workspace
     final hasTasksResult = await ref.read(taskRepositoryProvider).hasTasks(
           workspaceId: widget.workspaceId,
           ownerId: uid,
@@ -218,6 +221,16 @@ class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
           workspaceId: widget.workspaceId,
           ownerId: uid,
         );
+    final hasTopicsResult =
+        await ref.read(studyPlanRepositoryProvider).hasTopics(
+              workspaceId: widget.workspaceId,
+              ownerId: uid,
+            );
+    final hasStudySessionsResult =
+        await ref.read(studyPlanRepositoryProvider).hasStudySessions(
+              workspaceId: widget.workspaceId,
+              ownerId: uid,
+            );
 
     if (!mounted) return;
 
@@ -235,9 +248,13 @@ class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
     final hasSprints =
         (hasSprintsResult is Success<bool>) && hasSprintsResult.value;
     final hasNotes = (hasNotesResult is Success<bool>) && hasNotesResult.value;
+    final hasTopics =
+        (hasTopicsResult is Success<bool>) && hasTopicsResult.value;
+    final hasStudySessions = (hasStudySessionsResult is Success<bool>) &&
+        hasStudySessionsResult.value;
 
-    if (hasTasks || hasSprints || hasNotes) {
-      final message = (hasSprints || hasNotes)
+    if (hasTasks || hasSprints || hasNotes || hasTopics || hasStudySessions) {
+      final message = (hasSprints || hasNotes || hasTopics || hasStudySessions)
           ? l10n.deleteAreaHasContentError
           : l10n.deleteAreaHasTasksError;
       await showDialog<void>(
@@ -714,7 +731,7 @@ class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // 3-tab segmented control: [ Çalışma | Notlar | Bilgiler ]
+                // Segmented control: [ Çalışma | Çalışma Planı (Lesson only) | Notlar | Bilgiler | Ekip ]
                 Container(
                   decoration: BoxDecoration(
                     color: cardBg,
@@ -722,10 +739,12 @@ class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
                     border: Border.all(color: cardBorder),
                   ),
                   padding: const EdgeInsets.all(4),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _TabButton(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _TabButton(
                           title: l10n.tabWork,
                           icon: Icons.checklist_rounded,
                           isSelected: _selectedTab == _WorkspaceDetailTab.work,
@@ -735,10 +754,22 @@ class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
                           onTap: () => setState(
                               () => _selectedTab = _WorkspaceDetailTab.work),
                         ),
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: _TabButton(
+                        if (workspace.type == WorkspaceType.lesson) ...[
+                          const SizedBox(width: 4),
+                          _TabButton(
+                            title: l10n.tabStudyPlan,
+                            icon: Icons.school_outlined,
+                            isSelected:
+                                _selectedTab == _WorkspaceDetailTab.studyPlan,
+                            purple: purple,
+                            textPrimary: textPrimary,
+                            textSecondary: textSecondary,
+                            onTap: () => setState(() =>
+                                _selectedTab = _WorkspaceDetailTab.studyPlan),
+                          ),
+                        ],
+                        const SizedBox(width: 4),
+                        _TabButton(
                           title: l10n.tabNotes,
                           icon: Icons.note_alt_outlined,
                           isSelected: _selectedTab == _WorkspaceDetailTab.notes,
@@ -748,10 +779,8 @@ class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
                           onTap: () => setState(
                               () => _selectedTab = _WorkspaceDetailTab.notes),
                         ),
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: _TabButton(
+                        const SizedBox(width: 4),
+                        _TabButton(
                           title: l10n.tabInfo,
                           icon: Icons.info_outline_rounded,
                           isSelected: _selectedTab == _WorkspaceDetailTab.info,
@@ -761,10 +790,8 @@ class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
                           onTap: () => setState(
                               () => _selectedTab = _WorkspaceDetailTab.info),
                         ),
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: _TabButton(
+                        const SizedBox(width: 4),
+                        _TabButton(
                           title: l10n.teamSectionTitle,
                           icon: Icons.groups_rounded,
                           isSelected: _selectedTab == _WorkspaceDetailTab.team,
@@ -774,8 +801,8 @@ class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
                           onTap: () => setState(
                               () => _selectedTab = _WorkspaceDetailTab.team),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -793,6 +820,31 @@ class _WorkspaceDetailScreenState extends ConsumerState<WorkspaceDetailScreen> {
                       inputBg: inputBg,
                       isReadOnly: workspace.isArchived,
                     ),
+                  _WorkspaceDetailTab.studyPlan =>
+                    workspace.type == WorkspaceType.lesson
+                        ? StudyPlanSection(
+                            workspace: workspace,
+                            isDark: isDark,
+                            cardBg: cardBg,
+                            cardBorder: cardBorder,
+                            textPrimary: textPrimary,
+                            textSecondary: textSecondary,
+                            purple: purple,
+                            inputBg: inputBg,
+                            isReadOnly: workspace.isArchived,
+                          )
+                        : _WorkSection(
+                            workspace: workspace,
+                            accentColor: accentColor,
+                            isDark: isDark,
+                            cardBg: cardBg,
+                            cardBorder: cardBorder,
+                            textPrimary: textPrimary,
+                            textSecondary: textSecondary,
+                            purple: purple,
+                            inputBg: inputBg,
+                            isReadOnly: workspace.isArchived,
+                          ),
                   _WorkspaceDetailTab.notes => _NotesSection(
                       workspace: workspace,
                       isDark: isDark,
@@ -1087,7 +1139,7 @@ class _SegmentTab extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
               ? (isDark ? const Color(0xFF262238) : Colors.white)
@@ -2228,7 +2280,7 @@ class _TabButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(8),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color:
               isSelected ? purple.withValues(alpha: 0.18) : Colors.transparent,
@@ -3120,7 +3172,8 @@ class _InfoSectionState extends ConsumerState<_InfoSection> {
               const SizedBox(height: 10),
               if (widget.workspace.tags.isEmpty)
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   child: Text(
                     l10n.tagPlaceholder,
                     style: TextStyle(
@@ -3230,7 +3283,8 @@ class _InfoSectionState extends ConsumerState<_InfoSection> {
               const SizedBox(height: 10),
               if (widget.workspace.resources.isEmpty)
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   child: Text(
                     l10n.noResourcesYet,
                     style: TextStyle(

@@ -1897,6 +1897,288 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not load tasks for {count} area(s).'**
   String partialFailedAreasWarning(int count);
+
+  /// Workspace detail tab: Study Plan
+  ///
+  /// In en, this message translates to:
+  /// **'Study Plan'**
+  String get tabStudyPlan;
+
+  /// Topics header
+  ///
+  /// In en, this message translates to:
+  /// **'Topics'**
+  String get topicsTitle;
+
+  /// Study sessions header
+  ///
+  /// In en, this message translates to:
+  /// **'Study Sessions'**
+  String get studySessionsTitle;
+
+  /// Topic progress header
+  ///
+  /// In en, this message translates to:
+  /// **'Topic Progress'**
+  String get topicProgress;
+
+  /// Completed topics count and percentage
+  ///
+  /// In en, this message translates to:
+  /// **'{completed} / {total} topics completed ({percent}%)'**
+  String completedTopicsCount(int completed, int total, int percent);
+
+  /// Add topic button
+  ///
+  /// In en, this message translates to:
+  /// **'Add Topic'**
+  String get addTopic;
+
+  /// Edit topic button
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Topic'**
+  String get editTopic;
+
+  /// Delete topic button
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Topic'**
+  String get deleteTopic;
+
+  /// Delete topic confirmation dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Topic'**
+  String get deleteTopicConfirmTitle;
+
+  /// Delete topic confirmation dialog body
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this topic? Related study sessions will not be deleted.'**
+  String get deleteTopicConfirmBody;
+
+  /// Topic title input label
+  ///
+  /// In en, this message translates to:
+  /// **'Topic Title'**
+  String get topicTitleLabel;
+
+  /// Topic title input placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Introduction to Derivatives'**
+  String get topicTitlePlaceholder;
+
+  /// Topic description input label
+  ///
+  /// In en, this message translates to:
+  /// **'Description (Optional)'**
+  String get topicDescLabel;
+
+  /// Topic status: Not Started
+  ///
+  /// In en, this message translates to:
+  /// **'Not Started'**
+  String get topicStatusNotStarted;
+
+  /// Topic status: In Progress
+  ///
+  /// In en, this message translates to:
+  /// **'In Progress'**
+  String get topicStatusInProgress;
+
+  /// Topic status: Completed
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get topicStatusCompleted;
+
+  /// Empty topics placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'No topics added yet. Add topics to create your course study plan.'**
+  String get emptyTopics;
+
+  /// Plan study session button
+  ///
+  /// In en, this message translates to:
+  /// **'Plan Session'**
+  String get planSession;
+
+  /// Edit study session button
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Session'**
+  String get editSession;
+
+  /// Delete study session button
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Session'**
+  String get deleteSession;
+
+  /// Delete study session confirmation dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Study Session'**
+  String get deleteSessionConfirmTitle;
+
+  /// Delete study session confirmation dialog body
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this study session?'**
+  String get deleteSessionConfirmBody;
+
+  /// Session title input label
+  ///
+  /// In en, this message translates to:
+  /// **'Session Title'**
+  String get sessionTitleLabel;
+
+  /// Session title input placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Practice Problems - Limits'**
+  String get sessionTitlePlaceholder;
+
+  /// Session date input label
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get sessionDateLabel;
+
+  /// Session start time input label
+  ///
+  /// In en, this message translates to:
+  /// **'Start Time'**
+  String get sessionTimeLabel;
+
+  /// Session planned duration input label
+  ///
+  /// In en, this message translates to:
+  /// **'Planned Duration (Minutes)'**
+  String get sessionPlannedDurationLabel;
+
+  /// Session topic dropdown label
+  ///
+  /// In en, this message translates to:
+  /// **'Topic (Optional)'**
+  String get sessionTopicLabel;
+
+  /// No topic selected option
+  ///
+  /// In en, this message translates to:
+  /// **'No Topic (General Study)'**
+  String get noTopicSelected;
+
+  /// Deleted topic indicator badge
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted Topic'**
+  String get deletedTopic;
+
+  /// Upcoming study sessions section header
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming Sessions'**
+  String get upcomingSessions;
+
+  /// Past study sessions section header
+  ///
+  /// In en, this message translates to:
+  /// **'Past Sessions'**
+  String get pastSessions;
+
+  /// Empty study sessions placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'No scheduled study sessions yet.'**
+  String get emptySessions;
+
+  /// Planned duration text
+  ///
+  /// In en, this message translates to:
+  /// **'Planned: {minutes} min'**
+  String plannedDurationText(int minutes);
+
+  /// Actual duration text
+  ///
+  /// In en, this message translates to:
+  /// **'Actual: {minutes} min'**
+  String actualDurationText(int minutes);
+
+  /// Mark session as completed button
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as Completed'**
+  String get markSessionCompleted;
+
+  /// Mark session as incomplete button
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as Incomplete'**
+  String get markSessionUncompleted;
+
+  /// Complete session dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Complete Session'**
+  String get completeSessionDialogTitle;
+
+  /// Actual duration input label
+  ///
+  /// In en, this message translates to:
+  /// **'Actual Duration (min, Optional)'**
+  String get actualDurationLabel;
+
+  /// Reflection note input label
+  ///
+  /// In en, this message translates to:
+  /// **'Reflection Note (Optional)'**
+  String get reflectionNotesLabel;
+
+  /// Reflection note input placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'What did you learn in this session, what was challenging?'**
+  String get reflectionNotesPlaceholder;
+
+  /// Session status: Planned
+  ///
+  /// In en, this message translates to:
+  /// **'Planned'**
+  String get sessionPlannedStatus;
+
+  /// Session status: Completed
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get sessionCompletedStatus;
+
+  /// Session status: Planned past
+  ///
+  /// In en, this message translates to:
+  /// **'Planned (Past)'**
+  String get sessionPastPlannedStatus;
+
+  /// Validation message when field is required
+  ///
+  /// In en, this message translates to:
+  /// **'This field is required'**
+  String get fieldRequired;
+
+  /// General description label
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get descriptionLabel;
+
+  /// General status label
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get statusLabel;
 }
 
 class _AppLocalizationsDelegate

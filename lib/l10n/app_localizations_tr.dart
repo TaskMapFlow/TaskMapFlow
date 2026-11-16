@@ -966,4 +966,155 @@ class AppLocalizationsTr extends AppLocalizations {
   String partialFailedAreasWarning(int count) {
     return '$count alanın görevleri yüklenemedi.';
   }
+
+  @override
+  String get tabStudyPlan => 'Çalışma Planı';
+
+  @override
+  String get topicsTitle => 'Konular';
+
+  @override
+  String get studySessionsTitle => 'Çalışma Oturumları';
+
+  @override
+  String get topicProgress => 'Konu İlerlemesi';
+
+  @override
+  String completedTopicsCount(int completed, int total, int percent) {
+    return '$completed / $total konu tamamlandı (%$percent)';
+  }
+
+  @override
+  String get addTopic => 'Konu Ekle';
+
+  @override
+  String get editTopic => 'Konuyu Düzenle';
+
+  @override
+  String get deleteTopic => 'Konuyu Sil';
+
+  @override
+  String get deleteTopicConfirmTitle => 'Konuyu Sil';
+
+  @override
+  String get deleteTopicConfirmBody =>
+      'Bu konuyu silmek istediğinizden emin misiniz? İlişkili çalışma oturumları silinmeyecektir.';
+
+  @override
+  String get topicTitleLabel => 'Konu Başlığı';
+
+  @override
+  String get topicTitlePlaceholder => 'Örn. Türev ve İntegral Giriş';
+
+  @override
+  String get topicDescLabel => 'Açıklama (İsteğe bağlı)';
+
+  @override
+  String get topicStatusNotStarted => 'Başlanmadı';
+
+  @override
+  String get topicStatusInProgress => 'Çalışılıyor';
+
+  @override
+  String get topicStatusCompleted => 'Tamamlandı';
+
+  @override
+  String get emptyTopics =>
+      'Henüz konu eklenmedi. Konuları ekleyerek ders çalışma planınızı oluşturun.';
+
+  @override
+  String get planSession => 'Oturum Planla';
+
+  @override
+  String get editSession => 'Oturumu Düzenle';
+
+  @override
+  String get deleteSession => 'Oturumu Sil';
+
+  @override
+  String get deleteSessionConfirmTitle => 'Çalışma Oturumunu Sil';
+
+  @override
+  String get deleteSessionConfirmBody =>
+      'Bu çalışma oturumunu silmek istediğinizden emin misiniz?';
+
+  @override
+  String get sessionTitleLabel => 'Oturum Başlığı';
+
+  @override
+  String get sessionTitlePlaceholder => 'Örn. Soru Çözümü - Limit';
+
+  @override
+  String get sessionDateLabel => 'Tarih';
+
+  @override
+  String get sessionTimeLabel => 'Başlangıç Saati';
+
+  @override
+  String get sessionPlannedDurationLabel => 'Planlanan Süre (Dakika)';
+
+  @override
+  String get sessionTopicLabel => 'Konu (İsteğe bağlı)';
+
+  @override
+  String get noTopicSelected => 'Konu Yok (Genel Çalışma)';
+
+  @override
+  String get deletedTopic => 'Silinmiş Konu';
+
+  @override
+  String get upcomingSessions => 'Yaklaşan Oturumlar';
+
+  @override
+  String get pastSessions => 'Geçmiş Oturumlar';
+
+  @override
+  String get emptySessions => 'Henüz planlanmış çalışma oturumu yok.';
+
+  @override
+  String plannedDurationText(int minutes) {
+    return 'Planlanan: $minutes dk';
+  }
+
+  @override
+  String actualDurationText(int minutes) {
+    return 'Gerçekleşen: $minutes dk';
+  }
+
+  @override
+  String get markSessionCompleted => 'Tamamlandı Olarak İşaretle';
+
+  @override
+  String get markSessionUncompleted => 'Tamamlanmadı Olarak İşaretle';
+
+  @override
+  String get completeSessionDialogTitle => 'Oturumu Tamamla';
+
+  @override
+  String get actualDurationLabel => 'Gerçekleşen Süre (dk, İsteğe bağlı)';
+
+  @override
+  String get reflectionNotesLabel => 'Değerlendirme Notu (İsteğe bağlı)';
+
+  @override
+  String get reflectionNotesPlaceholder =>
+      'Bu oturumda neler öğrendin, nerede zorlandın?';
+
+  @override
+  String get sessionPlannedStatus => 'Planlandı';
+
+  @override
+  String get sessionCompletedStatus => 'Tamamlandı';
+
+  @override
+  String get sessionPastPlannedStatus => 'Planlandı (Geçmiş)';
+
+  @override
+  String get fieldRequired => 'Bu alan zorunludur';
+
+  @override
+  String get descriptionLabel => 'Açıklama';
+
+  @override
+  String get statusLabel => 'Durum';
 }

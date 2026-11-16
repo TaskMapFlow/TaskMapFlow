@@ -963,4 +963,155 @@ class AppLocalizationsEn extends AppLocalizations {
   String partialFailedAreasWarning(int count) {
     return 'Could not load tasks for $count area(s).';
   }
+
+  @override
+  String get tabStudyPlan => 'Study Plan';
+
+  @override
+  String get topicsTitle => 'Topics';
+
+  @override
+  String get studySessionsTitle => 'Study Sessions';
+
+  @override
+  String get topicProgress => 'Topic Progress';
+
+  @override
+  String completedTopicsCount(int completed, int total, int percent) {
+    return '$completed / $total topics completed ($percent%)';
+  }
+
+  @override
+  String get addTopic => 'Add Topic';
+
+  @override
+  String get editTopic => 'Edit Topic';
+
+  @override
+  String get deleteTopic => 'Delete Topic';
+
+  @override
+  String get deleteTopicConfirmTitle => 'Delete Topic';
+
+  @override
+  String get deleteTopicConfirmBody =>
+      'Are you sure you want to delete this topic? Related study sessions will not be deleted.';
+
+  @override
+  String get topicTitleLabel => 'Topic Title';
+
+  @override
+  String get topicTitlePlaceholder => 'e.g. Introduction to Derivatives';
+
+  @override
+  String get topicDescLabel => 'Description (Optional)';
+
+  @override
+  String get topicStatusNotStarted => 'Not Started';
+
+  @override
+  String get topicStatusInProgress => 'In Progress';
+
+  @override
+  String get topicStatusCompleted => 'Completed';
+
+  @override
+  String get emptyTopics =>
+      'No topics added yet. Add topics to create your course study plan.';
+
+  @override
+  String get planSession => 'Plan Session';
+
+  @override
+  String get editSession => 'Edit Session';
+
+  @override
+  String get deleteSession => 'Delete Session';
+
+  @override
+  String get deleteSessionConfirmTitle => 'Delete Study Session';
+
+  @override
+  String get deleteSessionConfirmBody =>
+      'Are you sure you want to delete this study session?';
+
+  @override
+  String get sessionTitleLabel => 'Session Title';
+
+  @override
+  String get sessionTitlePlaceholder => 'e.g. Practice Problems - Limits';
+
+  @override
+  String get sessionDateLabel => 'Date';
+
+  @override
+  String get sessionTimeLabel => 'Start Time';
+
+  @override
+  String get sessionPlannedDurationLabel => 'Planned Duration (Minutes)';
+
+  @override
+  String get sessionTopicLabel => 'Topic (Optional)';
+
+  @override
+  String get noTopicSelected => 'No Topic (General Study)';
+
+  @override
+  String get deletedTopic => 'Deleted Topic';
+
+  @override
+  String get upcomingSessions => 'Upcoming Sessions';
+
+  @override
+  String get pastSessions => 'Past Sessions';
+
+  @override
+  String get emptySessions => 'No scheduled study sessions yet.';
+
+  @override
+  String plannedDurationText(int minutes) {
+    return 'Planned: $minutes min';
+  }
+
+  @override
+  String actualDurationText(int minutes) {
+    return 'Actual: $minutes min';
+  }
+
+  @override
+  String get markSessionCompleted => 'Mark as Completed';
+
+  @override
+  String get markSessionUncompleted => 'Mark as Incomplete';
+
+  @override
+  String get completeSessionDialogTitle => 'Complete Session';
+
+  @override
+  String get actualDurationLabel => 'Actual Duration (min, Optional)';
+
+  @override
+  String get reflectionNotesLabel => 'Reflection Note (Optional)';
+
+  @override
+  String get reflectionNotesPlaceholder =>
+      'What did you learn in this session, what was challenging?';
+
+  @override
+  String get sessionPlannedStatus => 'Planned';
+
+  @override
+  String get sessionCompletedStatus => 'Completed';
+
+  @override
+  String get sessionPastPlannedStatus => 'Planned (Past)';
+
+  @override
+  String get fieldRequired => 'This field is required';
+
+  @override
+  String get descriptionLabel => 'Description';
+
+  @override
+  String get statusLabel => 'Status';
 }

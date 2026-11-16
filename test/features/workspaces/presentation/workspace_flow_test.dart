@@ -12,10 +12,12 @@ import 'package:task_map_flow/features/tasks/presentation/providers/task_provide
 import 'package:task_map_flow/features/team/presentation/providers/team_providers.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/map_node.dart';
 import 'package:task_map_flow/features/workspaces/domain/models/workspace.dart';
+import 'package:task_map_flow/features/study_plan/presentation/providers/study_plan_providers.dart';
 import 'package:task_map_flow/features/workspaces/presentation/providers/workspace_providers.dart';
 import '../../../helpers/fake_auth_repository.dart';
 import '../../../helpers/fake_note_repository.dart';
 import '../../../helpers/fake_sprint_repository.dart';
+import '../../../helpers/fake_study_plan_repository.dart';
 import '../../../helpers/fake_task_repository.dart';
 import '../../../helpers/fake_team_repository.dart';
 import '../../../helpers/fake_workspace_repository.dart';
@@ -28,6 +30,7 @@ void main() {
   late FakeSprintRepository fakeSprint;
   late FakeNoteRepository fakeNote;
   late FakeTeamRepository fakeTeam;
+  late FakeStudyPlanRepository fakeStudyPlan;
 
   const testUser = AuthUser(
     id: 'user_123',
@@ -48,6 +51,7 @@ void main() {
     fakeSprint = FakeSprintRepository();
     fakeNote = FakeNoteRepository();
     fakeTeam = FakeTeamRepository();
+    fakeStudyPlan = FakeStudyPlanRepository();
   });
 
   Widget buildTestApp() {
@@ -60,6 +64,7 @@ void main() {
         sprintRepositoryProvider.overrideWithValue(fakeSprint),
         noteRepositoryProvider.overrideWithValue(fakeNote),
         teamRepositoryProvider.overrideWithValue(fakeTeam),
+        studyPlanRepositoryProvider.overrideWithValue(fakeStudyPlan),
       ],
       child: const TaskMapFlowApp(
         firebaseReady: true,

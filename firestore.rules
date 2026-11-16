@@ -231,6 +231,44 @@ service cloud.firestore {
         && data.updatedAt is timestamp;
     }
 
+    function isValidTopicStatus(status) {
+      return status in ['not_started', 'in_progress', 'completed'];
+    }
+
+    function isValidTopic(data, workspaceId, ownerId) {
+      return data.keys().hasOnly(['id', 'workspaceId', 'ownerId', 'title', 'description', 'status', 'orderIndex', 'createdAt', 'updatedAt'])
+        && data.id is string && data.id.size() > 0
+        && data.workspaceId == workspaceId
+        && data.ownerId == ownerId
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 150
+        && (!('description' in data) || data.description == null || (data.description is string && data.description.size() <= 1000))
+        && isValidTopicStatus(data.status)
+        && data.orderIndex is number && data.orderIndex >= 0
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidStudySession(data, workspaceId, ownerId) {
+      return data.keys().hasOnly(['id', 'workspaceId', 'ownerId', 'title', 'scheduledAt', 'plannedDurationMinutes', 'topicId', 'isCompleted', 'completedAt', 'actualDurationMinutes', 'reflectionNotes', 'createdAt', 'updatedAt'])
+        && data.id is string && data.id.size() > 0
+        && data.workspaceId == workspaceId
+        && data.ownerId == ownerId
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 150
+        && data.scheduledAt is timestamp
+        && data.plannedDurationMinutes is number && data.plannedDurationMinutes >= 1 && data.plannedDurationMinutes <= 1440
+        && (!('topicId' in data) || data.topicId == null || (data.topicId is string && data.topicId.size() > 0))
+        && data.isCompleted is bool
+        && (!('completedAt' in data) || data.completedAt == null || data.completedAt is timestamp)
+        && (!('actualDurationMinutes' in data) || data.actualDurationMinutes == null || (data.actualDurationMinutes is number && data.actualDurationMinutes >= 0 && data.actualDurationMinutes <= 1440))
+        && (!('reflectionNotes' in data) || data.reflectionNotes == null || (data.reflectionNotes is string && data.reflectionNotes.size() <= 1000))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isLessonWorkspace(workspaceId) {
+      return get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.type == 'lesson';
+    }
+
     function isValidGithubUrl(url) {
       return url is string
         && (url == '' || (url.size() <= 200 && url.matches('^https://(www\\.)?github\\.com/[a-zA-Z0-9_-]+/?.*$')));
@@ -509,6 +547,75 @@ service cloud.firestore {
             resource.data.ownerId == request.auth.uid
             || isWorkspaceAdminOrOwner(workspaceId)
           );
+      }
+
+      // Topics subcollection – strictly lesson workspaces and owner-only
+      match /topics/{topicId} {
+        allow read: if isAuthenticated()
+          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+          && isLessonWorkspace(workspaceId);
+
+        allow create: if isAuthenticated()
+          && isWorkspaceActive(workspaceId)
+          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+          && isLessonWorkspace(workspaceId)
+          && isValidTopic(request.resource.data, workspaceId, request.auth.uid)
+          && request.resource.data.id == topicId;
+
+        allow update: if isAuthenticated()
+          && isWorkspaceActive(workspaceId)
+          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+          && isLessonWorkspace(workspaceId)
+          && request.resource.data.id == resource.data.id
+          && request.resource.data.workspaceId == workspaceId
+          && request.resource.data.ownerId == resource.data.ownerId
+          && request.resource.data.createdAt == resource.data.createdAt
+          && isValidTopic(request.resource.data, workspaceId, resource.data.ownerId);
+
+        allow delete: if isAuthenticated()
+          && isWorkspaceActive(workspaceId)
+          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+          && isLessonWorkspace(workspaceId);
+      }
+
+      // Study sessions subcollection – strictly lesson workspaces and owner-only
+      match /study_sessions/{sessionId} {
+        allow read: if isAuthenticated()
+          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+          && isLessonWorkspace(workspaceId);
+
+        allow create: if isAuthenticated()
+          && isWorkspaceActive(workspaceId)
+          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+          && isLessonWorkspace(workspaceId)
+          && isValidStudySession(request.resource.data, workspaceId, request.auth.uid)
+          && request.resource.data.id == sessionId
+          && (
+            !('topicId' in request.resource.data)
+            || request.resource.data.topicId == null
+            || exists(/databases/$(database)/documents/workspaces/$(workspaceId)/topics/$(request.resource.data.topicId))
+          );
+
+        allow update: if isAuthenticated()
+          && isWorkspaceActive(workspaceId)
+          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+          && isLessonWorkspace(workspaceId)
+          && request.resource.data.id == resource.data.id
+          && request.resource.data.workspaceId == workspaceId
+          && request.resource.data.ownerId == resource.data.ownerId
+          && request.resource.data.createdAt == resource.data.createdAt
+          && isValidStudySession(request.resource.data, workspaceId, resource.data.ownerId)
+          && (
+            (!('topicId' in request.resource.data) && !('topicId' in resource.data))
+            || request.resource.data.topicId == resource.data.topicId
+            || request.resource.data.topicId == null
+            || exists(/databases/$(database)/documents/workspaces/$(workspaceId)/topics/$(request.resource.data.topicId))
+          );
+
+        allow delete: if isAuthenticated()
+          && isWorkspaceActive(workspaceId)
+          && get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid
+          && isLessonWorkspace(workspaceId);
       }
     }
 
