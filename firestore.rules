@@ -69,8 +69,7 @@ service cloud.firestore {
       allow create: if isAuthenticated() 
         && isValidMapNode(request.resource.data, request.auth.uid)
         && request.resource.data.id == nodeId
-        && (!exists(/databases/$(database)/documents/workspaces/$(request.resource.data.workspaceId))
-            || get(/databases/$(database)/documents/workspaces/$(request.resource.data.workspaceId)).data.ownerId == request.auth.uid);
+        && getAfter(/databases/$(database)/documents/workspaces/$(request.resource.data.workspaceId)).data.ownerId == request.auth.uid;
         
       allow update: if isAuthenticated()
         && resource.data.ownerId == request.auth.uid
