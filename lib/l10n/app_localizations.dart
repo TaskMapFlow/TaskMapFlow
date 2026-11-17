@@ -2233,6 +2233,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Board'**
   String get viewSprintBoard;
+
+  /// Workspaces view option in manage screen
+  ///
+  /// In en, this message translates to:
+  /// **'Workspaces'**
+  String get manageViewWorkspaces;
+
+  /// Calendar view option in manage screen
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar'**
+  String get manageViewCalendar;
+
+  /// Jump to today button in calendar
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get jumpToToday;
+
+  /// Agenda section title in calendar
+  ///
+  /// In en, this message translates to:
+  /// **'Agenda'**
+  String get agendaTitle;
+
+  /// Option to show completed entries in calendar
+  ///
+  /// In en, this message translates to:
+  /// **'Show Completed'**
+  String get showCompleted;
+
+  /// Option to hide completed entries in calendar
+  ///
+  /// In en, this message translates to:
+  /// **'Hide Completed'**
+  String get hideCompleted;
+
+  /// Empty state title for selected day in calendar
+  ///
+  /// In en, this message translates to:
+  /// **'No scheduled events'**
+  String get noCalendarEventsTitle;
+
+  /// Empty state subtitle for selected day in calendar
+  ///
+  /// In en, this message translates to:
+  /// **'There are no tasks or study sessions scheduled for this date.'**
+  String get noCalendarEventsSubtitle;
+
+  /// Task entry type badge label
+  ///
+  /// In en, this message translates to:
+  /// **'Task'**
+  String get entryTypeTask;
+
+  /// Study session entry type badge label
+  ///
+  /// In en, this message translates to:
+  /// **'Study Session'**
+  String get entryTypeStudySession;
+
+  /// Due date prefix for task
+  ///
+  /// In en, this message translates to:
+  /// **'Due'**
+  String get dueDatePrefix;
+
+  /// Start time prefix for study session
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get startTimePrefix;
+
+  /// Duration in minutes
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String durationMinutes(int minutes);
+
+  /// Warning when some workspaces fail to load in calendar
+  ///
+  /// In en, this message translates to:
+  /// **'Some workspaces could not be loaded ({failedCount} areas).'**
+  String partialCalendarWarning(int failedCount);
 }
 
 class _AppLocalizationsDelegate

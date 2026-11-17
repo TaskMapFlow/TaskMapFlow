@@ -7,6 +7,8 @@ import 'package:task_map_flow/core/extensions/context_extensions.dart';
 import 'package:task_map_flow/core/result/result.dart';
 import 'package:task_map_flow/features/auth/domain/models/auth_state.dart';
 import 'package:task_map_flow/features/auth/presentation/providers/auth_providers.dart';
+import 'package:task_map_flow/features/manage/presentation/providers/manage_view_providers.dart';
+import 'package:task_map_flow/features/manage/presentation/widgets/manage_calendar_view.dart';
 import 'package:task_map_flow/features/tasks/presentation/providers/task_providers.dart';
 import 'package:task_map_flow/features/tasks/presentation/widgets/task_item_card.dart';
 import 'package:task_map_flow/features/team/presentation/providers/team_providers.dart';
@@ -174,6 +176,7 @@ class _ManageScreenState extends ConsumerState<ManageScreen> {
     final cardBg = isDark ? const Color(0xFF161522) : Colors.white;
     final cardBorder =
         isDark ? const Color(0xFF2A2838) : const Color(0xFFE2E0EE);
+    final manageViewMode = ref.watch(manageViewModeProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -205,70 +208,124 @@ class _ManageScreenState extends ConsumerState<ManageScreen> {
       ),
       body: Column(
         children: [
-          // Section Selector: Alanlarım / Katıldığım Alanlar / Bana Atananlar
+          // Top View Mode Switcher: [ Alanlar | Takvim ]
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Container(
-              decoration: BoxDecoration(
-                color: cardBg,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: cardBorder),
-              ),
-              padding: const EdgeInsets.all(4),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _SectionTabButton(
-                      title: l10n.myWorkspaces,
-                      isSelected: _selectedSection == 0,
-                      purple: purple,
-                      textPrimary: textPrimary,
-                      textSecondary: textSecondary,
-                      onTap: () => setState(() => _selectedSection = 0),
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+            child: Row(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? const Color(0xFF191724)
+                        : const Color(0xFFEDEDF5),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF2B283A)
+                          : const Color(0xFFDFDDE8),
                     ),
                   ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: _SectionTabButton(
-                      title: l10n.joinedWorkspaces,
-                      isSelected: _selectedSection == 1,
-                      purple: purple,
-                      textPrimary: textPrimary,
-                      textSecondary: textSecondary,
-                      onTap: () => setState(() => _selectedSection = 1),
-                    ),
+                  padding: const EdgeInsets.all(2),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _ManageViewToggleButton(
+                        label: l10n.manageViewWorkspaces,
+                        icon: Icons.dashboard_outlined,
+                        isSelected: manageViewMode == ManageViewMode.workspaces,
+                        purple: purple,
+                        textPrimary: textPrimary,
+                        textSecondary: textSecondary,
+                        onTap: () => ref
+                            .read(manageViewModeProvider.notifier)
+                            .setViewMode(ManageViewMode.workspaces),
+                      ),
+                      _ManageViewToggleButton(
+                        label: l10n.manageViewCalendar,
+                        icon: Icons.calendar_month_outlined,
+                        isSelected: manageViewMode == ManageViewMode.calendar,
+                        purple: purple,
+                        textPrimary: textPrimary,
+                        textSecondary: textSecondary,
+                        onTap: () => ref
+                            .read(manageViewModeProvider.notifier)
+                            .setViewMode(ManageViewMode.calendar),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: _SectionTabButton(
-                      title: l10n.assignedToMe,
-                      isSelected: _selectedSection == 2,
-                      purple: purple,
-                      textPrimary: textPrimary,
-                      textSecondary: textSecondary,
-                      onTap: () => setState(() => _selectedSection = 2),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
 
-          // Content body
-          Expanded(
-            child: switch (_selectedSection) {
-              0 => _MyWorkspacesView(
-                  filterType: _filterType,
-                  onFilterChanged: (t) => setState(() => _filterType = t),
-                  onJoinCode: _showJoinWithCodeDialog,
+          if (manageViewMode == ManageViewMode.calendar)
+            const Expanded(child: ManageCalendarView())
+          else ...[
+            // Section Selector: Alanlarım / Katıldığım Alanlar / Bana Atananlar
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: cardBorder),
                 ),
-              1 => _JoinedWorkspacesView(
-                  onJoinCode: _showJoinWithCodeDialog,
+                padding: const EdgeInsets.all(4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _SectionTabButton(
+                        title: l10n.myWorkspaces,
+                        isSelected: _selectedSection == 0,
+                        purple: purple,
+                        textPrimary: textPrimary,
+                        textSecondary: textSecondary,
+                        onTap: () => setState(() => _selectedSection = 0),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: _SectionTabButton(
+                        title: l10n.joinedWorkspaces,
+                        isSelected: _selectedSection == 1,
+                        purple: purple,
+                        textPrimary: textPrimary,
+                        textSecondary: textSecondary,
+                        onTap: () => setState(() => _selectedSection = 1),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: _SectionTabButton(
+                        title: l10n.assignedToMe,
+                        isSelected: _selectedSection == 2,
+                        purple: purple,
+                        textPrimary: textPrimary,
+                        textSecondary: textSecondary,
+                        onTap: () => setState(() => _selectedSection = 2),
+                      ),
+                    ),
+                  ],
                 ),
-              2 => const _AssignedTasksView(),
-              _ => const SizedBox.shrink(),
-            },
-          ),
+              ),
+            ),
+
+            // Content body
+            Expanded(
+              child: switch (_selectedSection) {
+                0 => _MyWorkspacesView(
+                    filterType: _filterType,
+                    onFilterChanged: (t) => setState(() => _filterType = t),
+                    onJoinCode: _showJoinWithCodeDialog,
+                  ),
+                1 => _JoinedWorkspacesView(
+                    onJoinCode: _showJoinWithCodeDialog,
+                  ),
+                2 => const _AssignedTasksView(),
+                _ => const SizedBox.shrink(),
+              },
+            ),
+          ],
         ],
       ),
     );
@@ -822,6 +879,61 @@ class _FilterChip extends StatelessWidget {
             fontSize: 12,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ManageViewToggleButton extends StatelessWidget {
+  const _ManageViewToggleButton({
+    required this.label,
+    required this.icon,
+    required this.isSelected,
+    required this.purple,
+    required this.textPrimary,
+    required this.textSecondary,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final bool isSelected;
+  final Color purple;
+  final Color textPrimary;
+  final Color textSecondary;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? purple : Colors.transparent,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 15,
+              color: isSelected ? Colors.white : textSecondary,
+            ),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? Colors.white : textSecondary,
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ),
     );

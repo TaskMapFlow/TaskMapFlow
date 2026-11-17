@@ -1146,4 +1146,51 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get viewSprintBoard => 'Pano';
+
+  @override
+  String get manageViewWorkspaces => 'Alanlar';
+
+  @override
+  String get manageViewCalendar => 'Takvim';
+
+  @override
+  String get jumpToToday => 'Bugün';
+
+  @override
+  String get agendaTitle => 'Gündem';
+
+  @override
+  String get showCompleted => 'Tamamlananları Göster';
+
+  @override
+  String get hideCompleted => 'Tamamlananları Gizle';
+
+  @override
+  String get noCalendarEventsTitle => 'Planlanmış etkinlik yok';
+
+  @override
+  String get noCalendarEventsSubtitle =>
+      'Bu tarihte planlanmış bir görev veya çalışma oturumu bulunmuyor.';
+
+  @override
+  String get entryTypeTask => 'Görev';
+
+  @override
+  String get entryTypeStudySession => 'Çalışma Oturumu';
+
+  @override
+  String get dueDatePrefix => 'Son teslim';
+
+  @override
+  String get startTimePrefix => 'Başlangıç';
+
+  @override
+  String durationMinutes(int minutes) {
+    return '$minutes dk';
+  }
+
+  @override
+  String partialCalendarWarning(int failedCount) {
+    return 'Bazı alanların verileri yüklenemedi ($failedCount alan).';
+  }
 }

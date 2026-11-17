@@ -787,5 +787,43 @@
     }
   },
   "viewSprintBoard": "Pano",
-  "@viewSprintBoard": {"description": "Sprint pano görünümünü aç butonu"}
+  "@viewSprintBoard": {"description": "Sprint pano görünümünü aç butonu"},
+  "manageViewWorkspaces": "Alanlar",
+  "@manageViewWorkspaces": {"description": "Yönet ekranında alanlar görünümü seçeneği"},
+  "manageViewCalendar": "Takvim",
+  "@manageViewCalendar": {"description": "Yönet ekranında takvim görünümü seçeneği"},
+  "jumpToToday": "Bugün",
+  "@jumpToToday": {"description": "Takvimde bugüne dön butonu"},
+  "agendaTitle": "Gündem",
+  "@agendaTitle": {"description": "Takvimde gündem bölümü başlığı"},
+  "showCompleted": "Tamamlananları Göster",
+  "@showCompleted": {"description": "Takvimde tamamlanan kayıtları gösterme seçeneği"},
+  "hideCompleted": "Tamamlananları Gizle",
+  "@hideCompleted": {"description": "Takvimde tamamlanan kayıtları gizleme seçeneği"},
+  "noCalendarEventsTitle": "Planlanmış etkinlik yok",
+  "@noCalendarEventsTitle": {"description": "Takvimde seçili gün için boş durum başlığı"},
+  "noCalendarEventsSubtitle": "Bu tarihte planlanmış bir görev veya çalışma oturumu bulunmuyor.",
+  "@noCalendarEventsSubtitle": {"description": "Takvimde seçili gün için boş durum alt metni"},
+  "entryTypeTask": "Görev",
+  "@entryTypeTask": {"description": "Görev kayıt türü etiketi"},
+  "entryTypeStudySession": "Çalışma Oturumu",
+  "@entryTypeStudySession": {"description": "Çalışma oturumu kayıt türü etiketi"},
+  "dueDatePrefix": "Son teslim",
+  "@dueDatePrefix": {"description": "Görev için son teslim tarihi ön eki"},
+  "startTimePrefix": "Başlangıç",
+  "@startTimePrefix": {"description": "Çalışma oturumu için başlangıç saati ön eki"},
+  "durationMinutes": "{minutes} dk",
+  "@durationMinutes": {
+    "description": "Dakika cinsinden süre",
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  },
+  "partialCalendarWarning": "Bazı alanların verileri yüklenemedi ({failedCount} alan).",
+  "@partialCalendarWarning": {
+    "description": "Takvimde bazı alanlar yüklenemediğinde gösterilen uyarı",
+    "placeholders": {
+      "failedCount": {"type": "int"}
+    }
+  }
 }

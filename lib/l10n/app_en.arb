@@ -787,5 +787,43 @@
     }
   },
   "viewSprintBoard": "Board",
-  "@viewSprintBoard": {"description": "Open sprint board view button"}
+  "@viewSprintBoard": {"description": "Open sprint board view button"},
+  "manageViewWorkspaces": "Workspaces",
+  "@manageViewWorkspaces": {"description": "Workspaces view option in manage screen"},
+  "manageViewCalendar": "Calendar",
+  "@manageViewCalendar": {"description": "Calendar view option in manage screen"},
+  "jumpToToday": "Today",
+  "@jumpToToday": {"description": "Jump to today button in calendar"},
+  "agendaTitle": "Agenda",
+  "@agendaTitle": {"description": "Agenda section title in calendar"},
+  "showCompleted": "Show Completed",
+  "@showCompleted": {"description": "Option to show completed entries in calendar"},
+  "hideCompleted": "Hide Completed",
+  "@hideCompleted": {"description": "Option to hide completed entries in calendar"},
+  "noCalendarEventsTitle": "No scheduled events",
+  "@noCalendarEventsTitle": {"description": "Empty state title for selected day in calendar"},
+  "noCalendarEventsSubtitle": "There are no tasks or study sessions scheduled for this date.",
+  "@noCalendarEventsSubtitle": {"description": "Empty state subtitle for selected day in calendar"},
+  "entryTypeTask": "Task",
+  "@entryTypeTask": {"description": "Task entry type badge label"},
+  "entryTypeStudySession": "Study Session",
+  "@entryTypeStudySession": {"description": "Study session entry type badge label"},
+  "dueDatePrefix": "Due",
+  "@dueDatePrefix": {"description": "Due date prefix for task"},
+  "startTimePrefix": "Start",
+  "@startTimePrefix": {"description": "Start time prefix for study session"},
+  "durationMinutes": "{minutes} min",
+  "@durationMinutes": {
+    "description": "Duration in minutes",
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  },
+  "partialCalendarWarning": "Some workspaces could not be loaded ({failedCount} areas).",
+  "@partialCalendarWarning": {
+    "description": "Warning when some workspaces fail to load in calendar",
+    "placeholders": {
+      "failedCount": {"type": "int"}
+    }
+  }
 }

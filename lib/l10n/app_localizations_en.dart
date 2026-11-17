@@ -1143,4 +1143,51 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get viewSprintBoard => 'Board';
+
+  @override
+  String get manageViewWorkspaces => 'Workspaces';
+
+  @override
+  String get manageViewCalendar => 'Calendar';
+
+  @override
+  String get jumpToToday => 'Today';
+
+  @override
+  String get agendaTitle => 'Agenda';
+
+  @override
+  String get showCompleted => 'Show Completed';
+
+  @override
+  String get hideCompleted => 'Hide Completed';
+
+  @override
+  String get noCalendarEventsTitle => 'No scheduled events';
+
+  @override
+  String get noCalendarEventsSubtitle =>
+      'There are no tasks or study sessions scheduled for this date.';
+
+  @override
+  String get entryTypeTask => 'Task';
+
+  @override
+  String get entryTypeStudySession => 'Study Session';
+
+  @override
+  String get dueDatePrefix => 'Due';
+
+  @override
+  String get startTimePrefix => 'Start';
+
+  @override
+  String durationMinutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String partialCalendarWarning(int failedCount) {
+    return 'Some workspaces could not be loaded ($failedCount areas).';
+  }
 }
